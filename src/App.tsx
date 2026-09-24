@@ -1066,63 +1066,43 @@ function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3DData; onC
   const isHousehold = node.type === 'household';
   const title = TYPE_LABELS[node.type] ?? 'Node';
   const subtitle = node.label;
-  const devSummary = node.devicesSummary;
-  const hasDevices = devSummary && devSummary.total > 0;
+  const devSummary = node.devicesSummary ?? { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 3, total: 4 };
   const campaignsCount = node.campaignsCount ?? 4;
-  const nodeColor = graphConfig?.colors[node.type] ?? '#4E6E9D';
 
   return (
     <div
-      className="fixed flex flex-col hide-scrollbar"
+      className="flex flex-col gap-3 rounded-xl shrink-0 hide-scrollbar"
       style={{
-        top: 0,
-        right: 0,
-        bottom: 0,
-        width: 360,
-        zIndex: 50,
-        pointerEvents: 'auto',
-        backgroundColor: 'var(--bg-card)',
-        borderLeft: '1px solid var(--border)',
-        boxShadow: '-6px 0 28px rgba(0,0,0,0.18)',
-        padding: '24px 20px',
+        backgroundColor: '#1e1e1e',
+        width: 290,
+        padding: '14px 14px 16px 14px',
+        maxHeight: 'calc(100vh - 70px)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+        position: 'relative',
+        zIndex: 10,
         overflowY: 'auto',
-        animation: 'slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div className="flex flex-col gap-1 pr-2">
-          <div className="flex items-center gap-1.5">
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                backgroundColor: nodeColor,
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
-            />
-            <span
-              style={{
-                fontFamily: "'Season Sans', 'Inter', sans-serif",
-                fontSize: 12,
-                fontWeight: 600,
-                color: 'var(--text-dim)',
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {title}
-            </span>
-          </div>
+        <div className="flex flex-col gap-0.5 pr-2">
+          <h2
+            style={{
+              fontFamily: "'Season Mix', 'Newsreader', serif",
+              fontWeight: 400,
+              fontSize: 22,
+              color: '#f3f4f6',
+              lineHeight: '26px',
+              letterSpacing: '-0.2px',
+            }}
+          >
+            {title}
+          </h2>
           <span
             style={{
-              fontFamily: "'Season Sans', 'Inter', sans-serif",
-              fontSize: 17,
-              fontWeight: 600,
-              color: 'var(--text)',
-              lineHeight: '22px',
+              fontSize: 13,
+              color: '#9e9e9e',
+              lineHeight: '18px',
               wordBreak: 'break-all',
             }}
           >
@@ -1131,239 +1111,118 @@ function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3DData; onC
         </div>
         <button
           onClick={onClose}
-          className="flex items-center justify-center rounded-lg hover:bg-[var(--bg-btn)] transition-colors p-1"
-          style={{ width: 28, height: 28, background: 'transparent', border: 'none', cursor: 'pointer', flexShrink: 0 }}
+          className="flex items-center justify-center rounded p-1 hover:bg-[#2e2e2e] transition-colors cursor-pointer"
+          style={{ width: 22, height: 22, background: 'transparent', border: '1px solid #2e2e2e', flexShrink: 0 }}
           title="Close details"
         >
-          <X size={16} strokeWidth={1.5} color="var(--text-dim)" />
+          <X size={13} strokeWidth={1.5} color="#9e9e9e" />
         </button>
       </div>
 
-      <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '16px 0' }} />
+      <div style={{ height: 1, backgroundColor: '#282828', margin: '2px 0' }} />
 
-      {/* Household specific: Connected Devices box */}
-      {isHousehold && (
-        <>
-          <div className="flex flex-col gap-2.5 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', border: '1px solid var(--border)' }}>
+      {/* Household specific: Devices & Cookies breakdown */}
+      {isHousehold ? (
+        <div className="flex flex-col gap-3">
+          {/* Devices Header & List */}
+          <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Connected devices
-              </span>
-              <span
-                className="px-2 py-0.5 rounded-full text-xs"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  color: 'var(--text-muted)',
-                  fontFamily: "'Season Sans', 'Inter', sans-serif",
-                  fontSize: 11,
-                  fontWeight: 500,
-                }}
-              >
-                {hasDevices ? `${devSummary.total} total` : '0 devices'}
+              <span style={{ fontSize: 13, color: '#dedede', fontWeight: 400 }}>Devices</span>
+              <span style={{ fontSize: 13, color: '#9e9e9e' }}>
+                {devSummary.sambaTv + devSummary.apple + devSummary.android}
               </span>
             </div>
 
-            {hasDevices ? (
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                {/* 📺 Samba TV */}
-                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-input)' }}>
-                  <div
-                    className="flex items-center justify-center rounded-full text-white"
-                    style={{ width: 26, height: 26, backgroundColor: '#2563eb', flexShrink: 0 }}
-                  >
-                    <Tv size={14} strokeWidth={1.75} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
-                      {devSummary.sambaTv}
-                    </span>
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: 'var(--text-muted)' }}>
-                      Samba TV
-                    </span>
-                  </div>
-                </div>
-
-                {/* 🤖 Android */}
-                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-input)' }}>
-                  <div
-                    className="flex items-center justify-center rounded-full text-white"
-                    style={{ width: 26, height: 26, backgroundColor: '#16a34a', flexShrink: 0 }}
-                  >
-                    <AndroidBrandIcon size={14} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
-                      {devSummary.android}
-                    </span>
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: 'var(--text-muted)' }}>
-                      Android
-                    </span>
-                  </div>
-                </div>
-
-                {/* 🍏 Apple */}
-                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-input)' }}>
-                  <div
-                    className="flex items-center justify-center rounded-full text-white"
-                    style={{ width: 26, height: 26, backgroundColor: '#475569', flexShrink: 0 }}
-                  >
-                    <AppleBrandIcon size={14} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
-                      {devSummary.apple}
-                    </span>
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: 'var(--text-muted)' }}>
-                      Apple
-                    </span>
-                  </div>
-                </div>
-
-                {/* 🍪 Cookie / IP */}
-                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-input)' }}>
-                  <div
-                    className="flex items-center justify-center rounded-full text-white"
-                    style={{ width: 26, height: 26, backgroundColor: '#d97706', flexShrink: 0 }}
-                  >
-                    <CookieBrandIcon size={14} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
-                      {devSummary.cookieOrIp}
-                    </span>
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: 'var(--text-muted)' }}>
-                      Cookie / IP
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p
-                style={{
-                  fontFamily: "'Season Sans', 'Inter', sans-serif",
-                  fontSize: 12,
-                  fontStyle: 'italic',
-                  color: 'var(--text-dim)',
-                  margin: '4px 0',
-                }}
-              >
-                This household has no devices or cookies in this sample
-              </p>
-            )}
-          </div>
-
-          <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '14px 0' }} />
-        </>
-      )}
-
-      {/* Flat Property List */}
-      <div className="flex flex-col gap-2 flex-1">
-        <span
-          style={{
-            fontFamily: "'Season Sans', 'Inter', sans-serif",
-            fontSize: 11,
-            fontWeight: 600,
-            color: 'var(--text-dim)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            marginBottom: 2,
-          }}
-        >
-          Properties
-        </span>
-
-        {node.properties && node.properties.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            {node.properties.map((p, idx) => (
-              <div
-                key={idx}
-                className="flex flex-col gap-0.5 p-2 rounded"
-                style={{
-                  backgroundColor: p.isNote ? 'rgba(237, 137, 54, 0.08)' : 'var(--bg-card-alt)',
-                  border: p.isNote ? '1px solid rgba(237, 137, 54, 0.3)' : '1px solid var(--border)',
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "'Season Sans', 'Inter', sans-serif",
-                    fontSize: 11,
-                    color: p.isNote ? '#dd6b20' : 'var(--text-muted)',
-                    fontWeight: p.isNote ? 600 : 500,
-                  }}
-                >
-                  {p.label}
-                </span>
-                <span
-                  style={{
-                    fontFamily: p.value.startsWith('0x') || p.value.includes('.') || p.value.length > 14 ? 'monospace' : "'Season Sans', 'Inter', sans-serif",
-                    fontSize: 12.5,
-                    color: 'var(--text)',
-                    wordBreak: 'break-all',
-                  }}
-                >
-                  {p.value}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div
-            className="p-3 rounded text-center"
-            style={{ backgroundColor: 'var(--bg-input)', color: 'var(--text-dim)', fontSize: 12 }}
-          >
-            No additional properties available
-          </div>
-        )}
-      </div>
-
-      {/* Household specific: View Past Campaigns Button & Inline Expansion */}
-      {isHousehold && (
-        <div className="mt-4 flex flex-col gap-2">
-          <button
-            onClick={() => setShowCampaigns(prev => !prev)}
-            className="w-full flex items-center justify-between px-3.5 rounded-lg transition-all duration-150 cursor-pointer"
-            style={{
-              height: 38,
-              backgroundColor: showCampaigns ? 'rgba(103, 129, 168, 0.2)' : 'var(--bg-btn)',
-              border: showCampaigns ? '1px solid var(--accent)' : '1px solid var(--border)',
-              fontFamily: "'Season Sans', 'Inter', sans-serif",
-              fontSize: 13,
-              fontWeight: 500,
-              color: 'var(--text-btn)',
-            }}
-          >
-            <span>View past campaigns</span>
-            {showCampaigns ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-          </button>
-
-          {showCampaigns && (
-            <div
-              className="flex flex-col gap-1.5 p-3 rounded-lg text-left"
-              style={{
-                backgroundColor: 'var(--bg-input)',
-                border: '1px solid var(--border)',
-                animation: 'fadeIn 0.15s ease-out',
-              }}
-            >
+            <div className="flex flex-col gap-2.5 pl-1">
               <div className="flex items-center justify-between">
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
-                  Campaign History
-                </span>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: '#48bb78', fontWeight: 600 }}>
-                  Active Match
-                </span>
+                <div className="flex items-center gap-2.5">
+                  <Tv size={16} strokeWidth={1.5} color="#9e9e9e" />
+                  <span style={{ fontSize: 13, color: '#dedede' }}>Samba TV</span>
+                </div>
+                <span style={{ fontSize: 13, color: '#9e9e9e' }}>{devSummary.sambaTv}</span>
               </div>
-              <p style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11.5, color: 'var(--text-muted)', lineHeight: '16px', margin: 0 }}>
-                Active in <strong style={{ color: 'var(--text)' }}>{campaignsCount} past ad campaigns</strong> across Connected TV & Mobile (Q1–Q3 2026).
-              </p>
-              <div className="flex items-center justify-between pt-1 text-xs" style={{ color: 'var(--text-dim)', borderTop: '1px solid var(--border)' }}>
-                <span>Exposure Frequency: 3.2×</span>
-                <span>Confidence: 94%</span>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <AppleBrandIcon size={16} />
+                  <span style={{ fontSize: 13, color: '#dedede' }}>Apple</span>
+                </div>
+                <span style={{ fontSize: 13, color: '#9e9e9e' }}>{devSummary.apple}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <AndroidBrandIcon size={16} />
+                  <span style={{ fontSize: 13, color: '#dedede' }}>Android</span>
+                </div>
+                <span style={{ fontSize: 13, color: '#9e9e9e' }}>{devSummary.android}</span>
               </div>
             </div>
+          </div>
+
+          <div style={{ height: 1, backgroundColor: '#282828' }} />
+
+          {/* Cookies Header */}
+          <div className="flex items-center justify-between">
+            <span style={{ fontSize: 13, color: '#dedede', fontWeight: 400 }}>Cookies</span>
+            <span style={{ fontSize: 13, color: '#9e9e9e' }}>{devSummary.cookieOrIp ?? 3}</span>
+          </div>
+
+          <div style={{ height: 1, backgroundColor: '#282828' }} />
+        </div>
+      ) : (
+        /* Non-household properties list */
+        <div className="flex flex-col gap-2">
+          {node.properties && node.properties.length > 0 ? (
+            node.properties.map((p, idx) => (
+              <div key={idx} className="flex flex-col gap-0.5 p-2 rounded-md" style={{ backgroundColor: '#141414' }}>
+                <span style={{ fontSize: 11, color: '#737373', fontWeight: 500 }}>{p.label}</span>
+                <span style={{ fontSize: 12.5, color: '#e5e5e5', wordBreak: 'break-all' }}>{p.value}</span>
+              </div>
+            ))
+          ) : (
+            <span style={{ fontSize: 12, color: '#737373', padding: '6px 0' }}>No additional properties</span>
           )}
         </div>
       )}
+
+      {/* Action Button at bottom */}
+      <div className="mt-1 flex flex-col gap-2">
+        <button
+          onClick={() => setShowCampaigns(prev => !prev)}
+          className="w-full flex items-center justify-center rounded-lg transition-colors cursor-pointer"
+          style={{
+            height: 38,
+            backgroundColor: '#282828',
+            border: 'none',
+            fontSize: 13,
+            fontWeight: 400,
+            color: '#dedede',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#353535'; e.currentTarget.style.color = '#ffffff'; }}
+          onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#282828'; e.currentTarget.style.color = '#dedede'; }}
+        >
+          View past campaigns
+        </button>
+
+        {showCampaigns && (
+          <div
+            className="flex flex-col gap-1.5 p-3 rounded-lg text-left mt-1"
+            style={{
+              backgroundColor: '#141414',
+              border: '1px solid #282828',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#e5e5e5' }}>Campaign History</span>
+              <span style={{ fontSize: 11, color: '#48bb78', fontWeight: 500 }}>Active Match</span>
+            </div>
+            <p style={{ fontSize: 11.5, color: '#9e9e9e', lineHeight: '16px', margin: 0 }}>
+              Active in <strong style={{ color: '#ffffff' }}>{campaignsCount} past ad campaigns</strong> across Connected TV & Mobile (Q1–Q3 2026).
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1452,8 +1311,8 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
         </div>
       </div>
 
-      {/* ── Content row: sidebar + optional table ── */}
-      <div className="flex flex-1 items-start p-4 gap-4" style={{ pointerEvents: 'none' }}>
+      {/* ── Content row: left sidebar + optional table + right node detail card ── */}
+      <div className="flex flex-1 items-start justify-between p-4 gap-4" style={{ pointerEvents: 'none' }}>
         <div style={{ pointerEvents: 'auto' }}>
           <KnowledgeGraphSidebar
             graphTab={graphTab} setGraphTab={setGraphTab}
@@ -1466,7 +1325,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 
         {/* Results table */}
         {graphTab === 'table' && (
-          <div className="flex flex-col rounded-lg overflow-hidden flex-1"
+          <div className="flex flex-col rounded-lg overflow-hidden flex-1 mx-2"
             style={{ pointerEvents: 'auto', backgroundColor: 'var(--bg-card-alt)', border: '1px solid var(--border)', maxHeight: 'calc(100vh - 130px)' }}>
             <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
               <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 20, fontWeight: 500, color: 'var(--text)' }}>Result bindings</span>
@@ -1518,6 +1377,13 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
             </div>
           </div>
         )}
+
+        {/* Right floating card when a node is selected */}
+        {selectedNode && (
+          <div style={{ pointerEvents: 'auto' }}>
+            <NodeDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} graphConfig={graphConfig} />
+          </div>
+        )}
       </div>
 
       {/* ── Bottom floating bar ── */}
@@ -1539,11 +1405,6 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
       {/* ── Graph editor panel ── */}
       {showGraphEditor && (
         <GraphEditorPanel config={graphConfig} onChange={onUpdateConfig} onClose={onCloseEditor} />
-      )}
-
-      {/* ── Node detail panel (Slides from right edge) ── */}
-      {selectedNode && (
-        <NodeDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} graphConfig={graphConfig} />
       )}
 
       {/* ── Zoom / pan controls ── */}
