@@ -354,43 +354,53 @@ function SelectDropdown({ label, options, value, onChange }: {
   }, []);
 
   return (
-    <div className="flex flex-col gap-0.5 w-full relative" ref={ref}>
+    <div className="flex flex-col gap-2 w-full relative" ref={ref}>
       {label && (
-        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: '#8a8a8a', lineHeight: '14px' }}>
+        <div style={{ alignSelf: 'stretch', color: 'var(--NEUTRAL-600, #A3A3A3)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
           {label}
-        </span>
+        </div>
       )}
-      <button
-        onClick={() => setOpen(p => !p)}
-        className="relative flex items-center justify-between rounded-md w-full transition-colors cursor-pointer"
-        style={{
-          backgroundColor: '#141414',
-          height: 28,
-          paddingLeft: 10,
-          paddingRight: 10,
-          border: open ? '1px solid #5b7aa5' : '1px solid #282828',
-          textAlign: 'left',
-        }}
-      >
-        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: '#e5e5e5', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {selected.label}
-        </span>
-        <ChevronDown size={13} strokeWidth={1.5} color="#8a8a8a"
-          style={{ transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }} />
-      </button>
+      <div style={{ alignSelf: 'stretch', position: 'relative', justifyContent: 'flex-start', alignItems: 'flex-start', display: 'inline-flex', width: '100%' }}>
+        <button
+          onClick={() => setOpen(p => !p)}
+          className="cursor-pointer"
+          style={{
+            flex: '1 1 0',
+            height: 32,
+            paddingLeft: 12,
+            paddingRight: 32,
+            background: 'var(--white, #1A1A1A)',
+            borderRadius: 4,
+            border: open ? '1px solid var(--PACIFIC--BLUE-500, #6781A8)' : 'none',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'flex-start',
+            display: 'inline-flex',
+            textAlign: 'left',
+            width: '100%',
+          }}
+        >
+          <div style={{ alignSelf: 'stretch', color: 'var(--NEUTRAL-900, #D9D9D9)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {selected.label}
+          </div>
+        </button>
+        <div style={{ width: 32, height: 32, right: 0, top: 0, position: 'absolute', justifyContent: 'center', alignItems: 'center', display: 'flex', pointerEvents: 'none' }}>
+          <ChevronDown size={14} color="#E5E5E5" style={{ transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'none' }} />
+        </div>
+      </div>
       {open && (
-        <div className="absolute z-50 rounded-lg overflow-hidden shadow-2xl"
-          style={{ top: '100%', left: 0, right: 0, marginTop: 4, backgroundColor: '#1c1c1c', border: '1px solid #333333', boxShadow: '0 8px 28px rgba(0,0,0,0.6)' }}>
+        <div className="absolute z-50 rounded overflow-hidden shadow-2xl"
+          style={{ top: '100%', left: 0, right: 0, marginTop: 4, background: 'var(--NEUTRAL-100, #222222)', border: '1px solid var(--NEUTRAL-200, #2E2E2E)', borderRadius: 6, boxShadow: '0 8px 28px rgba(0,0,0,0.6)' }}>
           {options.map(opt => (
             <button key={opt.value} onClick={() => { onChange(opt.value); setOpen(false); }}
               className="w-full flex flex-col items-start px-3 py-2 transition-colors cursor-pointer text-left"
-              style={{ backgroundColor: opt.value === value ? '#2a2a2a' : 'transparent', borderBottom: '1px solid #282828' }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#333333')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = opt.value === value ? '#2a2a2a' : 'transparent')}>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12.5, color: opt.value === value ? '#ffffff' : '#c4c4c4', fontWeight: opt.value === value ? 500 : 400 }}>
+              style={{ backgroundColor: opt.value === value ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent', borderBottom: '1px solid var(--NEUTRAL-200, #2E2E2E)' }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--NEUTRAL-200, #2E2E2E)')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = opt.value === value ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent')}>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: opt.value === value ? 'var(--black, #E5E5E5)' : 'var(--NEUTRAL-800, #C6C6C6)', fontWeight: opt.value === value ? 500 : 400 }}>
                 {opt.label}
               </span>
-              {opt.desc && <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: '#8a8a8a', marginTop: 1 }}>{opt.desc}</span>}
+              {opt.desc && <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--NEUTRAL-500, #8A8A8A)', marginTop: 1 }}>{opt.desc}</span>}
             </button>
           ))}
         </div>
@@ -405,10 +415,10 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   const suggestions = [
-    'Households with Samba TV and more than 3 devices',
     'Households in Texas',
-    'Households with income over $75k',
     'People in New York who like Friends',
+    'Households with Samba TV and more than 3 devices',
+    'Households with income over $75k',
     'Households that like Comedy and read about Sports',
     'People who like Game of Thrones, living in New York, who are married',
   ];
@@ -447,20 +457,20 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
   };
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden" style={{ alignSelf: 'stretch' }}>
       {/* Left indicator */}
       {canScrollLeft && (
         <button
           onClick={() => scrollBy(-100)}
           className="absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 pl-0"
           style={{
-            background: 'linear-gradient(to right, var(--bg-card) 65%, transparent)',
+            background: 'linear-gradient(to right, var(--NEUTRAL-100, #222222) 65%, transparent)',
             border: 'none',
             cursor: 'pointer',
           }}
           title="Scroll left"
         >
-          <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#2e2e2e] hover:bg-[#3d3d3d] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors shadow-sm">
+          <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[var(--NEUTRAL-200,#2E2E2E)] text-[var(--NEUTRAL-600,#A3A3A3)] hover:text-white transition-colors">
             <ChevronLeft size={12} strokeWidth={2.2} />
           </div>
         </button>
@@ -472,22 +482,22 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
           onClick={() => scrollBy(100)}
           className="absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 pr-0"
           style={{
-            background: 'linear-gradient(to left, var(--bg-card) 65%, transparent)',
+            background: 'linear-gradient(to left, var(--NEUTRAL-100, #222222) 65%, transparent)',
             border: 'none',
             cursor: 'pointer',
           }}
           title="Scroll right"
         >
-          <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#2e2e2e] hover:bg-[#3d3d3d] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors shadow-sm">
+          <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[var(--NEUTRAL-200,#2E2E2E)] text-[var(--NEUTRAL-600,#A3A3A3)] hover:text-white transition-colors">
             <ChevronRight size={12} strokeWidth={2.2} />
           </div>
         </button>
       )}
 
-      {/* Horizontal smooth scrollable chips */}
+      {/* Horizontal chip suggestions */}
       <div
         ref={containerRef}
-        className="flex gap-1.5 overflow-x-auto hide-scrollbar scroll-smooth py-0.5"
+        className="flex gap-2 overflow-x-auto hide-scrollbar scroll-smooth py-0.5"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -500,33 +510,20 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
             <button
               key={tag}
               onClick={() => onSelect(tag)}
-              className="flex items-center justify-center rounded-md shrink-0 transition-all duration-150 active:scale-95 cursor-pointer"
+              className="flex items-center justify-center shrink-0 transition-all duration-150 active:scale-95 cursor-pointer"
               style={{
-                backgroundColor: isActive ? '#383838' : '#282828',
+                height: 24,
+                paddingLeft: 8,
+                paddingRight: 8,
+                background: isActive ? 'var(--NEUTRAL-300, #4A4D50)' : 'var(--NEUTRAL-200, #2E2E2E)',
+                borderRadius: 6,
                 border: 'none',
-                outline: 'none',
-                padding: '0 10px',
-                height: 26,
-                fontFamily: "'Season Sans', 'Inter', sans-serif",
-                fontSize: 12,
-                fontWeight: isActive ? 500 : 400,
-                color: isActive ? '#f3f4f6' : '#9e9e9e',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={e => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = '#333333';
-                  e.currentTarget.style.color = '#e5e5e5';
-                }
-              }}
-              onMouseLeave={e => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = '#282828';
-                  e.currentTarget.style.color = '#9e9e9e';
-                }
+                gap: 6,
               }}
             >
-              {tag}
+              <div style={{ color: isActive ? '#ffffff' : 'var(--NEUTRAL-800, #C6C6C6)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px', whiteSpace: 'nowrap' }}>
+                {tag}
+              </div>
             </button>
           );
         })}
@@ -542,53 +539,55 @@ function SparqlCodeViewer({ code, onCopy, copied }: { code: string; onCopy: () =
     const upper = token.toUpperCase();
     const keywords = ['PREFIX', 'SELECT', 'WHERE', 'GRAPH', 'LIMIT', 'CONSTRUCT', 'OPTIONAL', 'FILTER', 'BIND', 'COUNT', 'AS', 'A'];
     if (keywords.includes(upper)) {
-      return <span key={key} style={{ color: '#e05263', fontWeight: 500 }}>{token}</span>;
-    }
-    if (token.startsWith('?') || token.startsWith('$')) {
-      return <span key={key} style={{ color: '#93c5fd' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--SIGNAL--RED-500, #BE2440)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
     }
     if (token.startsWith('<') && token.endsWith('>')) {
-      return <span key={key} style={{ color: '#38a169' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--green-500, #63BA8C)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
     }
     if (token.startsWith('"') || token.startsWith("'")) {
-      return <span key={key} style={{ color: '#fbbf24' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--SANDSTONE-500, #A6684C)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
     }
     if (token.startsWith('samba:') || token.startsWith('show:') || token.startsWith('experian:') || token.startsWith('device:')) {
-      return <span key={key} style={{ color: '#67e8f9' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--PACIFIC--BLUE-500, #6781A8)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
     }
     if (/^\d+$/.test(token)) {
-      return <span key={key} style={{ color: '#38bdf8' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--teal-500, #6AC1BF)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
     }
-    return <span key={key} style={{ color: '#e5e5e5' }}>{token}</span>;
+    if (token === ':' || token === '{' || token === '}' || token === ';') {
+      return <span key={key} style={{ color: 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
+    }
+    return <span key={key} style={{ color: 'var(--black, #E5E5E5)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
   };
 
   const highlightLine = (line: string) => {
-    const parts = line.split(/(\s+|[{}<>;,])/);
+    const parts = line.split(/(\s+|[{}<>;,:])/);
     return parts.map((part, i) => highlightToken(part, i));
   };
 
   return (
-    <div className="relative rounded-md overflow-hidden" style={{ backgroundColor: '#141414', border: '1px solid #282828', padding: '8px 8px 22px 8px' }}>
-      <div className="flex flex-col gap-0.5 font-mono text-[10px] leading-[15px] overflow-x-auto hide-scrollbar" style={{ maxHeight: 95 }}>
+    <div style={{ alignSelf: 'stretch', padding: 12, background: 'var(--white, #1A1A1A)', overflow: 'hidden', border: 'none', borderRadius: 8, justifyContent: 'flex-start', alignItems: 'flex-start', gap: 10, display: 'inline-flex' }}>
+      <div style={{ textAlign: 'right', color: 'var(--NEUTRAL-300, #4A4D50)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px', userSelect: 'none' }}>
+        {lines.map((_, idx) => (
+          <div key={idx} style={{ height: 20 }}>{idx + 1}</div>
+        ))}
+      </div>
+      <div style={{ flex: '1 1 0', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 0, display: 'inline-flex', overflowX: 'auto', maxHeight: 180 }} className="hide-scrollbar">
         {lines.map((line, idx) => (
-          <div key={idx} className="flex gap-2 items-baseline">
-            <span style={{ color: '#52525b', width: 12, textAlign: 'right', userSelect: 'none', flexShrink: 0, fontSize: 9.5 }}>
-              {idx + 1}
-            </span>
-            <span className="whitespace-pre flex-1 font-mono">
-              {highlightLine(line)}
-            </span>
+          <div key={idx} style={{ alignSelf: 'stretch', height: 20, whiteSpace: 'pre' }}>
+            {highlightLine(line)}
           </div>
         ))}
       </div>
-      <button
-        onClick={onCopy}
-        className="absolute bottom-1 right-1 flex items-center justify-center rounded p-1 transition-colors cursor-pointer hover:bg-[#2e2e2e]"
-        style={{ backgroundColor: '#1e1e1e', border: '1px solid #333333', width: 20, height: 20 }}
-        title={copied ? 'Copied!' : 'Copy SPARQL'}
-      >
-        {copied ? <Check size={11} color="#48bb78" /> : <Copy size={11} strokeWidth={1.5} color="#9e9e9e" />}
-      </button>
+      <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', display: 'inline-flex', minHeight: 60 }}>
+        <div style={{ width: 4, height: 40, background: 'var(--NEUTRAL-200, #2E2E2E)', borderRadius: 99 }} />
+        <button
+          onClick={onCopy}
+          style={{ width: 24, height: 24, padding: 4, borderRadius: 4, outline: '1px var(--NEUTRAL-200, #2E2E2E) solid', outlineOffset: '-1px', justifyContent: 'center', alignItems: 'center', display: 'inline-flex', background: 'transparent', border: 'none', cursor: 'pointer' }}
+          title={copied ? 'Copied!' : 'Copy SPARQL'}
+        >
+          {copied ? <Check size={12} color="#63BA8C" /> : <Copy size={12} color="var(--NEUTRAL-600, #A3A3A3)" />}
+        </button>
+      </div>
     </div>
   );
 }
@@ -607,7 +606,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
   const [limit, setLimit] = useState('20');
   const [copied, setCopied] = useState(false);
 
-  const activeSparqlCode = sparqlQuery ?? `PREFIX samba: <http://samba.tv/ontology/graph#>\nSELECT ?household ?exp\nWHERE {\n  GRAPH <http://samba.tv/data/identity#> {\n    ?household a samba:Household ;\n      samba:stateOfResidence "Texas" .\n  }\n}\nLIMIT 20`;
+  const activeSparqlCode = sparqlQuery ?? `PREFIX samba: <http://samba.tv/ontology/graph#>\nSELECT ?household ?exp\nWHERE {\n  GRAPH <http://samba.tv/data/identity/> {\n    ?household a samba:Household ;\n      samba:stateOfResidence "Texas" .\n  }\n}\nLIMIT 20`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(activeSparqlCode);
@@ -616,145 +615,224 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl shrink-0 hide-scrollbar"
+    <div
+      className="flex flex-col shrink-0 hide-scrollbar"
       style={{
-        backgroundColor: '#1e1e1e',
-        width: 275,
-        padding: '12px 12px 14px 12px',
-        maxHeight: 'calc(100vh - 105px)',
-        border: '1px solid rgba(255, 255, 255, 0.06)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+        width: 290,
+        padding: 12,
+        background: 'var(--NEUTRAL-100, #222222)',
+        boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
+        borderRadius: 8,
+        gap: 18,
+        maxHeight: 'calc(100vh - 90px)',
+        overflowY: 'auto',
         position: 'relative',
         zIndex: 10,
-        overflowY: 'auto',
-      }}>
-
-      <h2 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontWeight: 400, fontSize: 19, color: '#f3f4f6', lineHeight: '23px', letterSpacing: '-0.2px' }}>
-        Knowledge Graph
-      </h2>
-
-      {/* Display toggle */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between">
-          <span style={{ fontSize: 11, color: '#8a8a8a', lineHeight: '14px' }}>Display</span>
-          <span style={{ fontSize: 11, color: '#737373', lineHeight: '14px' }}>{nodeCount ?? 20} nodes</span>
+      }}
+    >
+      {/* Title */}
+      <div style={{ alignSelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', display: 'inline-flex' }}>
+        <div style={{ color: 'var(--black, #E5E5E5)', fontSize: 20, fontFamily: "'Season Mix', 'Newsreader', serif", fontWeight: 580, lineHeight: '30px' }}>
+          Knowledge Graph
         </div>
-        <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', border: '1px solid #282828', height: 28 }}>
-          {(['graph', 'table'] as GraphTab[]).map(tab => (
-            <button key={tab} onClick={() => setGraphTab(tab)}
-              className="flex flex-1 items-center justify-center rounded transition-colors"
-              style={{
-                backgroundColor: graphTab === tab ? '#282828' : 'transparent',
-                color: graphTab === tab ? '#ffffff' : '#8a8a8a',
-                fontSize: 11.5,
-                fontWeight: graphTab === tab ? 500 : 400,
-                border: 'none',
-                cursor: 'pointer',
-              }}>
-              {tab === 'graph' ? 'Graph' : 'Results table'}
-            </button>
-          ))}
+      </div>
+
+      {/* Display */}
+      <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 10, display: 'flex' }}>
+        <div style={{ alignSelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', display: 'inline-flex' }}>
+          <div style={{ color: 'var(--NEUTRAL-600, #A3A3A3)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
+            Display
+          </div>
+          <div style={{ color: 'var(--NEUTRAL-400, #636363)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>
+            {nodeCount ?? 20} nodes
+          </div>
+        </div>
+        <div style={{ alignSelf: 'stretch', height: 32, padding: 4, background: 'var(--white, #1A1A1A)', borderRadius: 4, justifyContent: 'center', alignItems: 'center', gap: 4, display: 'inline-flex' }}>
+          <button
+            onClick={() => setGraphTab('graph')}
+            style={{
+              flex: '1 1 0',
+              alignSelf: 'stretch',
+              background: graphTab === 'graph' ? 'var(--whiteAlpha-50, rgba(255, 255, 255, 0.04))' : 'transparent',
+              borderRadius: 4,
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 10,
+              display: 'flex',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ color: graphTab === 'graph' ? 'var(--black, #E5E5E5)' : 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
+              Graph
+            </div>
+          </button>
+          <button
+            onClick={() => setGraphTab('table')}
+            style={{
+              flex: '1 1 0',
+              alignSelf: 'stretch',
+              background: graphTab === 'table' ? 'var(--whiteAlpha-50, rgba(255, 255, 255, 0.04))' : 'transparent',
+              borderRadius: 4,
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 10,
+              display: 'flex',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ color: graphTab === 'table' ? 'var(--black, #E5E5E5)' : 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
+              Results table
+            </div>
+          </button>
         </div>
       </div>
 
       {/* Instructions */}
-      <div className="flex flex-col gap-1">
-        <span style={{ fontSize: 11, color: '#8a8a8a', lineHeight: '14px' }}>Instructions</span>
+      <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8, display: 'flex' }}>
+        <div style={{ alignSelf: 'stretch', color: 'var(--NEUTRAL-600, #A3A3A3)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
+          Instructions
+        </div>
         <textarea
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Ask anything about your audience or graph data..."
-          className="rounded-md resize-none outline-none"
+          placeholder="Households that like comedy and read about sports"
+          className="resize-none outline-none"
           style={{
-            backgroundColor: '#141414',
-            padding: '7px 9px',
-            border: '1px solid #282828',
-            fontSize: 12,
-            color: '#e5e5e5',
-            lineHeight: '17px',
-            height: 56,
+            alignSelf: 'stretch',
+            height: 128,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 8,
+            paddingBottom: 8,
+            background: 'var(--white, #1A1A1A)',
+            borderRadius: 4,
+            border: 'none',
+            color: 'var(--black, #E5E5E5)',
+            fontSize: 14,
             fontFamily: "'Season Sans', 'Inter', sans-serif",
+            fontWeight: 400,
+            lineHeight: '20px',
           }}
         />
         <SuggestionSlider currentQuery={query} onSelect={setQuery} />
       </div>
 
+      {/* Divider */}
+      <div style={{ alignSelf: 'stretch', height: 0, outline: '1px var(--NEUTRAL-200, #2E2E2E) solid', outlineOffset: '-0.50px' }} />
+
       {/* Limit */}
-      <div className="flex flex-col gap-0.5">
-        <SelectDropdown label="Limit" options={LIMITS} value={limit} onChange={setLimit} />
+      <div style={{ alignSelf: 'stretch', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 16, display: 'inline-flex' }}>
+        <div style={{ flex: '1 1 0', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8, display: 'inline-flex' }}>
+          <SelectDropdown label="Limit" options={LIMITS} value={limit} onChange={setLimit} />
+        </div>
       </div>
 
       {/* Technical details */}
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between">
-          <span style={{ fontSize: 11, color: '#8a8a8a', lineHeight: '14px' }}>Technical details</span>
-          <button
-            onClick={() => setTechExpanded(p => !p)}
-            className="flex items-center justify-center rounded p-0.5 hover:bg-[#2e2e2e] transition-colors"
-            style={{ border: '1px solid #2e2e2e', width: 20, height: 20, background: '#141414', cursor: 'pointer' }}
-            title="Toggle details"
-          >
-            {techExpanded
-              ? <ChevronUp size={12} strokeWidth={1.5} color="#9e9e9e" />
-              : <ChevronDown size={12} strokeWidth={1.5} color="#9e9e9e" />}
-          </button>
+      <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 10, display: 'flex' }}>
+        <div style={{ alignSelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', display: 'inline-flex' }}>
+          <div style={{ color: 'var(--NEUTRAL-600, #A3A3A3)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
+            Technical details
+          </div>
+          <div style={{ justifyContent: 'flex-start', alignItems: 'center', gap: 12, display: 'flex' }}>
+            <button
+              onClick={() => setTechExpanded(p => !p)}
+              style={{
+                width: 24,
+                height: 24,
+                padding: 4,
+                borderRadius: 4,
+                outline: '1px var(--NEUTRAL-200, #2E2E2E) solid',
+                outlineOffset: '-1px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                display: 'flex',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              title="Toggle details"
+            >
+              {techExpanded ? <ChevronUp size={14} color="#E5E5E5" /> : <ChevronDown size={14} color="#E5E5E5" />}
+            </button>
+          </div>
         </div>
 
         {techExpanded && (
-          <div className="flex flex-col gap-1.5 pt-0.5">
-            <SelectDropdown options={MODELS} value={model} onChange={setModel} />
-
-            {/* Select / Construct Toggle */}
-            <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', border: '1px solid #282828', height: 26 }}>
+          <>
+            <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8, display: 'flex' }}>
+              <SelectDropdown options={MODELS} value={model} onChange={setModel} />
+            </div>
+            <div style={{ alignSelf: 'stretch', height: 32, padding: 4, background: 'var(--white, #1A1A1A)', borderRadius: 4, justifyContent: 'center', alignItems: 'center', gap: 4, display: 'inline-flex' }}>
               <button
                 onClick={() => setSparqlTab('select')}
-                className="flex flex-1 items-center justify-center rounded transition-colors"
                 style={{
-                  backgroundColor: sparqlTab === 'select' ? '#282828' : 'transparent',
-                  color: sparqlTab === 'select' ? '#ffffff' : '#8a8a8a',
-                  fontSize: 11,
-                  fontWeight: sparqlTab === 'select' ? 500 : 400,
+                  flex: '1 1 0',
+                  alignSelf: 'stretch',
+                  background: sparqlTab === 'select' ? 'var(--whiteAlpha-50, rgba(255, 255, 255, 0.04))' : 'transparent',
+                  borderRadius: 4,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: 10,
+                  display: 'flex',
                   border: 'none',
                   cursor: 'pointer',
                 }}
               >
-                Select
+                <div style={{ color: sparqlTab === 'select' ? 'var(--black, #E5E5E5)' : 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
+                  Select
+                </div>
               </button>
               <button
                 onClick={() => setSparqlTab('construct')}
-                className="flex flex-1 items-center justify-center rounded transition-colors"
                 style={{
-                  backgroundColor: sparqlTab === 'construct' ? '#282828' : 'transparent',
-                  color: sparqlTab === 'construct' ? '#ffffff' : '#8a8a8a',
-                  fontSize: 11,
-                  fontWeight: sparqlTab === 'construct' ? 500 : 400,
+                  flex: '1 1 0',
+                  alignSelf: 'stretch',
+                  background: sparqlTab === 'construct' ? 'var(--whiteAlpha-50, rgba(255, 255, 255, 0.04))' : 'transparent',
+                  borderRadius: 4,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: 10,
+                  display: 'flex',
                   border: 'none',
                   cursor: 'pointer',
                 }}
               >
-                Construct
+                <div style={{ color: sparqlTab === 'construct' ? 'var(--NEUTRAL-500, #8A8A8A)' : 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
+                  Construct
+                </div>
               </button>
             </div>
-
             <SparqlCodeViewer code={activeSparqlCode} onCopy={handleCopy} copied={copied} />
-          </div>
+          </>
         )}
       </div>
 
+      {/* Run Analysis Button */}
       <button
         onClick={onRunAnalysis}
-        className="w-full flex items-center justify-center rounded-lg transition-opacity hover:opacity-90 cursor-pointer mt-0.5"
+        className="cursor-pointer"
         style={{
-          backgroundColor: '#5b7aa5',
-          height: 34,
-          fontSize: 12.5,
-          fontWeight: 500,
-          color: '#ffffff',
+          alignSelf: 'stretch',
+          height: 40,
+          paddingLeft: 16,
+          paddingRight: 16,
+          background: 'var(--PACIFIC--BLUE-500, #6781A8)',
+          borderRadius: 6,
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 8,
+          display: 'inline-flex',
           border: 'none',
-          fontFamily: "'Season Sans', 'Inter', sans-serif",
+          transition: 'opacity 0.15s',
         }}
+        onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
+        onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
       >
-        Run Analysis
+        <div style={{ color: 'white', fontSize: 16, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '24px' }}>
+          Run Analysis
+        </div>
       </button>
     </div>
   );
