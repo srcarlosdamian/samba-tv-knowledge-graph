@@ -144,7 +144,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(55, W / H, 1, 3000);
-    camera.position.set(0, 0, 720);
+    camera.position.set(0, 0, 760);
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.75));
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
@@ -310,10 +310,10 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
     // ─── Reveal Animation Track ──────────────────────────────────────────────
     let revealClock = 0;
     let revealDone = false;
-    const HUB_IN = 0.85;
-    const NODE_INTERVAL = 0.08;
+    const HUB_IN = 0.55;
     const hubNodes = nodes.filter(n => n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket');
     const peripheralNodes = nodes.filter(n => !hubNodes.includes(n));
+    const NODE_INTERVAL = Math.min(0.025, 1.4 / Math.max(1, peripheralNodes.length));
     const REVEAL_END = HUB_IN + peripheralNodes.length * NODE_INTERVAL + 0.3;
 
     let autoRotating = true;

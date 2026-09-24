@@ -187,42 +187,96 @@ export const audienceData = {
 };
 
 // ─── Pre-computed Fibonacci sphere helper ─────────────────────────────────────
-function fibSphere(n: number, radius: number): [number, number, number][] {
+function fibSphere(n: number, radius: number, offsetAngle = 0): [number, number, number][] {
   const pts: [number, number, number][] = [];
   const golden = Math.PI * (3 - Math.sqrt(5));
   for (let i = 0; i < n; i++) {
     const y = 1 - (i / Math.max(1, n - 1)) * 2;
     const r = Math.sqrt(Math.max(0, 1 - y * y));
-    const theta = golden * i;
+    const theta = golden * i + offsetAngle;
     pts.push([Math.cos(theta) * r * radius, y * radius, Math.sin(theta) * r * radius]);
   }
   return pts;
 }
 
 const HH_IDS = [
-  '6e382a05b1af1d9b','2a3c85ba5b7588ad','3875d60a53a61971','3755283108548888',
-  'e00a493c8c98f734','770a764a077729db','6a48bc3421e45de6','4801141778832035',
-  '8612846182973880','f95a680f0ed7e4e4','c54ccbf5624389ca','e9543400f413ac09',
-  'e8bbb6fa0afd5cb6','dc33e75c07031ad0','a6aa69cc9ce634e8','4569387219552335'
+  '6e382a05b1af1d9b', '2a3c85ba5b7588ad', '3875d60a53a61971', '3755283108548888',
+  'e00a493c8c98f734', '770a764a077729db', '6a48bc3421e45de6', '4801141778832035',
+  '8612846182973880', 'f95a680f0ed7e4e4', 'c54ccbf5624389ca', 'e9543400f413ac09',
+  'e8bbb6fa0afd5cb6', 'dc33e75c07031ad0', 'a6aa69cc9ce634e8', '4569387219552335',
+  'bf771029482ca1e2', '512903847ab99ef1', '89104928bf1e34cc', '10928374fa90bc21',
+  'fa90218374bc1092', 'bc21fa9021837410', '3948571029384bc1', '9028374109283fa8',
+  '7481920384756102', '1827364509182736', '6172839405192837', '9283746152431092',
+  '3456789012345678', '9876543210987654', '1234098765432109', '8765123490876512',
+  '5647382910293847', '2938475610293847', '7483920192837465', '1029384756102938'
 ];
 
 const IND_IDS = [
-  '64aa10689b7507ec','cebcdbf756ee10b4','db3caa36ef541f49','500df0e75055093c',
-  '471cef7a96ef3f2b','804e64b1934d720d','ec988ef278528424','dc33e75c07031ad1'
+  '64aa10689b7507ec', 'cebcdbf756ee10b4', 'db3caa36ef541f49', '500df0e75055093c',
+  '471cef7a96ef3f2b', '804e64b1934d720d', 'ec988ef278528424', 'dc33e75c07031ad1',
+  '9018237465ab1928', '192837465ab90182', '7465ab1928374650', 'ab19283746590182',
+  '3847562910293847', '5849302918273645', '7182930495867182', '9384756102938475',
+  '2938475610293846', '4857691029384756', '6758493029182736', '8675940392817263',
+  '1526374859607182', '3748596071829304', '5960718293048576', '7182930485769201',
+  '8293048576920134', '9304857692013456', '0485769201345678', '4857692013456789',
+  '8576920134567890', '5769201345678901', '7692013456789012', '6920134567890123'
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Example 1: Households with Samba TV and > 3 devices (Star shaped clusters)
+// 1. Example 1: Multi-Device Household Constellation (60+ Nodes)
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample1_Devices(): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
-  const hhCount = 4;
-  const spherePts = fibSphere(hhCount, 180);
+
+  // 2 Central Core Hubs
+  nodes.push({
+    id: 'samba_dex_core1',
+    label: 'Samba TV DEX Core A',
+    type: 'household',
+    x: -80, y: 0, z: 0,
+    size: 26,
+    properties: [
+      { label: 'Cluster Type', value: 'Primary Multi-Device Hub' },
+      { label: 'Resolution Rate', value: '99.4%' },
+      { label: 'DEX Sync ID', value: 'DEX-HUB-88201' },
+      { label: 'Active Devices', value: '42 Verified Connected Units' },
+    ],
+    devicesSummary: { sambaTv: 12, apple: 16, android: 8, cookieOrIp: 14, total: 50 },
+    campaignsCount: 18,
+  });
+
+  nodes.push({
+    id: 'samba_dex_core2',
+    label: 'Samba TV DEX Core B',
+    type: 'household',
+    x: 80, y: 0, z: 0,
+    size: 26,
+    properties: [
+      { label: 'Cluster Type', value: 'Secondary Multi-Device Hub' },
+      { label: 'Resolution Rate', value: '98.8%' },
+      { label: 'DEX Sync ID', value: 'DEX-HUB-88202' },
+      { label: 'Active Devices', value: '38 Verified Connected Units' },
+    ],
+    devicesSummary: { sambaTv: 10, apple: 14, android: 10, cookieOrIp: 12, total: 46 },
+    campaignsCount: 15,
+  });
+
+  edges.push({
+    from: 'samba_dex_core1',
+    to: 'samba_dex_core2',
+    rel: 'coreSyncBridge',
+    weight: '0.99',
+    hidden: false,
+  });
+
+  // Inner Shell: 16 Households (Radius 220)
+  const hhCount = 16;
+  const hhPts = fibSphere(hhCount, 220);
 
   for (let i = 0; i < hhCount; i++) {
-    const hhId = `hh_${i}`;
-    const [hx, hy, hz] = spherePts[i];
+    const hhId = `hh_dev_${i}`;
+    const [hx, hy, hz] = hhPts[i];
     const sambaId = HH_IDS[i % HH_IDS.length];
 
     nodes.push({
@@ -230,79 +284,83 @@ function buildExample1_Devices(): GraphDataset {
       label: sambaId,
       type: 'household',
       x: hx, y: hy, z: hz,
-      size: 14,
+      size: 13,
       properties: [
         { label: 'Household ID', value: sambaId },
         { label: 'Country', value: 'US' },
         { label: 'Status', value: 'Active Match' },
-        { label: 'Graph Sample', value: 'Guaranteed 4 Device Categories' },
+        { label: 'Graph Sample', value: 'Multi-Device Household (>3 Devices)' },
       ],
-      devicesSummary: { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 3, total: 7 },
-      campaignsCount: 4 + (i * 3),
+      devicesSummary: { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 2, total: 6 },
+      campaignsCount: 4 + (i * 2),
     });
 
-    // Sub-devices in a star shape around each household
-    const devTypes: { cat: DeviceCategory; label: string; count: number; name: string }[] = [
-      { cat: 'samba_tv', label: `SambaTV-${i + 1}`, count: 1, name: 'Samba TV 65"' },
-      { cat: 'apple', label: `Apple-Mac-${i + 1}`, count: 1, name: 'Apple MacBook Pro' },
-      { cat: 'apple', label: `Apple-iPhone-${i + 1}`, count: 1, name: 'Apple iPhone 15' },
-      { cat: 'android', label: `Android-Phone-${i + 1}`, count: 1, name: 'Samsung Galaxy S24' },
-      { cat: 'cookie_or_ip', label: `Cookie-${i + 1}a`, count: 1, name: 'Cookie / Sync ID' },
-      { cat: 'cookie_or_ip', label: `Cookie-${i + 1}b`, count: 1, name: 'IP Bridge Match' },
-      { cat: 'cookie_or_ip', label: `Cookie-${i + 1}c`, count: 1, name: 'DEX Household Cookie' },
-    ];
-
-    const offsetRadius = 90;
-    devTypes.forEach((d, di) => {
-      const devId = `${hhId}_dev_${di}`;
-      const angle = (di / devTypes.length) * Math.PI * 2;
-      const dx = hx + Math.cos(angle) * offsetRadius;
-      const dy = hy + Math.sin(angle) * offsetRadius;
-      const dz = hz + (di % 2 === 0 ? 35 : -35);
-
-      const isCookie = d.cat === 'cookie_or_ip';
-      nodes.push({
-        id: devId,
-        label: d.label,
-        type: isCookie ? 'cookie_or_ip' : 'device',
-        subType: d.cat,
-        x: dx, y: dy, z: dz,
-        size: isCookie ? 8 : 10,
-        properties: isCookie
-          ? [
-              { label: 'Cookie Identifier', value: `ck_${sambaId.slice(0, 8)}_${di}` },
-              { label: 'Simulated IP', value: `192.168.1.${40 + di * 12 + i}` },
-              { label: 'Sync Status', value: 'Valid IP Bridge' },
-            ]
-          : [
-              { label: 'Device ID', value: `dev_${sambaId.slice(0, 6)}_${d.cat}_${di}` },
-              { label: 'Device Model', value: d.name },
-              { label: 'Match Key Type', value: d.cat === 'samba_tv' ? 'DEX_ID' : 'IP_MATCH' },
-              { label: 'Last Active', value: '1 hour ago' },
-            ],
-      });
-
-      // Sampled visibility: initially draw 3 edges per HH; remainder are hidden until click!
-      const isInitialSample = di < 3;
-      edges.push({
-        id: `e_${hhId}_${devId}`,
-        from: hhId,
-        to: devId,
-        rel: isCookie ? 'hasCookie' : 'hasDevice',
-        weight: (0.95 - di * 0.08).toFixed(2),
-        hidden: !isInitialSample,
-      });
+    const parentCore = i % 2 === 0 ? 'samba_dex_core1' : 'samba_dex_core2';
+    edges.push({
+      from: parentCore,
+      to: hhId,
+      rel: 'clusterMember',
+      weight: (0.95 - (i % 8) * 0.04).toFixed(2),
+      hidden: i >= 8,
     });
   }
 
-  // Cross links between some households
-  edges.push({ from: 'hh_0', to: 'hh_1', rel: 'coLocated', weight: '0.65', hidden: false });
-  edges.push({ from: 'hh_2', to: 'hh_3', rel: 'neighborhood', weight: '0.58', hidden: false });
+  // Outer Shell: 32 Devices + 16 Cookies (Radius 360-440)
+  const devTypes: { cat: DeviceCategory; label: string; name: string }[] = [
+    { cat: 'samba_tv', label: 'Samba Smart TV 65"', name: 'Samba TV 65"' },
+    { cat: 'apple', label: 'Apple TV 4K', name: 'Apple TV 4K' },
+    { cat: 'apple', label: 'Apple MacBook Pro', name: 'Apple MacBook Pro M3' },
+    { cat: 'apple', label: 'Apple iPhone 15', name: 'Apple iPhone 15' },
+    { cat: 'android', label: 'Samsung Galaxy S24', name: 'Samsung Galaxy S24' },
+    { cat: 'android', label: 'Google Pixel 8', name: 'Google Pixel 8' },
+    { cat: 'cookie_or_ip', label: 'IP Bridge Match', name: 'IP Bridge Match' },
+    { cat: 'cookie_or_ip', label: 'DEX Cookie Sync', name: 'DEX Cookie Sync' },
+  ];
+
+  const outerCount = 48;
+  const outerPts = fibSphere(outerCount, 380, 0.4);
+
+  for (let di = 0; di < outerCount; di++) {
+    const devId = `dev_node_${di}`;
+    const [dx, dy, dz] = outerPts[di];
+    const d = devTypes[di % devTypes.length];
+    const isCookie = d.cat === 'cookie_or_ip';
+
+    nodes.push({
+      id: devId,
+      label: d.label,
+      type: isCookie ? 'cookie_or_ip' : 'device',
+      subType: d.cat,
+      x: dx, y: dy, z: dz,
+      size: isCookie ? 8 : 10,
+      properties: isCookie
+        ? [
+            { label: 'Cookie Identifier', value: `ck_${HH_IDS[di % HH_IDS.length].slice(0, 8)}_${di}` },
+            { label: 'Simulated IP', value: `192.168.1.${40 + di * 4}` },
+            { label: 'Sync Status', value: 'Valid IP Bridge' },
+          ]
+        : [
+            { label: 'Device ID', value: `dev_${HH_IDS[di % HH_IDS.length].slice(0, 6)}_${d.cat}_${di}` },
+            { label: 'Device Model', value: d.name },
+            { label: 'Match Key Type', value: d.cat === 'samba_tv' ? 'DEX_ID' : 'IP_MATCH' },
+            { label: 'Last Active', value: 'Active Now' },
+          ],
+    });
+
+    const targetHH = `hh_dev_${di % hhCount}`;
+    edges.push({
+      from: targetHH,
+      to: devId,
+      rel: isCookie ? 'hasCookie' : 'hasDevice',
+      weight: (0.94 - (di % 6) * 0.05).toFixed(2),
+      hidden: di >= 16,
+    });
+  }
 
   return {
     query: 'Households with Samba TV and more than 3 devices',
     title: 'Samba TV Multi-Device Household Cluster',
-    description: 'Households verified with active Samba TV units and >= 3 connected mobile/desktop/cookie endpoints.',
+    description: '3D constellation of households verified with active Samba TV units and >= 3 connected endpoints.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -326,19 +384,19 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Example 2: Households in Texas (State Hub -> Experian HH -> Household)
+// 2. Example 2: Households in Texas (70+ Nodes in 3D Spherical World)
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample2_Texas(): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
-  // Central State node
+  // 2 Central Core Elements
   nodes.push({
-    id: 'state_tx',
-    label: 'Texas',
+    id: 'state_tx_core',
+    label: 'Texas Geographic Hub',
     type: 'state',
-    x: 0, y: 0, z: 0,
-    size: 26,
+    x: -80, y: 0, z: 0,
+    size: 28,
     properties: [
       { label: 'State Name', value: 'Texas' },
       { label: 'State Code', value: 'TX' },
@@ -347,20 +405,40 @@ function buildExample2_Texas(): GraphDataset {
     ],
   });
 
-  const count = 12;
-  const expPts = fibSphere(count, 170);
-  const hhPts = fibSphere(count, 310);
+  nodes.push({
+    id: 'experian_tx_core',
+    label: 'Experian Texas Mosaic',
+    type: 'experian_household',
+    x: 80, y: 0, z: 0,
+    size: 26,
+    properties: [
+      { label: 'Demographic Engine', value: 'Experian Identity Resolution' },
+      { label: 'Verified Residents', value: '7.4M Individuals' },
+      { label: 'State Coverage', value: '99.1%' },
+    ],
+  });
 
-  for (let i = 0; i < count; i++) {
+  edges.push({
+    from: 'state_tx_core',
+    to: 'experian_tx_core',
+    rel: 'demographicResolution',
+    weight: '1.00',
+    hidden: false,
+  });
+
+  // Inner Shell: 24 Experian Households (Radius 220)
+  const expCount = 24;
+  const expPts = fibSphere(expCount, 220);
+
+  for (let i = 0; i < expCount; i++) {
     const expId = `exp_tx_${i}`;
-    const hhId = `hh_tx_${i}`;
-    const sambaId = HH_IDS[i % HH_IDS.length];
+    const [ex, ey, ez] = expPts[i];
 
     nodes.push({
       id: expId,
       label: `Experian HH ${i + 1}`,
       type: 'experian_household',
-      x: expPts[i][0], y: expPts[i][1], z: expPts[i][2],
+      x: ex, y: ey, z: ez,
       size: 11,
       properties: [
         { label: 'Experian ID', value: `EXP-TX-${1000 + i}` },
@@ -369,44 +447,91 @@ function buildExample2_Texas(): GraphDataset {
       ],
     });
 
+    edges.push({
+      from: 'experian_tx_core',
+      to: expId,
+      rel: 'verifiedRecord',
+      weight: (0.98 - (i % 6) * 0.03).toFixed(2),
+      hidden: i >= 10,
+    });
+
+    edges.push({
+      from: 'state_tx_core',
+      to: expId,
+      rel: 'stateOfResidence',
+      weight: '1.00',
+      hidden: i >= 10,
+    });
+  }
+
+  // Mid Shell: 24 Samba Households (Radius 340)
+  const hhCount = 24;
+  const hhPts = fibSphere(hhCount, 340, 0.3);
+
+  for (let i = 0; i < hhCount; i++) {
+    const hhId = `hh_tx_${i}`;
+    const [hx, hy, hz] = hhPts[i];
+    const sambaId = HH_IDS[i % HH_IDS.length];
+
     nodes.push({
       id: hhId,
       label: sambaId,
       type: 'household',
-      x: hhPts[i][0], y: hhPts[i][1], z: hhPts[i][2],
+      x: hx, y: hy, z: hz,
       size: 12,
       properties: [
         { label: 'Household ID', value: sambaId },
-        { label: 'DMA', value: i % 2 === 0 ? 'Dallas-Ft. Worth' : 'Houston' },
+        { label: 'DMA', value: i % 3 === 0 ? 'Dallas-Ft. Worth' : i % 3 === 1 ? 'Houston' : 'Austin-San Antonio' },
         { label: 'Matched State', value: 'Texas' },
       ],
-      devicesSummary: { sambaTv: 1, apple: 1, android: 2, cookieOrIp: 1, total: 5 },
-      campaignsCount: 6 + (i % 5),
+      devicesSummary: { sambaTv: 1, apple: 2, android: 2, cookieOrIp: 1, total: 6 },
+      campaignsCount: 6 + (i % 6),
     });
 
-    // State -> Experian edge (first 6 drawn, rest hidden until State is clicked)
+    const targetExp = `exp_tx_${i % expCount}`;
     edges.push({
-      from: 'state_tx',
-      to: expId,
-      rel: 'stateOfResidence',
-      weight: '1.00',
-      hidden: i >= 6,
-    });
-
-    // Experian -> Household edge
-    edges.push({
-      from: expId,
+      from: targetExp,
       to: hhId,
       rel: 'linkedHousehold',
-      weight: '0.94',
-      hidden: i >= 6,
+      weight: '0.95',
+      hidden: i >= 12,
+    });
+  }
+
+  // Outer Shell: 20 Connected Devices (Radius 440)
+  const devPts = fibSphere(20, 440, 0.6);
+  for (let di = 0; di < 20; di++) {
+    const devId = `dev_tx_${di}`;
+    const [dx, dy, dz] = devPts[di];
+
+    nodes.push({
+      id: devId,
+      label: di % 2 === 0 ? `Samba TV TX-${di + 1}` : `Device TX-${di + 1}`,
+      type: 'device',
+      subType: di % 2 === 0 ? 'samba_tv' : 'android',
+      x: dx, y: dy, z: dz,
+      size: 9,
+      properties: [
+        { label: 'Device ID', value: `dev_tx_${di * 91 + 104}` },
+        { label: 'DMA Region', value: 'Texas Metro' },
+        { label: 'Status', value: 'Active Connected Node' },
+      ],
+    });
+
+    const targetHH = `hh_tx_${di % hhCount}`;
+    edges.push({
+      from: targetHH,
+      to: devId,
+      rel: 'hasDevice',
+      weight: '0.90',
+      hidden: di >= 8,
     });
   }
 
   return {
     query: 'Households in Texas',
     title: 'Geographic Audience Hub: Texas',
-    description: 'Households in Texas connected via intermediate Experian identity resolution nodes.',
+    description: '3D constellation of Texas households linked through intermediate Experian identity resolution nodes.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -425,18 +550,19 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. Example 3: Households with income over $75k
+// 3. Example 3: Households with income over $75k (60+ Nodes in 3D Spherical World)
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample3_Income(): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
+  // 2 Central Core Elements
   nodes.push({
-    id: 'income_75k',
-    label: '>$75k Income',
+    id: 'income_75k_core',
+    label: '>$75k Income Bracket',
     type: 'income_bracket',
-    x: 0, y: 0, z: 0,
-    size: 26,
+    x: -80, y: 0, z: 0,
+    size: 28,
     properties: [
       { label: 'Income Bracket', value: '>$75,000 / year' },
       { label: 'Median HH Income', value: '$94,200' },
@@ -445,20 +571,40 @@ function buildExample3_Income(): GraphDataset {
     ],
   });
 
-  const count = 10;
-  const expPts = fibSphere(count, 160);
-  const hhPts = fibSphere(count, 300);
+  nodes.push({
+    id: 'affluence_index_core',
+    label: 'Experian Affluence Index',
+    type: 'experian_household',
+    x: 80, y: 0, z: 0,
+    size: 26,
+    properties: [
+      { label: 'Demographic Index', value: 'High Net Worth Cluster' },
+      { label: 'Purchasing Power', value: 'Top 25% Tier' },
+      { label: 'Credit & Asset Score', value: 'Verified Tier 1' },
+    ],
+  });
 
-  for (let i = 0; i < count; i++) {
+  edges.push({
+    from: 'income_75k_core',
+    to: 'affluence_index_core',
+    rel: 'affluenceStratification',
+    weight: '0.98',
+    hidden: false,
+  });
+
+  // Inner Shell: 20 Experian Demographic Hubs (Radius 220)
+  const expCount = 20;
+  const expPts = fibSphere(expCount, 220);
+
+  for (let i = 0; i < expCount; i++) {
     const expId = `exp_inc_${i}`;
-    const hhId = `hh_inc_${i}`;
-    const sambaId = HH_IDS[i % HH_IDS.length];
+    const [ex, ey, ez] = expPts[i];
 
     nodes.push({
       id: expId,
       label: `Experian HH ${i + 1}`,
       type: 'experian_household',
-      x: expPts[i][0], y: expPts[i][1], z: expPts[i][2],
+      x: ex, y: ey, z: ez,
       size: 11,
       properties: [
         { label: 'Experian ID', value: `EXP-INC-${2000 + i}` },
@@ -467,28 +613,89 @@ function buildExample3_Income(): GraphDataset {
       ],
     });
 
+    edges.push({
+      from: 'income_75k_core',
+      to: expId,
+      rel: 'incomeBracket',
+      weight: (0.94 - (i % 5) * 0.03).toFixed(2),
+      hidden: i >= 8,
+    });
+    edges.push({
+      from: 'affluence_index_core',
+      to: expId,
+      rel: 'mosaicSegment',
+      weight: '0.92',
+      hidden: i >= 8,
+    });
+  }
+
+  // Mid Shell: 24 Samba Households (Radius 330)
+  const hhCount = 24;
+  const hhPts = fibSphere(hhCount, 330, 0.4);
+
+  for (let i = 0; i < hhCount; i++) {
+    const hhId = `hh_inc_${i}`;
+    const [hx, hy, hz] = hhPts[i];
+    const sambaId = HH_IDS[i % HH_IDS.length];
+
     nodes.push({
       id: hhId,
       label: sambaId,
       type: 'household',
-      x: hhPts[i][0], y: hhPts[i][1], z: hhPts[i][2],
+      x: hx, y: hy, z: hz,
       size: 12,
       properties: [
         { label: 'Household ID', value: sambaId },
         { label: 'Affluence Index', value: '142' },
+        { label: 'Premium Ad Engagement', value: 'High' },
       ],
       devicesSummary: { sambaTv: 1, apple: 3, android: 1, cookieOrIp: 2, total: 7 },
       campaignsCount: 9,
     });
 
-    edges.push({ from: 'income_75k', to: expId, rel: 'incomeBracket', weight: '0.90', hidden: i >= 5 });
-    edges.push({ from: expId, to: hhId, rel: 'matchedHousehold', weight: '0.92', hidden: i >= 5 });
+    const targetExp = `exp_inc_${i % expCount}`;
+    edges.push({
+      from: targetExp,
+      to: hhId,
+      rel: 'matchedHousehold',
+      weight: '0.93',
+      hidden: i >= 10,
+    });
+  }
+
+  // Outer Shell: 18 Premium Devices (Radius 430)
+  const devPts = fibSphere(18, 430, 0.7);
+  for (let di = 0; di < 18; di++) {
+    const devId = `dev_inc_${di}`;
+    const [dx, dy, dz] = devPts[di];
+
+    nodes.push({
+      id: devId,
+      label: di % 2 === 0 ? `Apple TV 4K #${di + 1}` : `MacBook Pro #${di + 1}`,
+      type: 'device',
+      subType: 'apple',
+      x: dx, y: dy, z: dz,
+      size: 9,
+      properties: [
+        { label: 'Device ID', value: `dev_prem_${di * 44 + 301}` },
+        { label: 'Category', value: 'Premium Connected Device' },
+      ],
+    });
+
+    const targetHH = `hh_inc_${di % hhCount}`;
+    edges.push({
+      from: targetHH,
+      to: devId,
+      rel: 'hasDevice',
+      weight: '0.91',
+      hidden: di >= 7,
+    });
   }
 
   return {
     query: 'Households with income over $75k',
     title: 'High Income Audience Resolution',
-    description: 'Households linked through Experian demographic income attribute hubs.',
+    description: '3D constellation of high income households resolved through Experian demographic income attribute hubs.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -507,19 +714,19 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. Example 4: Who likes Friends in New York
+// 4. Example 4: Who likes Friends in New York (60+ Nodes in 3D Spherical World)
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample4_FriendsNY(): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
-  // Series Hub
+  // 2 Central Core Elements
   nodes.push({
-    id: 'series_friends',
+    id: 'series_friends_core',
     label: 'Friends',
     type: 'series',
-    x: -180, y: 0, z: 0,
-    size: 24,
+    x: -80, y: 0, z: 0,
+    size: 28,
     properties: [
       { label: 'Series Title', value: 'Friends' },
       { label: 'Network', value: 'NBC / Warner Bros' },
@@ -528,63 +735,69 @@ function buildExample4_FriendsNY(): GraphDataset {
     ],
   });
 
-  // 2 Genre nodes
+  nodes.push({
+    id: 'state_ny_core',
+    label: 'New York Geographic Hub',
+    type: 'state',
+    x: 80, y: 0, z: 0,
+    size: 28,
+    properties: [
+      { label: 'State Name', value: 'New York' },
+      { label: 'State Code', value: 'NY' },
+      { label: 'Region', value: 'US Northeast DMA' },
+    ],
+  });
+
+  edges.push({
+    from: 'series_friends_core',
+    to: 'state_ny_core',
+    rel: 'crossGeoAffinity',
+    weight: '0.91',
+    hidden: false,
+  });
+
+  // Intermediate Genre Satellite Hubs
   nodes.push({
     id: 'genre_comedy',
     label: 'Comedy',
     type: 'genre',
-    x: -60, y: 120, z: 0,
+    x: -40, y: 160, z: 0,
     size: 18,
     properties: [
       { label: 'Genre Name', value: 'Comedy' },
-      { label: 'Affinity Type', value: 'TV Viewing Behavior' },
       { label: 'Total Reach', value: '580.0k Households' },
     ],
   });
+
   nodes.push({
     id: 'genre_sitcom',
     label: 'Sitcom',
     type: 'genre',
-    x: -60, y: -120, z: 0,
+    x: -40, y: -160, z: 0,
     size: 18,
     properties: [
       { label: 'Genre Name', value: 'Sitcom' },
-      { label: 'Affinity Type', value: 'TV Viewing Behavior' },
       { label: 'Total Reach', value: '450.0k Households' },
     ],
   });
 
-  edges.push({ from: 'series_friends', to: 'genre_comedy', rel: 'hasGenre', weight: '1.0' });
-  edges.push({ from: 'series_friends', to: 'genre_sitcom', rel: 'hasGenre', weight: '1.0' });
+  edges.push({ from: 'series_friends_core', to: 'genre_comedy', rel: 'hasGenre', weight: '1.0' });
+  edges.push({ from: 'series_friends_core', to: 'genre_sitcom', rel: 'hasGenre', weight: '1.0' });
 
-  // State Node: New York
-  nodes.push({
-    id: 'state_ny',
-    label: 'New York',
-    type: 'state',
-    x: 220, y: 0, z: 0,
-    size: 22,
-    properties: [
-      { label: 'State Name', value: 'New York' },
-      { label: 'State Code', value: 'NY' },
-    ],
-  });
+  // Inner Shell: 24 Households (Radius 250)
+  const hhCount = 24;
+  const hhPts = fibSphere(hhCount, 250);
 
-  const count = 8;
-  const spherePts = fibSphere(count, 220);
-
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < hhCount; i++) {
     const hhId = `hh_frny_${i}`;
-    const expId = `exp_ny_${i}`;
+    const [hx, hy, hz] = hhPts[i];
     const sambaId = HH_IDS[i % HH_IDS.length];
 
     nodes.push({
       id: hhId,
       label: sambaId,
       type: 'household',
-      x: 80 + spherePts[i][0] * 0.5,
-      y: spherePts[i][1],
-      z: spherePts[i][2],
+      x: hx, y: hy, z: hz,
       size: 11,
       properties: [
         { label: 'Household ID', value: sambaId },
@@ -592,33 +805,70 @@ function buildExample4_FriendsNY(): GraphDataset {
         { label: 'Location', value: 'New York, NY' },
       ],
       devicesSummary: { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 2, total: 6 },
-      campaignsCount: 5 + i,
+      campaignsCount: 5 + (i % 5),
     });
+
+    edges.push({
+      from: i % 2 === 0 ? 'genre_comedy' : 'genre_sitcom',
+      to: hhId,
+      rel: 'affinity',
+      weight: (0.90 - (i % 6) * 0.04).toFixed(2),
+      hidden: i >= 10,
+    });
+  }
+
+  // Mid Shell: 20 Experian NY Records (Radius 360)
+  const expCount = 20;
+  const expPts = fibSphere(expCount, 360, 0.4);
+
+  for (let i = 0; i < expCount; i++) {
+    const expId = `exp_ny_${i}`;
+    const [ex, ey, ez] = expPts[i];
 
     nodes.push({
       id: expId,
       label: `Experian NY ${i + 1}`,
       type: 'experian_household',
-      x: 160 + spherePts[i][0] * 0.3,
-      y: spherePts[i][1] * 0.7,
-      z: spherePts[i][2] * 0.7,
-      size: 9,
+      x: ex, y: ey, z: ez,
+      size: 10,
       properties: [
         { label: 'Experian ID', value: `EXP-NY-${300 + i}` },
         { label: 'State of Residence', value: 'New York' },
       ],
     });
 
-    // Connections to genres & experian
-    edges.push({ from: i % 2 === 0 ? 'genre_comedy' : 'genre_sitcom', to: hhId, rel: 'affinity', weight: (0.85 - i * 0.03).toFixed(2) });
-    edges.push({ from: hhId, to: expId, rel: 'identityMatch', weight: '0.94' });
-    edges.push({ from: expId, to: 'state_ny', rel: 'stateOfResidence', weight: '1.0' });
+    const targetHH = `hh_frny_${i % hhCount}`;
+    edges.push({ from: targetHH, to: expId, rel: 'identityMatch', weight: '0.94', hidden: i >= 10 });
+    edges.push({ from: expId, to: 'state_ny_core', rel: 'stateOfResidence', weight: '1.0', hidden: i >= 10 });
+  }
+
+  // Outer Shell: 16 Connected Devices (Radius 440)
+  const devPts = fibSphere(16, 440, 0.8);
+  for (let di = 0; di < 16; di++) {
+    const devId = `dev_ny_${di}`;
+    const [dx, dy, dz] = devPts[di];
+
+    nodes.push({
+      id: devId,
+      label: `Samba Smart TV NY-${di + 1}`,
+      type: 'device',
+      subType: 'samba_tv',
+      x: dx, y: dy, z: dz,
+      size: 9,
+      properties: [
+        { label: 'Device ID', value: `dev_ny_${di * 12 + 201}` },
+        { label: 'Region', value: 'New York DMA' },
+      ],
+    });
+
+    const targetHH = `hh_frny_${di % hhCount}`;
+    edges.push({ from: targetHH, to: devId, rel: 'hasDevice', weight: '0.91', hidden: di >= 6 });
   }
 
   return {
     query: 'People in New York who like Friends',
     title: 'Series Affinity & Geo Filter: Friends (NY)',
-    description: 'Viewers of Friends in New York mapped through genres and Experian residence records.',
+    description: '3D constellation of Friends viewers in New York mapped through genres and Experian residence records.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -643,49 +893,67 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Example 5: Comedy & Sports (Genre + Topic Hubs with Individuals)
+// 5. Example 5: Comedy & Sports (118+ Nodes 3D Globe with 2 Central Core Hubs)
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
+  // ═════════════════════════════════════════════════════════════════════════════
+  // 1. THE 2 CENTRAL CORE ELEMENTS (Sitting prominently in the center of the world)
+  // ═════════════════════════════════════════════════════════════════════════════
   nodes.push({
-    id: 'sports',
-    label: topicName,
-    type: 'topic',
-    x: -160, y: 0, z: 0,
-    size: 24,
-    properties: [
-      { label: 'Topic Name', value: topicName },
-      { label: 'Affinity Type', value: 'Individual Reading & Behavior' },
-      { label: 'Attached Entity', value: 'Individual Person' },
-      { label: 'Reach', value: '520.0k Individuals' },
-    ],
-  });
-
-  nodes.push({
-    id: 'comedy',
+    id: 'comedy_core',
     label: genreName,
     type: 'genre',
-    x: 160, y: 0, z: 0,
-    size: 22,
+    x: -80, y: 0, z: 0,
+    size: 28,
     properties: [
       { label: 'Genre Name', value: genreName },
-      { label: 'Affinity Type', value: 'Household Content Affinity' },
+      { label: 'Affinity Type', value: 'Household Content Viewing Behavior' },
       { label: 'Attached Entity', value: 'Household Unit' },
-      { label: 'Reach', value: '580.0k Households' },
+      { label: 'Total Reach', value: '580.0k Households' },
+      { label: 'Average Watch Time', value: '4.2 hrs / week' },
+      { label: 'Identity Confidence', value: '99.4%' },
     ],
   });
 
-  edges.push({ from: 'sports', to: 'comedy', weight: '0.81', rel: 'crossAffinity' });
+  nodes.push({
+    id: 'sports_core',
+    label: topicName,
+    type: 'topic',
+    x: 80, y: 0, z: 0,
+    size: 28,
+    properties: [
+      { label: 'Topic Name', value: topicName },
+      { label: 'Affinity Type', value: 'Individual Reading & Behavior Engagement' },
+      { label: 'Attached Entity', value: 'Individual Person' },
+      { label: 'Total Reach', value: '520.0k Individuals' },
+      { label: 'Digital Affinity Index', value: '148 (High Interest)' },
+      { label: 'Engagement Velocity', value: 'Daily Active Audience' },
+    ],
+  });
 
-  const spherePts = fibSphere(24, 300);
-  const hhCount = 14;
-  const indCount = 10;
+  // Direct luminescent bridge connecting the 2 core hubs
+  edges.push({
+    id: 'edge_core_bridge',
+    from: 'sports_core',
+    to: 'comedy_core',
+    rel: 'crossAffinity',
+    weight: '0.94',
+    hidden: false,
+  });
 
-  for (let i = 0; i < hhCount; i++) {
-    const hhId = `hh_${i}`;
-    const [x, y, z] = spherePts[i];
+  // ═════════════════════════════════════════════════════════════════════════════
+  // 2. INNER SPHERICAL SHELL (Radius 200, 36 Nodes: Households & Individuals)
+  // ═════════════════════════════════════════════════════════════════════════════
+  const innerHhCount = 20;
+  const innerIndCount = 16;
+  const innerPts = fibSphere(innerHhCount + innerIndCount, 205);
+
+  for (let i = 0; i < innerHhCount; i++) {
+    const hhId = `hh_in_${i}`;
+    const [x, y, z] = innerPts[i];
     const sambaId = HH_IDS[i % HH_IDS.length];
 
     nodes.push({
@@ -693,21 +961,28 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
       label: sambaId,
       type: 'household',
       x, y, z,
-      size: 10,
+      size: 11,
       properties: [
         { label: 'Household ID', value: sambaId },
-        { label: 'Genre Affinity', value: `${genreName} (0.84)` },
+        { label: 'Genre Affinity', value: `${genreName} (${(0.96 - i * 0.02).toFixed(2)})` },
+        { label: 'Core Proximity', value: 'Inner Orbit' },
       ],
       devicesSummary: { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 2, total: 6 },
-      campaignsCount: 4 + i,
+      campaignsCount: 4 + (i % 6),
     });
 
-    edges.push({ from: 'comedy', to: hhId, rel: 'hasAffinity', weight: (0.92 - i * 0.04).toFixed(2), hidden: i >= 7 });
+    edges.push({
+      from: 'comedy_core',
+      to: hhId,
+      rel: 'hasAffinity',
+      weight: (0.95 - (i % 6) * 0.04).toFixed(2),
+      hidden: i >= 8, // Initial sampled visibility; rest revealed on click!
+    });
   }
 
-  for (let i = 0; i < indCount; i++) {
-    const indId = `ind_${i}`;
-    const [x, y, z] = spherePts[hhCount + i];
+  for (let i = 0; i < innerIndCount; i++) {
+    const indId = `ind_in_${i}`;
+    const [x, y, z] = innerPts[innerHhCount + i];
     const personId = IND_IDS[i % IND_IDS.length];
 
     nodes.push({
@@ -718,22 +993,232 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
       size: 10,
       properties: [
         { label: 'Individual ID', value: personId },
-        { label: 'Topic Affinity', value: `${topicName} (0.89)` },
-        { label: 'Role', value: 'Household Viewer' },
+        { label: 'Topic Affinity', value: `${topicName} (${(0.95 - i * 0.02).toFixed(2)})` },
+        { label: 'Role', value: 'Primary Household Viewer' },
       ],
     });
 
-    edges.push({ from: 'sports', to: indId, rel: 'individualAffinity', weight: (0.90 - i * 0.04).toFixed(2), hidden: i >= 5 });
+    edges.push({
+      from: 'sports_core',
+      to: indId,
+      rel: 'individualAffinity',
+      weight: (0.93 - (i % 6) * 0.04).toFixed(2),
+      hidden: i >= 8,
+    });
 
-    // Link individual to corresponding household
-    const targetHH = `hh_${i % hhCount}`;
-    edges.push({ from: targetHH, to: indId, rel: 'hasIndividual', weight: '0.95' });
+    // Link individual to corresponding inner household
+    const targetHH = `hh_in_${i % innerHhCount}`;
+    edges.push({
+      from: targetHH,
+      to: indId,
+      rel: 'hasIndividual',
+      weight: '0.96',
+      hidden: i >= 10,
+    });
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════════
+  // 3. MID SPHERICAL SHELL (Radius 320, 44 Nodes: Extended Households, Individuals, Devices)
+  // ═════════════════════════════════════════════════════════════════════════════
+  const midHhCount = 14;
+  const midIndCount = 14;
+  const midDevCount = 16;
+  const midPts = fibSphere(midHhCount + midIndCount + midDevCount, 320, 0.5);
+
+  for (let i = 0; i < midHhCount; i++) {
+    const hhId = `hh_mid_${i}`;
+    const [x, y, z] = midPts[i];
+    const sambaId = HH_IDS[(i + 8) % HH_IDS.length];
+
+    nodes.push({
+      id: hhId,
+      label: sambaId,
+      type: 'household',
+      x, y, z,
+      size: 10,
+      properties: [
+        { label: 'Household ID', value: sambaId },
+        { label: 'Genre Affinity', value: `${genreName} (0.86)` },
+        { label: 'Orbit Layer', value: 'Mid Constellation' },
+      ],
+      devicesSummary: { sambaTv: 1, apple: 1, android: 2, cookieOrIp: 1, total: 5 },
+      campaignsCount: 6 + (i % 4),
+    });
+
+    edges.push({
+      from: 'comedy_core',
+      to: hhId,
+      rel: 'hasAffinity',
+      weight: (0.88 - (i % 4) * 0.04).toFixed(2),
+      hidden: true, // revealed on interaction
+    });
+
+    // Cross link with inner household
+    const innerTarget = `hh_in_${i % innerHhCount}`;
+    edges.push({
+      from: innerTarget,
+      to: hhId,
+      rel: 'coCluster',
+      weight: '0.78',
+      hidden: i >= 6,
+    });
+  }
+
+  for (let i = 0; i < midIndCount; i++) {
+    const indId = `ind_mid_${i}`;
+    const [x, y, z] = midPts[midHhCount + i];
+    const personId = IND_IDS[(i + 6) % IND_IDS.length];
+
+    nodes.push({
+      id: indId,
+      label: personId,
+      type: 'individual',
+      x, y, z,
+      size: 9,
+      properties: [
+        { label: 'Individual ID', value: personId },
+        { label: 'Topic Affinity', value: `${topicName} (0.88)` },
+        { label: 'Orbit Layer', value: 'Mid Constellation' },
+      ],
+    });
+
+    edges.push({
+      from: 'sports_core',
+      to: indId,
+      rel: 'individualAffinity',
+      weight: (0.87 - (i % 4) * 0.04).toFixed(2),
+      hidden: true,
+    });
+
+    const targetMidHH = `hh_mid_${i % midHhCount}`;
+    edges.push({
+      from: targetMidHH,
+      to: indId,
+      rel: 'hasIndividual',
+      weight: '0.94',
+      hidden: i >= 6,
+    });
+  }
+
+  for (let i = 0; i < midDevCount; i++) {
+    const devId = `dev_mid_${i}`;
+    const [x, y, z] = midPts[midHhCount + midIndCount + i];
+    const devCategory: DeviceCategory = i % 3 === 0 ? 'samba_tv' : i % 3 === 1 ? 'apple' : 'android';
+
+    nodes.push({
+      id: devId,
+      label: devCategory === 'samba_tv' ? `Samba TV 65" #${i + 1}` : devCategory === 'apple' ? `Apple TV 4K #${i + 1}` : `Samsung Galaxy Tab #${i + 1}`,
+      type: 'device',
+      subType: devCategory,
+      x, y, z,
+      size: 9,
+      properties: [
+        { label: 'Device Category', value: devCategory },
+        { label: 'Device ID', value: `dev_${devCategory}_${i * 37 + 102}` },
+        { label: 'Network Presence', value: 'Active Home Network' },
+      ],
+    });
+
+    const targetHH = `hh_in_${i % innerHhCount}`;
+    edges.push({
+      from: targetHH,
+      to: devId,
+      rel: 'hasDevice',
+      weight: '0.92',
+      hidden: i >= 8,
+    });
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════════
+  // 4. OUTER CONSTELLATION SHELL (Radius 440, 36 Nodes: Cookies, Mobile, Sub-Hubs)
+  // ═════════════════════════════════════════════════════════════════════════════
+  const outerCount = 36;
+  const outerPts = fibSphere(outerCount, 440, 1.1);
+
+  // 4 Sub-satellite Hubs on the outer sphere
+  const subSatellites = [
+    { id: 'sub_sitcom', label: 'Sitcom', type: 'genre' as NodeType, parent: 'comedy_core', rel: 'subGenre', desc: 'Situational Comedies' },
+    { id: 'sub_standup', label: 'Stand-up', type: 'genre' as NodeType, parent: 'comedy_core', rel: 'subGenre', desc: 'Stand-up Specials' },
+    { id: 'sub_live_events', label: 'Live Events', type: 'topic' as NodeType, parent: 'sports_core', rel: 'subTopic', desc: 'Live Tournament Broadcasts' },
+    { id: 'sub_highlights', label: 'Highlights', type: 'topic' as NodeType, parent: 'sports_core', rel: 'subTopic', desc: 'Sports Analysis & Recaps' },
+  ];
+
+  subSatellites.forEach((sat, si) => {
+    const [x, y, z] = outerPts[si];
+    nodes.push({
+      id: sat.id,
+      label: sat.label,
+      type: sat.type,
+      x, y, z,
+      size: 16,
+      properties: [
+        { label: 'Category', value: sat.desc },
+        { label: 'Parent Hub', value: sat.parent === 'comedy_core' ? genreName : topicName },
+        { label: 'Sub-Affinity Match', value: 'High Correlation (0.91)' },
+      ],
+    });
+
+    edges.push({
+      from: sat.parent,
+      to: sat.id,
+      rel: sat.rel,
+      weight: '0.92',
+      hidden: false,
+    });
+  });
+
+  // Remaining outer nodes: Cookie / IP resolution nodes & Mobile Devices
+  for (let di = 4; di < outerCount; di++) {
+    const [x, y, z] = outerPts[di];
+    const isCookie = di % 2 === 0;
+    const nodeId = isCookie ? `ck_out_${di}` : `mob_out_${di}`;
+
+    nodes.push({
+      id: nodeId,
+      label: isCookie ? `Cookie ID ${di - 3}` : `Mobile iPhone #${di - 3}`,
+      type: isCookie ? 'cookie_or_ip' : 'device',
+      subType: isCookie ? 'cookie_or_ip' : 'apple',
+      x, y, z,
+      size: isCookie ? 7 : 8,
+      properties: isCookie
+        ? [
+            { label: 'Cookie Resolution', value: `ck_sync_${di * 1928 + 11}` },
+            { label: 'IP Bridge Match', value: `192.168.1.${50 + di * 3}` },
+            { label: 'Status', value: 'Validated Identity Anchor' },
+          ]
+        : [
+            { label: 'Device ID', value: `mob_dev_${di * 881 + 44}` },
+            { label: 'Device Model', value: 'Apple iPhone 15 Pro' },
+            { label: 'Location Match', value: 'Verified Home Geo' },
+          ],
+    });
+
+    // Link to individuals or households
+    if (isCookie) {
+      const targetInd = `ind_in_${(di - 4) % innerIndCount}`;
+      edges.push({
+        from: targetInd,
+        to: nodeId,
+        rel: 'hasCookie',
+        weight: (0.93 - (di % 4) * 0.05).toFixed(2),
+        hidden: di >= 12,
+      });
+    } else {
+      const targetHH = `hh_mid_${(di - 4) % midHhCount}`;
+      edges.push({
+        from: targetHH,
+        to: nodeId,
+        rel: 'hasDevice',
+        weight: (0.91 - (di % 4) * 0.05).toFixed(2),
+        hidden: di >= 12,
+      });
+    }
   }
 
   return {
     query: `Households that like ${genreName} and read about ${topicName}`,
-    title: `${genreName} & ${topicName} Affinity Resolution`,
-    description: `Demonstrating Household ${genreName} affinity + Individual ${topicName} topic affinity.`,
+    title: `${genreName} & ${topicName} Affinity 3D Constellation`,
+    description: `Spherical 3D world of ${nodes.length} interconnected nodes demonstrating Household ${genreName} affinity + Individual ${topicName} topic affinity.`,
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -752,30 +1237,54 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. Example 6: Game of Thrones, NY, Married (with illustrative schema note)
+// 6. Example 6: Game of Thrones, NY, Married (60+ Nodes 3D Spherical World)
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample6_GoTMarried(): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
+  // 2 Central Core Elements
   nodes.push({
-    id: 'series_got',
+    id: 'series_got_core',
     label: 'Game of Thrones',
     type: 'series',
-    x: -200, y: 0, z: 0,
-    size: 25,
+    x: -80, y: 0, z: 0,
+    size: 28,
     properties: [
       { label: 'Series Title', value: 'Game of Thrones' },
-      { label: 'Network', value: 'HBO' },
+      { label: 'Network', value: 'HBO / Warner Bros Discovery' },
       { label: 'Genres', value: 'Drama, Fantasy' },
+      { label: 'Global Viewers', value: '18.4M Tracked Households' },
     ],
   });
 
   nodes.push({
+    id: 'state_ny_married_core',
+    label: 'New York (Married Cohort)',
+    type: 'state',
+    x: 80, y: 0, z: 0,
+    size: 28,
+    properties: [
+      { label: 'State Name', value: 'New York' },
+      { label: 'Demographic Filter', value: 'Married Households' },
+      { label: 'Experian Validation', value: 'High Confidence (0.95)' },
+    ],
+  });
+
+  edges.push({
+    from: 'series_got_core',
+    to: 'state_ny_married_core',
+    rel: 'crossCohortAffinity',
+    weight: '0.93',
+    hidden: false,
+  });
+
+  // Intermediate Genre Satellite Hubs
+  nodes.push({
     id: 'genre_drama',
     label: 'Drama',
     type: 'genre',
-    x: -80, y: 110, z: 0,
+    x: -40, y: 160, z: 0,
     size: 18,
     properties: [{ label: 'Genre Name', value: 'Drama' }, { label: 'Reach', value: '400.0k' }],
   });
@@ -783,38 +1292,28 @@ function buildExample6_GoTMarried(): GraphDataset {
     id: 'genre_fantasy',
     label: 'Fantasy',
     type: 'genre',
-    x: -80, y: -110, z: 0,
+    x: -40, y: -160, z: 0,
     size: 18,
     properties: [{ label: 'Genre Name', value: 'Fantasy' }, { label: 'Reach', value: '520.0k' }],
   });
 
-  edges.push({ from: 'series_got', to: 'genre_drama', rel: 'hasGenre', weight: '1.0' });
-  edges.push({ from: 'series_got', to: 'genre_fantasy', rel: 'hasGenre', weight: '1.0' });
+  edges.push({ from: 'series_got_core', to: 'genre_drama', rel: 'hasGenre', weight: '1.0' });
+  edges.push({ from: 'series_got_core', to: 'genre_fantasy', rel: 'hasGenre', weight: '1.0' });
 
-  nodes.push({
-    id: 'state_ny',
-    label: 'New York',
-    type: 'state',
-    x: 220, y: 0, z: 0,
-    size: 22,
-    properties: [{ label: 'State Name', value: 'New York' }, { label: 'State Code', value: 'NY' }],
-  });
+  // Inner Shell: 20 Samba Households (Radius 240)
+  const hhCount = 20;
+  const hhPts = fibSphere(hhCount, 240);
 
-  const count = 7;
-  const pts = fibSphere(count, 220);
-
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < hhCount; i++) {
     const hhId = `hh_got_${i}`;
-    const expId = `exp_got_${i}`;
+    const [hx, hy, hz] = hhPts[i];
     const sambaId = HH_IDS[i % HH_IDS.length];
 
     nodes.push({
       id: hhId,
       label: sambaId,
       type: 'household',
-      x: 70 + pts[i][0] * 0.5,
-      y: pts[i][1],
-      z: pts[i][2],
+      x: hx, y: hy, z: hz,
       size: 11,
       properties: [
         { label: 'Household ID', value: sambaId },
@@ -824,14 +1323,29 @@ function buildExample6_GoTMarried(): GraphDataset {
       campaignsCount: 8,
     });
 
+    edges.push({
+      from: i % 2 === 0 ? 'genre_drama' : 'genre_fantasy',
+      to: hhId,
+      rel: 'affinity',
+      weight: (0.92 - (i % 5) * 0.03).toFixed(2),
+      hidden: i >= 8,
+    });
+  }
+
+  // Mid Shell: 20 Experian Married Records (Radius 350)
+  const expCount = 20;
+  const expPts = fibSphere(expCount, 350, 0.4);
+
+  for (let i = 0; i < expCount; i++) {
+    const expId = `exp_got_${i}`;
+    const [ex, ey, ez] = expPts[i];
+
     nodes.push({
       id: expId,
       label: `Experian Married ${i + 1}`,
       type: 'experian_household',
-      x: 150 + pts[i][0] * 0.3,
-      y: pts[i][1] * 0.7,
-      z: pts[i][2] * 0.7,
-      size: 9,
+      x: ex, y: ey, z: ez,
+      size: 10,
       properties: [
         { label: 'State of Residence', value: 'New York' },
         { label: 'Marital Status', value: 'Married', isNote: true },
@@ -839,15 +1353,38 @@ function buildExample6_GoTMarried(): GraphDataset {
       ],
     });
 
-    edges.push({ from: i % 2 === 0 ? 'genre_drama' : 'genre_fantasy', to: hhId, rel: 'affinity', weight: (0.91 - i * 0.03).toFixed(2) });
-    edges.push({ from: hhId, to: expId, rel: 'experianProfile', weight: '0.96' });
-    edges.push({ from: expId, to: 'state_ny', rel: 'stateOfResidence', weight: '1.0' });
+    const targetHH = `hh_got_${i % hhCount}`;
+    edges.push({ from: targetHH, to: expId, rel: 'experianProfile', weight: '0.96', hidden: i >= 8 });
+    edges.push({ from: expId, to: 'state_ny_married_core', rel: 'stateOfResidence', weight: '1.0', hidden: i >= 8 });
+  }
+
+  // Outer Shell: 16 Connected Devices (Radius 440)
+  const devPts = fibSphere(16, 440, 0.8);
+  for (let di = 0; di < 16; di++) {
+    const devId = `dev_got_${di}`;
+    const [dx, dy, dz] = devPts[di];
+
+    nodes.push({
+      id: devId,
+      label: `Samba Smart TV GoT-${di + 1}`,
+      type: 'device',
+      subType: 'samba_tv',
+      x: dx, y: dy, z: dz,
+      size: 9,
+      properties: [
+        { label: 'Device ID', value: `dev_got_${di * 14 + 501}` },
+        { label: 'Location', value: 'New York Metro Area' },
+      ],
+    });
+
+    const targetHH = `hh_got_${di % hhCount}`;
+    edges.push({ from: targetHH, to: devId, rel: 'hasDevice', weight: '0.91', hidden: di >= 6 });
   }
 
   return {
     query: 'People who like Game of Thrones, living in New York, who are married',
     title: 'Series Affinity, Geo & Demographic Profile',
-    description: 'Game of Thrones viewers in New York with Experian marital status attributes.',
+    description: '3D constellation of Game of Thrones viewers in New York with Experian marital status attributes.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
