@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, createContext, useContext } from 'react';
 import {
   Network, Sun, Moon, ChevronDown, ArrowRight, Plus,
   Trash2, Search, X, Copy, ChevronUp, ChevronLeft, ChevronRight,
-  Download, Sliders, ZoomIn, ZoomOut, Move
+  Download, Sliders, ZoomIn, ZoomOut, Move, Tv
 } from 'lucide-react';
 import {
   genres, topics, tableRows, audienceData,
@@ -782,144 +782,153 @@ function GraphEditorPanel({ config, onChange, onClose }: {
   );
 }
 
-// ─── Node Detail Panel ────────────────────────────────────────────────────────
-const TYPE_META: Record<NodeType, { label: string; color: string }> = {
-  genre:      { label: 'Genre',      color: '#38A169' },
-  topic:      { label: 'Topic',      color: '#D53F8C' },
-  household:  { label: 'Household',  color: '#4E6E9D' },
-  individual: { label: 'Individual', color: '#EF3557' },
+function AppleBrandIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.93-2.85-.9.04-1.99.6-2.63 1.35-.56.65-.97 1.7-0.84 2.73.99.08 2.02-.48 2.54-1.23z"/>
+    </svg>
+  );
+}
+
+function AndroidBrandIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+      <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-4.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 2.23 12.95 2 12 2c-.96 0-1.86.23-2.66.63L7.85 1.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 4.26 6 6.01 6 8h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/>
+    </svg>
+  );
+}
+
+const TYPE_LABELS: Record<NodeType, string> = {
+  genre: 'Genre',
+  topic: 'Topic',
+  household: 'Household',
+  individual: 'Individual',
 };
 
-const NODE_DETAILS: Record<string, { description: string; metrics: { label: string; value: string }[]; connections: string[] }> = {
-  sports: {
-    description: 'Sports affinity hub — aggregates households and individuals with strong sports viewing behavior.',
-    metrics: [{ label: 'Affinity score', value: '0.93' }, { label: 'Reach', value: '42.3k HH' }, { label: 'Avg. freq.', value: '4.2x/wk' }],
-    connections: ['Comedy', ...Array.from({ length: 6 }, (_, i) => `HH ${i + 1}`)],
-  },
-  comedy: {
-    description: 'Comedy genre hub — central node for comedy content affinity across linked households.',
-    metrics: [{ label: 'Affinity score', value: '0.81' }, { label: 'Reach', value: '38.1k HH' }, { label: 'Avg. freq.', value: '3.7x/wk' }],
-    connections: ['Sports', ...Array.from({ length: 6 }, (_, i) => `HH ${i + 7}`)],
-  },
-};
-
-function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3D; onClose: () => void; graphConfig: GraphConfig }) {
-  const meta = TYPE_META[node.type];
-  const details = NODE_DETAILS[node.id];
-  const nodeColor = graphConfig.colors[node.type] ?? meta.color;
+function NodeDetailPanel({ node, onClose }: { node: Node3D; onClose: () => void; graphConfig?: GraphConfig }) {
   const isHub = node.id === 'sports' || node.id === 'comedy';
 
-  const metrics = details?.metrics ?? [
-    { label: 'Affinity score', value: (Math.random() * 0.9 + 0.1).toFixed(2) },
-    { label: 'Connections', value: String(Math.floor(Math.random() * 8 + 2)) },
-    { label: 'Segment match', value: `${Math.floor(Math.random() * 40 + 60)}%` },
-  ];
+  const isHousehold = node.type === 'household';
+  const isIndividual = node.type === 'individual';
+
+  const title = TYPE_LABELS[node.type] ?? 'Node';
+  const subtitle = node.label;
+
+  const devices = isHousehold
+    ? [
+        { label: 'Samba TV', count: 1, icon: <Tv size={16} strokeWidth={1.5} /> },
+        { label: 'Apple', count: 2, icon: <AppleBrandIcon size={16} /> },
+        { label: 'Android', count: 1, icon: <AndroidBrandIcon size={16} /> },
+      ]
+    : isIndividual
+    ? [
+        { label: 'Apple', count: 1, icon: <AppleBrandIcon size={16} /> },
+        { label: 'Android', count: 1, icon: <AndroidBrandIcon size={16} /> },
+      ]
+    : [
+        { label: 'Samba Reach', count: isHub ? '42.3k' : '18.5k', icon: <Tv size={16} strokeWidth={1.5} /> },
+        { label: 'Affinity Score', count: isHub ? '0.93' : '0.78', icon: <Network size={16} strokeWidth={1.5} /> },
+      ];
+
+  const totalDevices = isHousehold ? 4 : isIndividual ? 2 : isHub ? '42.3k' : '18.5k';
+  const cookiesCount = isHousehold ? 3 : isIndividual ? 2 : 1;
 
   return (
     <div
-      className="absolute top-0 right-0 flex flex-col h-full"
+      className="fixed flex flex-col"
       style={{
-        width: 280, zIndex: 25, pointerEvents: 'auto',
-        backgroundColor: 'var(--bg-card-alt)',
-        borderLeft: '1px solid var(--border)',
-        boxShadow: '-8px 0 32px var(--shadow)',
-        animation: 'slideInRight 0.22s cubic-bezier(0.22,1,0.36,1)',
+        top: 72,
+        right: 24,
+        width: 250,
+        zIndex: 40,
+        pointerEvents: 'auto',
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderRadius: 12,
+        boxShadow: '0 8px 30px var(--shadow)',
+        padding: '16px 14px',
+        animation: 'slideInRight 0.18s cubic-bezier(0.22,1,0.36,1)',
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-        <div className="flex items-center gap-3">
-          <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: nodeColor, flexShrink: 0, boxShadow: `0 0 8px ${nodeColor}88` }} />
-          <div className="flex flex-col">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: 'var(--text)', lineHeight: '20px' }}>
-              {isHub ? node.label : node.label.slice(0, 16) + (node.label.length > 16 ? '…' : '')}
-            </span>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: nodeColor, lineHeight: '16px', fontWeight: 500 }}>
-              {meta.label}
-            </span>
-          </div>
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-0.5">
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 18, fontWeight: 500, color: 'var(--text)', lineHeight: '24px' }}>
+            {title}
+          </span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-muted)', lineHeight: '18px' }}>
+            {subtitle}
+          </span>
         </div>
-        <button onClick={onClose} className="flex items-center justify-center rounded"
-          style={{ width: 24, height: 24, background: 'transparent', border: 'none', flexShrink: 0 }}>
+        <button
+          onClick={onClose}
+          className="flex items-center justify-center rounded hover:bg-[var(--bg-btn)] transition-colors"
+          style={{ width: 22, height: 22, background: 'transparent', border: 'none', cursor: 'pointer', flexShrink: 0 }}
+        >
           <X size={14} strokeWidth={1.5} color="var(--text-dim)" />
         </button>
       </div>
 
-      <div className="flex flex-col gap-4 p-4 overflow-y-auto flex-1">
-        {/* ID */}
-        <div className="flex flex-col gap-1">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Node ID</span>
-          <code style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', backgroundColor: 'var(--bg-input)', padding: '4px 8px', borderRadius: 4, wordBreak: 'break-all' }}>
-            {node.id}
-          </code>
+      <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '12px 0' }} />
+
+      {/* Devices Section */}
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between">
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-muted)' }}>
+            {isHousehold || isIndividual ? 'Devices' : 'Audience metrics'}
+          </span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-dim)' }}>
+            {totalDevices}
+          </span>
         </div>
 
-        {/* Description */}
-        {details?.description && (
-          <div className="flex flex-col gap-1">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>About</span>
-            <p style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '18px' }}>{details.description}</p>
-          </div>
-        )}
-
-        {/* Metrics */}
-        <div className="flex flex-col gap-1">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Metrics</span>
-          <div className="flex flex-col gap-1">
-            {metrics.map(({ label, value }) => (
-              <div key={label} className="flex items-center justify-between rounded px-3 py-2"
-                style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>{label}</span>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Type badge */}
-        <div className="flex flex-col gap-1">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Type</span>
-          <div className="flex items-center gap-2">
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 999, border: `1px solid ${nodeColor}55`, backgroundColor: `${nodeColor}18` }}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: nodeColor }} />
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: nodeColor, fontWeight: 500 }}>{meta.label}</span>
-            </div>
-            {isHub && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 999, border: '1px solid var(--border)', backgroundColor: 'var(--bg-btn)' }}>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Hub</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Connections */}
-        {details?.connections && (
-          <div className="flex flex-col gap-1">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Connected to</span>
-            <div className="flex flex-wrap gap-1">
-              {details.connections.slice(0, 8).map(c => (
-                <span key={c} style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: 4 }}>
-                  {c}
+        <div className="flex flex-col gap-2.5 pl-0.5">
+          {devices.map(d => (
+            <div key={d.label} className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5 text-[var(--text-muted)]">
+                {d.icon}
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-muted)' }}>
+                  {d.label}
                 </span>
-              ))}
-              {details.connections.length > 8 && (
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-dim)', padding: '2px 6px' }}>
-                  +{details.connections.length - 8} more
-                </span>
-              )}
+              </div>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-dim)' }}>
+                {d.count}
+              </span>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
-      {/* Footer action */}
-      <div className="px-4 py-3" style={{ borderTop: '1px solid var(--border)' }}>
-        <button className="w-full flex items-center justify-center gap-2 rounded-lg"
-          style={{ height: 32, backgroundColor: nodeColor, border: 'none', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: '#fff' }}>
-          <Network size={13} strokeWidth={1.5} color="#fff" />
-          Explore node
-        </button>
+      <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '12px 0' }} />
+
+      {/* Cookies Section */}
+      <div className="flex items-center justify-between">
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-muted)' }}>
+          Cookies
+        </span>
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-dim)' }}>
+          {cookiesCount}
+        </span>
       </div>
+
+      <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '14px 0 12px' }} />
+
+      {/* Action Button */}
+      <button
+        onClick={onClose}
+        className="w-full flex items-center justify-center rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+        style={{
+          height: 36,
+          backgroundColor: 'var(--bg-btn)',
+          border: '1px solid var(--border)',
+          fontFamily: "'Season Sans', 'Inter', sans-serif",
+          fontSize: 13,
+          fontWeight: 500,
+          color: 'var(--text-btn)',
+        }}
+      >
+        View past campaigns
+      </button>
     </div>
   );
 }
