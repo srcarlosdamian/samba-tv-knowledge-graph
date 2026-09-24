@@ -202,6 +202,40 @@ export const audienceData = {
   },
 };
 
+// ─── Pre-computed Circular Orbital Matrix Helper ──────────────────────────────
+export function circularMatrixOrbit(
+  n: number,
+  radius: number,
+  tiltX = 0.35,        // Tilt in radians around X axis for 3D perspective
+  tiltZ = 0.15,        // Tilt in radians around Z axis
+  yOffset = 0,         // Vertical elevation tier
+  waveAmp = 16,        // Soft harmonic vertical undulation
+  waveFreq = 2,        // Harmonic frequency
+  startAngle = 0
+): [number, number, number][] {
+  const pts: [number, number, number][] = [];
+  for (let i = 0; i < n; i++) {
+    const angle = startAngle + (i / n) * Math.PI * 2;
+    const rawX = Math.cos(angle) * radius;
+    const rawZ = Math.sin(angle) * radius;
+    const rawY = yOffset + Math.sin(angle * waveFreq) * waveAmp;
+
+    // Apply 3D matrix rotation
+    const cosX = Math.cos(tiltX), sinX = Math.sin(tiltX);
+    const cosZ = Math.cos(tiltZ), sinZ = Math.sin(tiltZ);
+
+    const y1 = rawY * cosX - rawZ * sinX;
+    const z1 = rawY * sinX + rawZ * cosX;
+
+    const x2 = rawX * cosZ - y1 * sinZ;
+    const y2 = rawX * sinZ + y1 * cosZ;
+    const z2 = z1;
+
+    pts.push([Math.round(x2), Math.round(y2), Math.round(z2)]);
+  }
+  return pts;
+}
+
 // ─── Pre-computed Fibonacci sphere helper ─────────────────────────────────────
 function fibSphere(n: number, radius: number, offsetAngle = 0): [number, number, number][] {
   const pts: [number, number, number][] = [];
@@ -239,7 +273,7 @@ const IND_IDS = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Example 1: Multi-Device Household Constellation (60+ Nodes)
+// 1. Example 1: Multi-Device Household Constellation
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample1_Devices(): GraphDataset {
   const nodes: Node3DData[] = [];
@@ -250,7 +284,7 @@ function buildExample1_Devices(): GraphDataset {
     id: 'samba_dex_core1',
     label: 'Samba TV DEX Core A',
     type: 'household',
-    x: -80, y: 0, z: 0,
+    x: -75, y: 0, z: 0,
     size: 26,
     properties: [
       { label: 'Cluster Type', value: 'Primary Multi-Device Hub' },
@@ -266,7 +300,7 @@ function buildExample1_Devices(): GraphDataset {
     id: 'samba_dex_core2',
     label: 'Samba TV DEX Core B',
     type: 'household',
-    x: 80, y: 0, z: 0,
+    x: 75, y: 0, z: 0,
     size: 26,
     properties: [
       { label: 'Cluster Type', value: 'Secondary Multi-Device Hub' },
@@ -286,9 +320,9 @@ function buildExample1_Devices(): GraphDataset {
     hidden: false,
   });
 
-  // Inner Shell: 10 Households (Radius 220)
+  // Inner Matrix Ring: 10 Households (Radius 190)
   const hhCount = 10;
-  const hhPts = fibSphere(hhCount, 220);
+  const hhPts = circularMatrixOrbit(hhCount, 190, 0.32, 0.12, 5, 12, 3, 0);
 
   for (let i = 0; i < hhCount; i++) {
     const hhId = `hh_dev_${i}`;
@@ -321,7 +355,7 @@ function buildExample1_Devices(): GraphDataset {
     });
   }
 
-  // Outer Shell: 16 Devices + Cookies (Radius 360)
+  // Outer Matrix Ring: 16 Devices + Cookies (Radius 290)
   const devTypes: { cat: DeviceCategory; label: string; name: string }[] = [
     { cat: 'samba_tv', label: 'Samba Smart TV 65"', name: 'Samba TV 65"' },
     { cat: 'apple', label: 'Apple TV 4K', name: 'Apple TV 4K' },
@@ -334,7 +368,7 @@ function buildExample1_Devices(): GraphDataset {
   ];
 
   const outerCount = 16;
-  const outerPts = fibSphere(outerCount, 360, 0.4);
+  const outerPts = circularMatrixOrbit(outerCount, 290, -0.25, -0.15, -5, 14, 3, Math.PI / 16);
 
   for (let di = 0; di < outerCount; di++) {
     const devId = `dev_node_${di}`;
@@ -376,7 +410,7 @@ function buildExample1_Devices(): GraphDataset {
   return {
     query: 'Households with Samba TV and more than 3 devices',
     title: 'Samba TV Multi-Device Household Cluster',
-    description: '3D constellation of households verified with active Samba TV units and >= 3 connected endpoints.',
+    description: 'Circular orbital matrix of households verified with active Samba TV units and >= 3 connected endpoints.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -400,7 +434,7 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Example 2: Households in Texas (70+ Nodes in 3D Spherical World)
+// 2. Example 2: Households in Texas
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample2_Texas(): GraphDataset {
   const nodes: Node3DData[] = [];
@@ -411,7 +445,7 @@ function buildExample2_Texas(): GraphDataset {
     id: 'state_tx_core',
     label: 'Texas Geographic Hub',
     type: 'state',
-    x: -80, y: 0, z: 0,
+    x: -75, y: 0, z: 0,
     size: 28,
     properties: [
       { label: 'State Name', value: 'Texas' },
@@ -425,7 +459,7 @@ function buildExample2_Texas(): GraphDataset {
     id: 'experian_tx_core',
     label: 'Experian Texas Mosaic',
     type: 'experian_household',
-    x: 80, y: 0, z: 0,
+    x: 75, y: 0, z: 0,
     size: 26,
     properties: [
       { label: 'Demographic Engine', value: 'Experian Identity Resolution' },
@@ -442,9 +476,9 @@ function buildExample2_Texas(): GraphDataset {
     hidden: false,
   });
 
-  // Inner Shell: 12 Experian Households (Radius 220)
+  // Inner Matrix Ring: 12 Experian Households (Radius 195)
   const expCount = 12;
-  const expPts = fibSphere(expCount, 220);
+  const expPts = circularMatrixOrbit(expCount, 195, 0.35, 0.10, 0, 12, 3, 0);
 
   for (let i = 0; i < expCount; i++) {
     const expId = `exp_tx_${i}`;
@@ -480,9 +514,9 @@ function buildExample2_Texas(): GraphDataset {
     });
   }
 
-  // Mid Shell: 12 Samba Households (Radius 330)
+  // Mid Matrix Ring: 12 Samba Households (Radius 285)
   const hhCount = 12;
-  const hhPts = fibSphere(hhCount, 330, 0.3);
+  const hhPts = circularMatrixOrbit(hhCount, 285, -0.28, -0.18, 0, 14, 3, Math.PI / 12);
 
   for (let i = 0; i < hhCount; i++) {
     const hhId = `hh_tx_${i}`;
@@ -514,8 +548,8 @@ function buildExample2_Texas(): GraphDataset {
     });
   }
 
-  // Outer Shell: 4 Connected Devices (Radius 420)
-  const devPts = fibSphere(4, 420, 0.6);
+  // Outer Matrix Ring: 4 Connected Devices (Radius 365)
+  const devPts = circularMatrixOrbit(4, 365, 0.15, 0.25, 0, 8, 2, Math.PI / 4);
   for (let di = 0; di < 4; di++) {
     const devId = `dev_tx_${di}`;
     const [dx, dy, dz] = devPts[di];
@@ -547,7 +581,7 @@ function buildExample2_Texas(): GraphDataset {
   return {
     query: 'Households in Texas',
     title: 'Geographic Audience Hub: Texas',
-    description: '3D constellation of Texas households linked through intermediate Experian identity resolution nodes.',
+    description: 'Circular orbital matrix of Texas households linked through intermediate Experian identity resolution nodes.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -566,7 +600,7 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. Example 3: Households with income over $75k (30 Nodes in 3D Spherical World)
+// 3. Example 3: Households with income over $75k
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample3_Income(): GraphDataset {
   const nodes: Node3DData[] = [];
@@ -577,7 +611,7 @@ function buildExample3_Income(): GraphDataset {
     id: 'income_75k_core',
     label: '>$75k Income Bracket',
     type: 'income_bracket',
-    x: -80, y: 0, z: 0,
+    x: -75, y: 0, z: 0,
     size: 28,
     properties: [
       { label: 'Income Bracket', value: '>$75,000 / year' },
@@ -591,7 +625,7 @@ function buildExample3_Income(): GraphDataset {
     id: 'affluence_index_core',
     label: 'Experian Affluence Index',
     type: 'experian_household',
-    x: 80, y: 0, z: 0,
+    x: 75, y: 0, z: 0,
     size: 26,
     properties: [
       { label: 'Demographic Index', value: 'High Net Worth Cluster' },
@@ -608,9 +642,9 @@ function buildExample3_Income(): GraphDataset {
     hidden: false,
   });
 
-  // Inner Shell: 12 Experian Demographic Hubs (Radius 220)
+  // Inner Matrix Ring: 12 Experian Demographic Hubs (Radius 195)
   const expCount = 12;
-  const expPts = fibSphere(expCount, 220);
+  const expPts = circularMatrixOrbit(expCount, 195, 0.32, 0.14, 5, 12, 3, 0);
 
   for (let i = 0; i < expCount; i++) {
     const expId = `exp_inc_${i}`;
@@ -645,9 +679,9 @@ function buildExample3_Income(): GraphDataset {
     });
   }
 
-  // Mid Shell: 12 Samba Households (Radius 330)
+  // Mid Matrix Ring: 12 Samba Households (Radius 285)
   const hhCount = 12;
-  const hhPts = fibSphere(hhCount, 330, 0.4);
+  const hhPts = circularMatrixOrbit(hhCount, 285, -0.26, -0.16, -5, 14, 3, Math.PI / 12);
 
   for (let i = 0; i < hhCount; i++) {
     const hhId = `hh_inc_${i}`;
@@ -679,8 +713,8 @@ function buildExample3_Income(): GraphDataset {
     });
   }
 
-  // Outer Shell: 4 Premium Devices (Radius 420)
-  const devPts = fibSphere(4, 420, 0.7);
+  // Outer Matrix Ring: 4 Premium Devices (Radius 365)
+  const devPts = circularMatrixOrbit(4, 365, 0.18, 0.22, 0, 8, 2, Math.PI / 4);
   for (let di = 0; di < 4; di++) {
     const devId = `dev_inc_${di}`;
     const [dx, dy, dz] = devPts[di];
@@ -711,7 +745,7 @@ function buildExample3_Income(): GraphDataset {
   return {
     query: 'Households with income over $75k',
     title: 'High Income Audience Resolution',
-    description: '3D constellation of high income households resolved through Experian demographic income attribute hubs.',
+    description: 'Circular orbital matrix of high income households resolved through Experian demographic income attribute hubs.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -730,7 +764,7 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. Example 4: Who likes Friends in New York (28 Nodes in 3D Spherical World)
+// 4. Example 4: Who likes Friends in New York
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample4_FriendsNY(): GraphDataset {
   const nodes: Node3DData[] = [];
@@ -741,7 +775,7 @@ function buildExample4_FriendsNY(): GraphDataset {
     id: 'series_friends_core',
     label: 'Friends',
     type: 'series',
-    x: -80, y: 0, z: 0,
+    x: -75, y: 0, z: 0,
     size: 28,
     properties: [
       { label: 'Series Title', value: 'Friends' },
@@ -755,7 +789,7 @@ function buildExample4_FriendsNY(): GraphDataset {
     id: 'state_ny_core',
     label: 'New York Geographic Hub',
     type: 'state',
-    x: 80, y: 0, z: 0,
+    x: 75, y: 0, z: 0,
     size: 28,
     properties: [
       { label: 'State Name', value: 'New York' },
@@ -777,7 +811,7 @@ function buildExample4_FriendsNY(): GraphDataset {
     id: 'genre_comedy',
     label: 'Comedy',
     type: 'genre',
-    x: -40, y: 160, z: 0,
+    x: -40, y: 120, z: -30,
     size: 18,
     properties: [
       { label: 'Genre Name', value: 'Comedy' },
@@ -789,7 +823,7 @@ function buildExample4_FriendsNY(): GraphDataset {
     id: 'genre_sitcom',
     label: 'Sitcom',
     type: 'genre',
-    x: -40, y: -160, z: 0,
+    x: -40, y: -120, z: 30,
     size: 18,
     properties: [
       { label: 'Genre Name', value: 'Sitcom' },
@@ -800,9 +834,9 @@ function buildExample4_FriendsNY(): GraphDataset {
   edges.push({ from: 'series_friends_core', to: 'genre_comedy', rel: 'hasGenre', weight: '1.0' });
   edges.push({ from: 'series_friends_core', to: 'genre_sitcom', rel: 'hasGenre', weight: '1.0' });
 
-  // Inner Shell: 12 Households (Radius 250)
+  // Inner Matrix Ring: 12 Households (Radius 200)
   const hhCount = 12;
-  const hhPts = fibSphere(hhCount, 250);
+  const hhPts = circularMatrixOrbit(hhCount, 200, 0.34, 0.12, 0, 12, 3, 0);
 
   for (let i = 0; i < hhCount; i++) {
     const hhId = `hh_frny_${i}`;
@@ -833,9 +867,9 @@ function buildExample4_FriendsNY(): GraphDataset {
     });
   }
 
-  // Mid Shell: 10 Experian NY Records (Radius 360)
+  // Mid Matrix Ring: 10 Experian NY Records (Radius 290)
   const expCount = 10;
-  const expPts = fibSphere(expCount, 360, 0.4);
+  const expPts = circularMatrixOrbit(expCount, 290, -0.28, -0.16, 0, 14, 3, Math.PI / 10);
 
   for (let i = 0; i < expCount; i++) {
     const expId = `exp_ny_${i}`;
@@ -858,8 +892,8 @@ function buildExample4_FriendsNY(): GraphDataset {
     edges.push({ from: expId, to: 'state_ny_core', rel: 'stateOfResidence', weight: '1.0', hidden: i >= 5 });
   }
 
-  // Outer Shell: 4 Connected Devices (Radius 440)
-  const devPts = fibSphere(4, 440, 0.8);
+  // Outer Matrix Ring: 4 Connected Devices (Radius 370)
+  const devPts = circularMatrixOrbit(4, 370, 0.15, 0.25, 0, 8, 2, Math.PI / 4);
   for (let di = 0; di < 4; di++) {
     const devId = `dev_ny_${di}`;
     const [dx, dy, dz] = devPts[di];
@@ -884,7 +918,7 @@ function buildExample4_FriendsNY(): GraphDataset {
   return {
     query: 'People in New York who like Friends',
     title: 'Series Affinity & Geo Filter: Friends (NY)',
-    description: '3D constellation of Friends viewers in New York mapped through genres and Experian residence records.',
+    description: 'Circular orbital matrix of Friends viewers in New York mapped through genres and Experian residence records.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -909,7 +943,7 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Example 5: Comedy & Sports (Clean 30-Node 3D Globe with 2 Central Core Hubs)
+// 5. Example 5: Comedy & Sports (Clean Circular Matrix with 2 Central Core Hubs)
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'): GraphDataset {
   const nodes: Node3DData[] = [];
@@ -922,7 +956,7 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
     id: 'comedy_core',
     label: genreName,
     type: 'genre',
-    x: -80, y: 0, z: 0,
+    x: -75, y: 0, z: 0,
     size: 26,
     properties: [
       { label: 'Genre Name', value: genreName },
@@ -938,7 +972,7 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
     id: 'sports_core',
     label: topicName,
     type: 'topic',
-    x: 80, y: 0, z: 0,
+    x: 75, y: 0, z: 0,
     size: 26,
     properties: [
       { label: 'Topic Name', value: topicName },
@@ -961,10 +995,10 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
   });
 
   // ═════════════════════════════════════════════════════════════════════════════
-  // 2. INNER SPHERICAL SHELL: 12 Households (Radius 220)
+  // 2. INNER MATRIX RING: 12 Households (Radius 190)
   // ═════════════════════════════════════════════════════════════════════════════
   const hhCount = 12;
-  const hhPts = fibSphere(hhCount, 220);
+  const hhPts = circularMatrixOrbit(hhCount, 190, 0.35, 0.12, 5, 12, 3, 0);
 
   for (let i = 0; i < hhCount; i++) {
     const hhId = `hh_in_${i}`;
@@ -996,10 +1030,10 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
   }
 
   // ═════════════════════════════════════════════════════════════════════════════
-  // 3. MID SPHERICAL SHELL: 12 Individuals (Radius 250)
+  // 3. MID MATRIX RING: 12 Individuals (Radius 280)
   // ═════════════════════════════════════════════════════════════════════════════
   const indCount = 12;
-  const indPts = fibSphere(indCount, 250, 0.5);
+  const indPts = circularMatrixOrbit(indCount, 280, -0.28, -0.15, -5, 14, 3, Math.PI / 12);
 
   for (let i = 0; i < indCount; i++) {
     const indId = `ind_in_${i}`;
@@ -1039,9 +1073,9 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
   }
 
   // ═════════════════════════════════════════════════════════════════════════════
-  // 4. OUTER SATELLITES: 4 Sub-Hubs & Devices (Radius 340)
+  // 4. OUTER SATELLITES MATRIX RING: 4 Sub-Hubs & Devices (Radius 365)
   // ═════════════════════════════════════════════════════════════════════════════
-  const satPts = fibSphere(4, 340, 1.0);
+  const satPts = circularMatrixOrbit(4, 365, 0.16, 0.26, 0, 8, 2, Math.PI / 4);
   const subSatellites = [
     { id: 'sub_sitcom', label: 'Sitcom', type: 'genre' as NodeType, parent: 'comedy_core', rel: 'subGenre', desc: 'Situational Comedies' },
     { id: 'sub_live_events', label: 'Live Events', type: 'topic' as NodeType, parent: 'sports_core', rel: 'subTopic', desc: 'Live Tournament Broadcasts' },
@@ -1074,8 +1108,8 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
 
   return {
     query: `Households that like ${genreName} and read about ${topicName}`,
-    title: `${genreName} & ${topicName} Affinity 3D Constellation`,
-    description: `Spherical 3D constellation of ${nodes.length} interconnected nodes demonstrating Household ${genreName} affinity + Individual ${topicName} topic affinity.`,
+    title: `${genreName} & ${topicName} Affinity Circular Matrix`,
+    description: `Visually attractive circular orbital matrix of ${nodes.length} interconnected nodes demonstrating Household ${genreName} affinity + Individual ${topicName} topic affinity.`,
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -1094,7 +1128,7 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. Example 6: Game of Thrones, NY, Married (60+ Nodes 3D Spherical World)
+// 6. Example 6: Game of Thrones, NY, Married
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample6_GoTMarried(): GraphDataset {
   const nodes: Node3DData[] = [];
@@ -1105,7 +1139,7 @@ function buildExample6_GoTMarried(): GraphDataset {
     id: 'series_got_core',
     label: 'Game of Thrones',
     type: 'series',
-    x: -80, y: 0, z: 0,
+    x: -75, y: 0, z: 0,
     size: 28,
     properties: [
       { label: 'Series Title', value: 'Game of Thrones' },
@@ -1119,7 +1153,7 @@ function buildExample6_GoTMarried(): GraphDataset {
     id: 'state_ny_married_core',
     label: 'New York (Married Cohort)',
     type: 'state',
-    x: 80, y: 0, z: 0,
+    x: 75, y: 0, z: 0,
     size: 28,
     properties: [
       { label: 'State Name', value: 'New York' },
@@ -1141,7 +1175,7 @@ function buildExample6_GoTMarried(): GraphDataset {
     id: 'genre_drama',
     label: 'Drama',
     type: 'genre',
-    x: -40, y: 160, z: 0,
+    x: -40, y: 120, z: -30,
     size: 18,
     properties: [{ label: 'Genre Name', value: 'Drama' }, { label: 'Reach', value: '400.0k' }],
   });
@@ -1149,7 +1183,7 @@ function buildExample6_GoTMarried(): GraphDataset {
     id: 'genre_fantasy',
     label: 'Fantasy',
     type: 'genre',
-    x: -40, y: -160, z: 0,
+    x: -40, y: -120, z: 30,
     size: 18,
     properties: [{ label: 'Genre Name', value: 'Fantasy' }, { label: 'Reach', value: '520.0k' }],
   });
@@ -1157,9 +1191,9 @@ function buildExample6_GoTMarried(): GraphDataset {
   edges.push({ from: 'series_got_core', to: 'genre_drama', rel: 'hasGenre', weight: '1.0' });
   edges.push({ from: 'series_got_core', to: 'genre_fantasy', rel: 'hasGenre', weight: '1.0' });
 
-  // Inner Shell: 12 Samba Households (Radius 240)
+  // Inner Matrix Ring: 12 Samba Households (Radius 195)
   const hhCount = 12;
-  const hhPts = fibSphere(hhCount, 240);
+  const hhPts = circularMatrixOrbit(hhCount, 195, 0.35, 0.12, 0, 12, 3, 0);
 
   for (let i = 0; i < hhCount; i++) {
     const hhId = `hh_got_${i}`;
@@ -1189,9 +1223,9 @@ function buildExample6_GoTMarried(): GraphDataset {
     });
   }
 
-  // Mid Shell: 10 Experian Married Records (Radius 350)
+  // Mid Matrix Ring: 10 Experian Married Records (Radius 285)
   const expCount = 10;
-  const expPts = fibSphere(expCount, 350, 0.4);
+  const expPts = circularMatrixOrbit(expCount, 285, -0.26, -0.18, 0, 14, 3, Math.PI / 10);
 
   for (let i = 0; i < expCount; i++) {
     const expId = `exp_got_${i}`;
@@ -1215,8 +1249,8 @@ function buildExample6_GoTMarried(): GraphDataset {
     edges.push({ from: expId, to: 'state_ny_married_core', rel: 'stateOfResidence', weight: '1.0', hidden: i >= 5 });
   }
 
-  // Outer Shell: 4 Connected Devices (Radius 440)
-  const devPts = fibSphere(4, 440, 0.8);
+  // Outer Matrix Ring: 4 Connected Devices (Radius 365)
+  const devPts = circularMatrixOrbit(4, 365, 0.15, 0.25, 0, 8, 2, Math.PI / 4);
   for (let di = 0; di < 4; di++) {
     const devId = `dev_got_${di}`;
     const [dx, dy, dz] = devPts[di];
@@ -1241,7 +1275,7 @@ function buildExample6_GoTMarried(): GraphDataset {
   return {
     query: 'People who like Game of Thrones, living in New York, who are married',
     title: 'Series Affinity, Geo & Demographic Profile',
-    description: '3D constellation of Game of Thrones viewers in New York with Experian marital status attributes.',
+    description: 'Circular orbital matrix of Game of Thrones viewers in New York with Experian marital status attributes.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>

@@ -248,6 +248,39 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       haloMap.set(n.id, haloMesh);
     });
 
+    // ─── Subtle Orbital Matrix Guide Rings ────────────────────────────────────
+    function createOrbitalRing(radius: number, tiltX: number, tiltZ: number, yOffset: number, color = 0x4a6585, opacity = 0.12) {
+      const curve = new THREE.EllipseCurve(0, 0, radius, radius, 0, 2 * Math.PI, false, 0);
+      const points = curve.getPoints(100);
+      const pts3d = points.map(p => {
+        const rawX = p.x;
+        const rawZ = p.y;
+        const rawY = yOffset;
+        const cosX = Math.cos(tiltX), sinX = Math.sin(tiltX);
+        const cosZ = Math.cos(tiltZ), sinZ = Math.sin(tiltZ);
+        const y1 = rawY * cosX - rawZ * sinX;
+        const z1 = rawY * sinX + rawZ * cosX;
+        const x2 = rawX * cosZ - y1 * sinZ;
+        const y2 = rawX * sinZ + y1 * cosZ;
+        return new THREE.Vector3(x2, y2, z1);
+      });
+      const geo = new THREE.BufferGeometry().setFromPoints(pts3d);
+      const mat = new THREE.LineBasicMaterial({
+        color,
+        transparent: true,
+        opacity,
+        depthWrite: false,
+      });
+      return new THREE.LineLoop(geo, mat);
+    }
+
+    const ring1 = createOrbitalRing(190, 0.35, 0.12, 5, 0x4e6e9d, 0.14);
+    const ring2 = createOrbitalRing(280, -0.28, -0.15, -5, 0x38a169, 0.10);
+    const ring3 = createOrbitalRing(365, 0.16, 0.26, 0, 0x319795, 0.08);
+    pivot.add(ring1);
+    pivot.add(ring2);
+    pivot.add(ring3);
+
     // Edges
     interface EdgeState {
       data: Edge3DData;
