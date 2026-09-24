@@ -2126,12 +2126,27 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
               pointerEvents: 'auto'
             }}>
             <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--NEUTRAL-500, #8A8A8A)', lineHeight: '16px' }}>
-              Showing {dataset.nodes.length} nodes · {dataset.edges.length} edges
+              {dataset.nodes.length} nodes · {dataset.edges.length} edges
             </span>
             <PillDivider />
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--NEUTRAL-500, #8A8A8A)', lineHeight: '16px' }}>
-              Click on any node for details & connections. Double-click to expand.
-            </span>
+            {/* Flow Speed inline control */}
+            <div className="flex items-center gap-2">
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--NEUTRAL-600, #A3A3A3)', whiteSpace: 'nowrap' }}>
+                Flow speed
+              </span>
+              <input
+                type="range"
+                min={0.1}
+                max={6.0}
+                step={0.1}
+                value={graphConfig.edgeDashSpeed ?? 1.5}
+                onChange={e => onUpdateConfig({ ...graphConfig, edgeDashSpeed: parseFloat(e.target.value) })}
+                style={{ width: 90, accentColor: 'var(--PACIFIC--BLUE-500, #6781A8)', height: 4 }}
+              />
+              <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--NEUTRAL-600, #A3A3A3)', width: 28 }}>
+                {(graphConfig.edgeDashSpeed ?? 1.5).toFixed(1)}×
+              </span>
+            </div>
           </div>
         </div>
       )}
