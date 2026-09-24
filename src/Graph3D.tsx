@@ -10,24 +10,32 @@ import {
 
 export { type NodeType, type Node3DData, type Edge3DData };
 
+export type EdgeCategory = 'hub' | 'affinity' | 'individual' | 'device' | 'other';
+
 export interface GraphConfig {
   globalScale?: number;    // 0.3 to 2.5, overall scale multiplier for entire graph
   colors: Record<string, string>;
   sizes: Record<string, number>;
   glowIntensity: number;   // 0–1, emissive intensity multiplier
 
-  // ─── Lines (Líneas) ────────────────────────────────────────────────────────
-  edgeColor: string;
-  hubEdgeColor: string;
-  edgeOpacity: number;
-  edgeDashed?: boolean;    // dotted/dashed animated lines effect
-  edgeDashSpeed?: number;  // flow speed multiplier (0.2 to 3.0)
+  // ─── Lines (Líneas de Relación) ────────────────────────────────────────────
+  edgeColor: string;              // Affinity lines color (default #6a7a8a)
+  hubEdgeColor: string;           // Hub bridge lines color (default #9aaaaa)
+  individualEdgeColor?: string;   // Individual <-> Household cross lines color (default #8e9aaf)
+  deviceEdgeColor?: string;       // Device & cookie lines color (default #5c7f99)
+  edgeOpacity: number;            // Standard/Affinity lines opacity (default 0.45)
+  hubEdgeOpacity?: number;        // Hub bridge lines opacity (default 0.55)
+  individualEdgeOpacity?: number; // Individual <-> Household lines opacity (default 0.40)
+  deviceEdgeOpacity?: number;     // Device lines opacity (default 0.35)
+  showAllEdges?: boolean;         // Reveal 100% of all lines without clicking (default false)
+  edgeDashed?: boolean;           // Dotted/dashed animated flow effect
+  edgeDashSpeed?: number;         // Flow speed multiplier (0.2 to 3.0)
 
   // ─── Selection & Highlight (Selección y Destello) ───────────────────────────
-  selectionColor?: string;       // color for selection highlight & lines (default #ffffff)
+  selectionColor?: string;       // Color for selection highlight & active lines (default #ffffff)
   selectionHaloOpacity?: number; // 0 to 1.0 (default 0.35)
   selectionBlur?: number;        // 0 to 2.5, soft blur & halo aura intensity (default 1.0)
-  animateConnection?: boolean;   // animate lines connecting outwards on click (default true)
+  animateConnection?: boolean;   // Animate lines connecting outwards on click (default true)
 
   // ─── Text & Labels (Texto y Etiquetas) ─────────────────────────────────────
   textSize?: number;             // 0.4 to 2.5, node text size multiplier (default 1.0)
@@ -35,9 +43,9 @@ export interface GraphConfig {
   individualTextOpacity?: number;// 0 to 1.0, opacity for Individual SHAs text (default 0.75)
   householdTextOpacity?: number; // 0 to 1.0, opacity for Household IDs text (default 0.85)
   hubTextOpacity?: number;       // 0 to 1.0, opacity for Hub titles text (default 1.0)
-  edgeTextColor?: string;        // color for edge relationship & weight text (default #888888)
+  edgeTextColor?: string;        // Color for edge relationship & weight text (default #888888)
   edgeTextSize?: number;         // 0.4 to 2.0, edge text size multiplier (default 0.45)
-  showEdgeText?: boolean;        // toggle edge text labels
+  showEdgeText?: boolean;        // Toggle edge text labels
 }
 
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
@@ -71,7 +79,13 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   // Lines default
   edgeColor: '#6a7a8a',
   hubEdgeColor: '#9aaaaa',
+  individualEdgeColor: '#8e9aaf',
+  deviceEdgeColor: '#5c7f99',
   edgeOpacity: 0.45,
+  hubEdgeOpacity: 0.55,
+  individualEdgeOpacity: 0.40,
+  deviceEdgeOpacity: 0.35,
+  showAllEdges: false,
   edgeDashed: true,
   edgeDashSpeed: 1.2,
 
@@ -306,10 +320,69 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
     });
 
     // Edges
+    function getEdgeCategory(edge: Edge3DData, nodes: Node3DData[]): EdgeCategory {
+  const nodeA = nodes.find(n => n.id === edge.from);
+  const nodeB = nodes.find(n => n.id === edge.to);
+  const isHubA = nodeA?.type === 'genre' || nodeA?.type === 'topic' || nodeA?.type === 'series' || nodeA?.type === 'state' || nodeA?.type === 'income_bracket';
+  const isHubB = nodeB?.type === 'genre' || nodeB?.type === 'topic' || nodeB?.type === 'series' || nodeB?.type === 'state' || nodeB?.type === 'income_bracket';
+
+  if (
+    edge.rel === 'hasDevice' ||
+    edge.rel === 'hasCookie' ||
+    edge.rel === 'hasIP' ||
+    nodeA?.type === 'device' ||
+    nodeB?.type === 'device' ||
+    nodeA?.type === 'cookie_or_ip' ||
+    nodeB?.type === 'cookie_or_ip'
+  ) {
+    return 'device';
+  }
+  if (
+    edge.rel === 'hasIndividual' ||
+    (nodeA?.type === 'individual' && nodeB?.type === 'household') ||
+    (nodeA?.type === 'household' && nodeB?.type === 'individual')
+  ) {
+    return 'individual';
+  }
+  if (isHubA && isHubB) {
+    return 'hub';
+  }
+  return 'affinity';
+}
+
+function getEdgeColorHex(category: EdgeCategory, cfg: GraphConfig): number {
+  switch (category) {
+    case 'hub':
+      return cssToHex(cfg.hubEdgeColor ?? '#9aaaaa');
+    case 'individual':
+      return cssToHex(cfg.individualEdgeColor ?? '#8e9aaf');
+    case 'device':
+      return cssToHex(cfg.deviceEdgeColor ?? '#5c7f99');
+    case 'affinity':
+    default:
+      return cssToHex(cfg.edgeColor ?? '#6a7a8a');
+  }
+}
+
+function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
+  switch (category) {
+    case 'hub':
+      return cfg.hubEdgeOpacity ?? 0.55;
+    case 'individual':
+      return cfg.individualEdgeOpacity ?? 0.40;
+    case 'device':
+      return cfg.deviceEdgeOpacity ?? 0.35;
+    case 'affinity':
+    default:
+      return cfg.edgeOpacity ?? 0.45;
+  }
+}
+
     interface EdgeState {
       data: Edge3DData;
       line: THREE.Line;
       material: THREE.LineDashedMaterial;
+      category: EdgeCategory;
       isHub: boolean;
       revealed: boolean;
       currentOpacity: number;
@@ -329,13 +402,12 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       if (!a || !b) return;
 
       const geo = new THREE.BufferGeometry().setFromPoints([a.position, b.position]);
-      const nodeA = nodes.find(n => n.id === e.from);
-      const nodeB = nodes.find(n => n.id === e.to);
-      const isHub = (nodeA?.type === 'genre' || nodeA?.type === 'topic' || nodeA?.type === 'series') &&
-                    (nodeB?.type === 'genre' || nodeB?.type === 'topic' || nodeB?.type === 'series');
+      const category = getEdgeCategory(e, nodes);
+      const isHub = category === 'hub';
+      const isInitiallyRevealed = !e.hidden || (configRef.current.showAllEdges ?? false);
 
       const mat = new THREE.LineDashedMaterial({
-        color: cssToHex(isHub ? configRef.current.hubEdgeColor : configRef.current.edgeColor),
+        color: getEdgeColorHex(category, configRef.current),
         transparent: true,
         opacity: 0,
         dashSize: isHub ? 8 : 6,
@@ -361,10 +433,11 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
         data: e,
         line,
         material: mat,
+        category,
         isHub,
-        revealed: !e.hidden,
+        revealed: isInitiallyRevealed,
         currentOpacity: 0,
-        targetOpacity: !e.hidden ? configRef.current.edgeOpacity : 0,
+        targetOpacity: isInitiallyRevealed ? getEdgeBaseOpacity(category, configRef.current) : 0,
         mid,
       });
     });
@@ -417,12 +490,13 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
               es.mid.x = (a.position.x + b.position.x) / 2;
               es.mid.y = (a.position.y + b.position.y) / 2;
               es.mid.z = (a.position.z + b.position.z) / 2;
-              es.mid.visible = es.revealed;
+              es.mid.visible = es.revealed || (curCfg.showAllEdges ?? false);
             }
           }
           es.isConnecting = false;
-          es.material.color.setHex(es.isHub ? defaultHubEdgeColor : defaultEdgeColor);
-          es.targetOpacity = es.revealed ? (es.isHub ? curCfg.edgeOpacity * 1.15 : curCfg.edgeOpacity) : 0;
+          es.material.color.setHex(getEdgeColorHex(es.category, curCfg));
+          const isVis = es.revealed || (curCfg.showAllEdges ?? false);
+          es.targetOpacity = isVis ? getEdgeBaseOpacity(es.category, curCfg) : 0;
         });
 
         nodes.forEach(n => {
@@ -501,8 +575,9 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
           es.targetOpacity = 0.95;
         } else {
           es.isConnecting = false;
-          es.material.color.setHex(es.isHub ? defaultHubEdgeColor : defaultEdgeColor);
-          es.targetOpacity = es.revealed ? 0.05 : 0; // Attenuated background edges
+          es.material.color.setHex(getEdgeColorHex(es.category, curCfg));
+          const isVis = es.revealed || (curCfg.showAllEdges ?? false);
+          es.targetOpacity = isVis ? 0.05 : 0; // Attenuated background edges
         }
       });
 
@@ -629,8 +704,9 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
 
         // Reset edges and highlight magenta topics
         edgeStates.forEach(es => {
-          es.material.color.setHex(es.isHub ? cssToHex(configRef.current.hubEdgeColor) : cssToHex(configRef.current.edgeColor));
-          es.targetOpacity = es.revealed ? configRef.current.edgeOpacity : 0;
+          es.material.color.setHex(getEdgeColorHex(es.category, configRef.current));
+          const isVis = es.revealed || (configRef.current.showAllEdges ?? false);
+          es.targetOpacity = isVis ? getEdgeBaseOpacity(es.category, configRef.current) : 0;
         });
 
         nodes.forEach(n => {
@@ -824,11 +900,11 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
 
       // Initial visible edge line fade-in
       edgeStates.forEach(es => {
-        if (!es.revealed) return;
+        if (!es.revealed && !configRef.current.showAllEdges) return;
         const nodeA = nodeAlpha.get(es.data.from) ?? 0;
         const nodeB = nodeAlpha.get(es.data.to) ?? 0;
         const edgeAlpha = Math.min(nodeA, nodeB);
-        es.targetOpacity = edgeAlpha * (es.isHub ? configRef.current.edgeOpacity * 1.15 : configRef.current.edgeOpacity);
+        es.targetOpacity = edgeAlpha * getEdgeBaseOpacity(es.category, configRef.current);
         if (es.mid) es.mid.visible = edgeAlpha > 0.4;
       });
 
@@ -957,7 +1033,13 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
     let lastGlowIntensity = configRef.current.glowIntensity;
     let lastEdgeColor = configRef.current.edgeColor;
     let lastHubEdgeColor = configRef.current.hubEdgeColor;
+    let lastIndividualEdgeColor = configRef.current.individualEdgeColor;
+    let lastDeviceEdgeColor = configRef.current.deviceEdgeColor;
     let lastEdgeOpacity = configRef.current.edgeOpacity;
+    let lastHubEdgeOpacity = configRef.current.hubEdgeOpacity;
+    let lastIndividualEdgeOpacity = configRef.current.individualEdgeOpacity;
+    let lastDeviceEdgeOpacity = configRef.current.deviceEdgeOpacity;
+    let lastShowAllEdges = configRef.current.showAllEdges ?? false;
     let lastGlobalScale = configRef.current.globalScale ?? 1.0;
     let lastSelectionColor = configRef.current.selectionColor ?? '#ffffff';
     let lastSelectionHaloOpacity = configRef.current.selectionHaloOpacity ?? 0.35;
@@ -1032,26 +1114,61 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
         lastCfgSizes = { ...c.sizes };
       }
 
-      // 4. Edge Colors & Opacities & Dashes
+      // 4. Edge Colors & Opacities & Dashes & Show All
       const curEdgeDashed = c.edgeDashed !== false;
       const dashedToggled = curEdgeDashed !== lastEdgeDashed;
-      const edgeChanged = c.edgeColor !== lastEdgeColor || c.hubEdgeColor !== lastHubEdgeColor || c.edgeOpacity !== lastEdgeOpacity || dashedToggled;
-      if (edgeChanged) {
-        if (!selectedNodeId) {
-          edgeStates.forEach(es => {
-            es.material.color.setHex(cssToHex(es.isHub ? c.hubEdgeColor : c.edgeColor));
-            if (revealDone && es.revealed) {
-              es.targetOpacity = es.isHub ? c.edgeOpacity * 1.15 : c.edgeOpacity;
+      const curShowAllEdges = c.showAllEdges ?? false;
+      const showAllEdgesToggled = curShowAllEdges !== lastShowAllEdges;
+      const edgeColorsChanged =
+        c.edgeColor !== lastEdgeColor ||
+        c.hubEdgeColor !== lastHubEdgeColor ||
+        c.individualEdgeColor !== lastIndividualEdgeColor ||
+        c.deviceEdgeColor !== lastDeviceEdgeColor;
+      const edgeOpacitiesChanged =
+        c.edgeOpacity !== lastEdgeOpacity ||
+        c.hubEdgeOpacity !== lastHubEdgeOpacity ||
+        c.individualEdgeOpacity !== lastIndividualEdgeOpacity ||
+        c.deviceEdgeOpacity !== lastDeviceEdgeOpacity;
+
+      if (edgeColorsChanged || edgeOpacitiesChanged || dashedToggled || showAllEdgesToggled) {
+        edgeStates.forEach(es => {
+          const isConnectedToSelection = selectedNodeId && (es.data.from === selectedNodeId || es.data.to === selectedNodeId);
+
+          // Update color for unselected edges
+          if (!isConnectedToSelection) {
+            es.material.color.setHex(getEdgeColorHex(es.category, c));
+          }
+
+          if (showAllEdgesToggled && curShowAllEdges) {
+            es.revealed = true;
+          }
+
+          if (revealDone) {
+            const isVisible = es.revealed || curShowAllEdges;
+            if (selectedNodeId) {
+              if (!isConnectedToSelection) {
+                es.targetOpacity = isVisible ? 0.05 : 0;
+              }
+            } else {
+              es.targetOpacity = isVisible ? getEdgeBaseOpacity(es.category, c) : 0;
             }
-            if (dashedToggled) {
-              es.material.dashSize = curEdgeDashed ? (es.isHub ? 8 : 6) : 99999;
-              es.material.gapSize = curEdgeDashed ? (es.isHub ? 5 : 4) : 0;
-            }
-          });
-        }
+          }
+
+          if (dashedToggled) {
+            es.material.dashSize = curEdgeDashed ? (es.isHub ? 8 : 6) : 99999;
+            es.material.gapSize = curEdgeDashed ? (es.isHub ? 5 : 4) : 0;
+          }
+        });
+
         lastEdgeColor = c.edgeColor;
         lastHubEdgeColor = c.hubEdgeColor;
+        lastIndividualEdgeColor = c.individualEdgeColor;
+        lastDeviceEdgeColor = c.deviceEdgeColor;
         lastEdgeOpacity = c.edgeOpacity;
+        lastHubEdgeOpacity = c.hubEdgeOpacity;
+        lastIndividualEdgeOpacity = c.individualEdgeOpacity;
+        lastDeviceEdgeOpacity = c.deviceEdgeOpacity;
+        lastShowAllEdges = curShowAllEdges;
         lastEdgeDashed = curEdgeDashed;
       }
 

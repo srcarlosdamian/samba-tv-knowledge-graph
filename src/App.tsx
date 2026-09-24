@@ -1085,6 +1085,31 @@ function GraphEditorPanel({ config, onChange, onClose }: {
         {activeTab === 'lines' && (
           <>
             <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Network Visibility
+            </div>
+            <div className="flex flex-col gap-2.5 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                    Show All Network Lines
+                  </div>
+                  <div style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>
+                    Reveal hidden cross-links &amp; device endpoints
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.showAllEdges ?? false}
+                    onChange={e => onChange({ ...config, showAllEdges: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-8 h-4.5 bg-[#333333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-[var(--accent)]" />
+                </label>
+              </div>
+            </div>
+
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
               Dotted &amp; Animated Line Flow
             </div>
             <div className="flex flex-col gap-2.5 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
@@ -1126,21 +1151,35 @@ function GraphEditorPanel({ config, onChange, onClose }: {
             </div>
 
             <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
-              Line Colors &amp; Opacity
+              Line Categories &amp; Colors
             </div>
             <EditorRow
-              label="Standard edges" color={config.edgeColor}
+              label="Affinity lines" color={config.edgeColor}
               accentColor="var(--accent)"
               sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.edgeOpacity} sliderLabel="Opacity"
               onColorChange={hex => onChange({ ...config, edgeColor: hex })}
               onSliderChange={val => onChange({ ...config, edgeOpacity: val })}
             />
             <EditorRow
-              label="Hub bridge edges" color={config.hubEdgeColor}
+              label="Hub bridge lines" color={config.hubEdgeColor}
               accentColor="var(--accent)"
-              sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.edgeOpacity} sliderLabel="Opacity"
+              sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.hubEdgeOpacity ?? 0.55} sliderLabel="Opacity"
               onColorChange={hex => onChange({ ...config, hubEdgeColor: hex })}
-              onSliderChange={val => onChange({ ...config, edgeOpacity: val })}
+              onSliderChange={val => onChange({ ...config, hubEdgeOpacity: val })}
+            />
+            <EditorRow
+              label="Individual cross-links" color={config.individualEdgeColor ?? '#8e9aaf'}
+              accentColor="var(--accent)"
+              sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.individualEdgeOpacity ?? 0.40} sliderLabel="Opacity"
+              onColorChange={hex => onChange({ ...config, individualEdgeColor: hex })}
+              onSliderChange={val => onChange({ ...config, individualEdgeOpacity: val })}
+            />
+            <EditorRow
+              label="Device &amp; endpoints" color={config.deviceEdgeColor ?? '#5c7f99'}
+              accentColor="var(--accent)"
+              sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.deviceEdgeOpacity ?? 0.35} sliderLabel="Opacity"
+              onColorChange={hex => onChange({ ...config, deviceEdgeColor: hex })}
+              onSliderChange={val => onChange({ ...config, deviceEdgeOpacity: val })}
             />
           </>
         )}
