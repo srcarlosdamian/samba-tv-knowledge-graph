@@ -55,7 +55,7 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
     state: 0.75,
     income_bracket: 0.75,
   },
-  glowIntensity: 0.25,
+  glowIntensity: 0.45,
 
   // Lines default
   edgeColor: '#6a7a8a',
@@ -202,8 +202,27 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
 
     const nodeMap = new Map<string, THREE.Mesh>();
     const haloMap = new Map<string, THREE.Mesh>();
+    const glowMap = new Map<string, THREE.Sprite>();
     const meshToNode = new Map<THREE.Mesh, Node3DData>();
     const nodeAlpha = new Map<string, number>();
+
+    // ─── Radial Luminous Glow Texture (Outer Aura / Estela) ───────────────────
+    function createGlowTexture(): THREE.CanvasTexture {
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d')!;
+      const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.75)');
+      gradient.addColorStop(0.42, 'rgba(255, 255, 255, 0.30)');
+      gradient.addColorStop(0.72, 'rgba(255, 255, 255, 0.08)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 128, 128);
+      return new THREE.CanvasTexture(canvas);
+    }
+    const glowTexture = createGlowTexture();
 
     // Node materials
     const nodeMaterials = new Map<string, THREE.MeshPhongMaterial>();
@@ -231,6 +250,21 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       nodeMap.set(n.id, mesh);
       meshToNode.set(mesh, n);
       nodeAlpha.set(n.id, 0);
+
+      // Outer Luminous Glow Aura (Estela / Haze)
+      const glowMat = new THREE.SpriteMaterial({
+        map: glowTexture,
+        color: hex,
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const glowSprite = new THREE.Sprite(glowMat);
+      glowSprite.position.set(n.x, n.y, n.z);
+      glowSprite.scale.set(0, 0, 1);
+      pivot.add(glowSprite);
+      glowMap.set(n.id, glowSprite);
 
       // Selection Halo mesh (White 30% opacity on active selection)
       const haloGeo = new THREE.SphereGeometry(n.size * 1.36, 20, 16);
@@ -408,6 +442,16 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
             mat.emissiveIntensity = curCfg.glowIntensity * (isHub ? 1.0 : 0.4);
             mat.opacity = 1.0;
           }
+          const sprite = glowMap.get(n.id);
+          if (sprite) {
+            const hex = cssToHex(curCfg.colors[n.type] ?? '#4E6E9D');
+            sprite.material.color.setHex(hex);
+            const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
+            sprite.material.opacity = curCfg.glowIntensity * (isHub ? 0.95 : 0.70);
+            const sizeMultiplier = curCfg.sizes[n.type] ?? 1.0;
+            const baseScale = n.size * (isHub ? 3.8 : 3.2) * sizeMultiplier;
+            sprite.scale.set(baseScale, baseScale, 1);
+          }
         });
         return;
       }
@@ -465,6 +509,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       nodes.forEach(n => {
         const halo = haloMap.get(n.id);
         const mat = nodeMaterials.get(n.id);
+        const sprite = glowMap.get(n.id);
         const isSelf = n.id === nodeId;
         const isNeighbor = activeNeighborIds.has(n.id);
         const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
@@ -497,6 +542,22 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
             // Attenuate background nodes
             mat.opacity = 0.20;
             mat.emissiveIntensity = 0.03;
+          }
+        }
+
+        if (sprite) {
+          if (isSelf) {
+            sprite.material.color.setHex(0xffffff);
+            sprite.material.opacity = Math.min(1.0, curCfg.glowIntensity * 1.7);
+            const selScale = n.size * 4.6 * (curCfg.sizes[n.type] ?? 1);
+            sprite.scale.set(selScale, selScale, 1);
+          } else if (isNeighbor) {
+            sprite.material.color.setHex(cssToHex(curCfg.colors[n.type] ?? '#4E6E9D'));
+            sprite.material.opacity = curCfg.glowIntensity * 0.85;
+            const nbScale = n.size * 3.6 * (curCfg.sizes[n.type] ?? 1);
+            sprite.scale.set(nbScale, nbScale, 1);
+          } else {
+            sprite.material.opacity = curCfg.glowIntensity * 0.08;
           }
         }
       });
@@ -574,6 +635,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
         nodes.forEach(n => {
           const halo = haloMap.get(n.id);
           const mat = nodeMaterials.get(n.id);
+          const sprite = glowMap.get(n.id);
           if (reachedTopics.has(n.id)) {
             if (halo) {
               const haloMat = halo.material as THREE.MeshBasicMaterial;
@@ -586,10 +648,19 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
               mat.emissive.setHex(MAGENTA_TOPIC);
               mat.emissiveIntensity = 0.8;
             }
+            if (sprite) {
+              sprite.material.color.setHex(MAGENTA_TOPIC);
+              sprite.material.opacity = 1.0;
+              const topScale = n.size * 4.4 * (configRef.current.sizes[n.type] ?? 1);
+              sprite.scale.set(topScale, topScale, 1);
+            }
           } else {
             if (halo) {
               (halo.material as THREE.MeshBasicMaterial).opacity = 0;
               halo.scale.setScalar(0);
+            }
+            if (sprite) {
+              sprite.material.opacity = 0.1 * configRef.current.glowIntensity;
             }
           }
         });
@@ -706,6 +777,12 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
           mesh.scale.setScalar(Math.max(0, hubEased * (configRef.current.sizes[hn.type] ?? 1)));
           nodeAlpha.set(hn.id, easeInOutCubic(hubT));
         }
+        const sprite = glowMap.get(hn.id);
+        if (sprite) {
+          const glowScale = hn.size * 3.8 * Math.max(0, hubEased * (configRef.current.sizes[hn.type] ?? 1));
+          sprite.scale.set(glowScale, glowScale, 1);
+          sprite.material.opacity = (configRef.current.glowIntensity ?? 0.25) * 0.95 * easeInOutCubic(hubT);
+        }
       });
 
       // Peripheral nodes sequence in
@@ -720,6 +797,12 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
           if (mesh) {
             mesh.scale.setScalar(Math.max(0, eased * (configRef.current.sizes[pn.type] ?? 1)));
             nodeAlpha.set(pn.id, easeInOutCubic(localT));
+          }
+          const sprite = glowMap.get(pn.id);
+          if (sprite) {
+            const glowScale = pn.size * 3.2 * Math.max(0, eased * (configRef.current.sizes[pn.type] ?? 1));
+            sprite.scale.set(glowScale, glowScale, 1);
+            sprite.material.opacity = (configRef.current.glowIntensity ?? 0.25) * 0.70 * easeInOutCubic(localT);
           }
         });
       }
@@ -885,12 +968,19 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       if (colorsChanged || glowChanged) {
         nodes.forEach(n => {
           const mat = nodeMaterials.get(n.id);
+          const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
           if (mat && selectedNodeId !== n.id && !magentaHighlightedNodeIds.has(n.id)) {
             const hex = cssToHex(c.colors[n.type] ?? '#4E6E9D');
             mat.color.setHex(hex);
             mat.emissive.setHex(hex);
-            const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
             mat.emissiveIntensity = c.glowIntensity * (isHub ? 1.0 : 0.4);
+          }
+          const sprite = glowMap.get(n.id);
+          if (sprite && selectedNodeId !== n.id && !magentaHighlightedNodeIds.has(n.id)) {
+            const hex = cssToHex(c.colors[n.type] ?? '#4E6E9D');
+            sprite.material.color.setHex(hex);
+            const alpha = nodeAlpha.get(n.id) ?? 1;
+            sprite.material.opacity = c.glowIntensity * (isHub ? 0.95 : 0.70) * alpha;
           }
         });
         if (colorsChanged) lastCfgColors = { ...c.colors };
@@ -908,10 +998,16 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
 
       if (sizesChanged && revealDone) {
         nodes.forEach(n => {
+          const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
+          const sizeMultiplier = c.sizes[n.type] ?? 1.0;
           const mesh = nodeMap.get(n.id);
           if (mesh && mesh.scale.x > 0.05 && selectedNodeId !== n.id) {
-            const sizeMultiplier = c.sizes[n.type] ?? 1.0;
             mesh.scale.setScalar(sizeMultiplier);
+          }
+          const sprite = glowMap.get(n.id);
+          if (sprite && sprite.scale.x > 0.05 && selectedNodeId !== n.id) {
+            const baseScale = n.size * (isHub ? 3.8 : 3.2) * sizeMultiplier;
+            sprite.scale.set(baseScale, baseScale, 1);
           }
         });
         lastCfgSizes = { ...c.sizes };
@@ -989,13 +1085,19 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
         }
       }
 
-      // Hub node subtle idle breathing pulse
+      // Hub node subtle idle breathing pulse & aura
       if (revealDone) {
         const pulse = 1 + Math.sin(t * 2) * 0.025;
+        const glowPulse = 1 + Math.sin(t * 2) * 0.08;
         hubNodes.forEach(hn => {
           if (hn.id !== selectedNodeId && !magentaHighlightedNodeIds.has(hn.id)) {
             const mesh = nodeMap.get(hn.id);
             if (mesh) mesh.scale.setScalar((configRef.current.sizes[hn.type] ?? 1) * pulse);
+            const sprite = glowMap.get(hn.id);
+            if (sprite) {
+              const hubScale = hn.size * 3.8 * (configRef.current.sizes[hn.type] ?? 1) * glowPulse;
+              sprite.scale.set(hubScale, hubScale, 1);
+            }
           }
         });
       }
