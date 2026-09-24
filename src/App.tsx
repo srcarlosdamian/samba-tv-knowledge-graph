@@ -49,6 +49,56 @@ function SidebarTooltip({ label, anchorRect }: { label: string; anchorRect: DOMR
   );
 }
 
+// ─── Custom Sidebar Icons ──────────────────────────────────────────────────
+function SambaTvLogo({ width = 24, height = 22 }: { width?: number; height?: number }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 26 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flexShrink: 0 }}>
+      <path
+        d="M7.8 7.5C5.7 7.5 4 9.2 4 11.3C4 13.4 5.7 15.1 7.8 15.1C10.5 15.1 13.8 11.2 15.8 8.8C17.5 6.8 20.2 6.5 21.8 8.2C23.5 10 23.2 12.8 21.2 14.5L14.8 19.8C13.8 20.6 12.2 20.6 11.2 19.8L8.5 17.5"
+        stroke="#5885D6"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function KnowledgeGraphNavIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flexShrink: 0 }}>
+      <line x1="13.2" y1="6.8" x2="18" y2="10.2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <line x1="18.8" y1="12.8" x2="15.2" y2="17.2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <line x1="12.8" y1="18.2" x2="7.8" y2="14.8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <line x1="7.2" y1="12.2" x2="10.8" y2="7.8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <circle cx="12" cy="5.5" r="2.2" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="19.5" cy="11.5" r="2.2" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="14" cy="19.5" r="2.2" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="6" cy="13.5" r="2.2" stroke="currentColor" strokeWidth="1.75" />
+    </svg>
+  );
+}
+
+function AudienceNavIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flexShrink: 0 }}>
+      <path
+        d="M13 3.5C17.7 3.9 20.1 6.3 20.5 11H13V3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M21 13C21 17.97 16.97 22 12 22C7.03 22 3 17.97 3 13C3 8.03 7.03 4 12 4"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleEditor }: {
   view: View; setView: (v: View) => void;
@@ -86,20 +136,28 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
       >
         {/* Top */}
         <div className="flex flex-col gap-6 items-center w-full">
-          <button onClick={() => setView('graph')} className="flex items-center justify-center" style={{ width: 24, height: 20 }}>
-            <img alt="logo" src="/assets/05855.svg" style={{ width: 24, height: 20, display: 'block' }} />
+          <button onClick={() => setView('graph')} className="flex items-center justify-center p-0.5 rounded hover:opacity-85 transition-opacity" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }} title="Samba TV">
+            <SambaTvLogo width={24} height={22} />
           </button>
           <div className="flex flex-col gap-4 items-center w-full">
             <NavItem
               key="graph"
-              icon={<img src="/assets/9c176.svg" alt="" style={{ width: 20, height: 20, filter: 'brightness(0) invert(1)', opacity: view === 'graph' ? 0.9 : 0.55 }} />}
+              icon={
+                <div style={{ color: view === 'graph' ? '#ffffff' : 'rgba(255,255,255,0.6)' }}>
+                  <KnowledgeGraphNavIcon size={20} />
+                </div>
+              }
               label="Ask a question"
               active={view === 'graph'}
               onClick={() => setView('graph')}
             />
             <NavItem
               key="audience"
-              icon={<img src="/assets/51833.svg" alt="" style={{ width: 20, height: 20, filter: 'brightness(0) invert(1)', opacity: view === 'audience' ? 0.9 : 0.55 }} />}
+              icon={
+                <div style={{ color: view === 'audience' ? '#ffffff' : 'rgba(255,255,255,0.6)' }}>
+                  <AudienceNavIcon size={20} />
+                </div>
+              }
               label="Audience"
               active={view === 'audience'}
               onClick={() => setView('audience')}
