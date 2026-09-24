@@ -325,8 +325,9 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
     const REVEAL_END = HUB_IN + peripheralNodes.length * NODE_INTERVAL + 0.3;
 
     let autoRotating = true;
-    let autoRotVel = 0;
-    const AUTO_ROT_MAX = 0.22;
+    let autoRotVel = 0.26;
+    const INITIAL_SPIN_DURATION = 9.0;
+    const IDLE_DRIFT = 0.035;
 
     function applySelectionHighlight(nodeId: string | null) {
       selectedNodeId = nodeId;
@@ -943,10 +944,10 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       // Rotation & Inertia
       if (!isDragging) {
         if (autoRotating) {
-          const target = revealDone ? 0 : AUTO_ROT_MAX;
-          autoRotVel += (target - autoRotVel) * (revealDone ? 0.04 : 0.025) * 60 * dt;
+          const spinProgress = Math.min(t / INITIAL_SPIN_DURATION, 1.0);
+          const targetVel = (1 - easeInOutCubic(spinProgress)) * 0.26 + IDLE_DRIFT;
+          autoRotVel += (targetVel - autoRotVel) * 0.05 * 60 * dt;
           pivot.rotation.y += autoRotVel * dt;
-          if (revealDone && Math.abs(autoRotVel) < 0.001) autoRotVel = 0;
         } else {
           velX *= Math.pow(0.92, 60 * dt);
           velY *= Math.pow(0.92, 60 * dt);
