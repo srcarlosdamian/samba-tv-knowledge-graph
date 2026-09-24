@@ -8,7 +8,7 @@ import {
   genres, topics, tableRows, audienceData,
   type Genre, type Topic,
   type NodeType, type Node3DData, type GraphDataset,
-  getGraphDataset
+  getGraphDataset, getTableRows
 } from './db';
 import Graph3D, { DEFAULT_GRAPH_CONFIG, type GraphConfig, type Graph3DHandle } from './Graph3D';
 
@@ -593,20 +593,22 @@ function SparqlCodeViewer({ code, onCopy, copied }: { code: string; onCopy: () =
 }
 
 // ─── Knowledge Graph Sidebar (floating card) ──────────────────────────────────
-function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAnalysis, sparqlQuery, nodeCount }: {
+function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAnalysis, sparqlQuery, nodeCount, limit, setLimit }: {
   graphTab: GraphTab; setGraphTab: (t: GraphTab) => void;
   query: string; setQuery: (q: string) => void;
   onRunAnalysis: () => void;
   sparqlQuery?: string;
   nodeCount?: number;
+  limit: string;
+  setLimit: (l: string) => void;
 }) {
   const [techExpanded, setTechExpanded] = useState(true);
   const [sparqlTab, setSparqlTab] = useState<'select' | 'construct'>('select');
   const [model, setModel] = useState('haiku');
-  const [limit, setLimit] = useState('20');
   const [copied, setCopied] = useState(false);
 
-  const activeSparqlCode = sparqlQuery ?? `PREFIX samba: <http://samba.tv/ontology/graph#>\nSELECT ?household ?exp\nWHERE {\n  GRAPH <http://samba.tv/data/identity/> {\n    ?household a samba:Household ;\n      samba:stateOfResidence "Texas" .\n  }\n}\nLIMIT 20`;
+  const baseSparql = sparqlQuery ?? `PREFIX samba: <http://samba.tv/ontology/graph#>\nSELECT ?household ?exp\nWHERE {\n  GRAPH <http://samba.tv/data/identity/> {\n    ?household a samba:Household ;\n      samba:stateOfResidence "Texas" .\n  }\n}\nLIMIT ${limit}`;
+  const activeSparqlCode = baseSparql.replace(/LIMIT\s+\d+/i, `LIMIT ${limit}`);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(activeSparqlCode);
@@ -1651,11 +1653,39 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 }) {
   const [graphTab, setGraphTab] = useState<GraphTab>('graph');
   const [localQuery, setLocalQuery] = useState(query);
+  const [limit, setLimit] = useState('20');
   const [page, setPage] = useState(1);
   const [selectedNode, setSelectedNode] = useState<Node3DData | null>(null);
   const graphRef = useRef<Graph3DHandle>(null);
 
-  const dataset = useMemo(() => getGraphDataset(localQuery), [localQuery]);
+  const limitNum = parseInt(limit, 10) || 20;
+
+  useEffect(() => {
+    setPage(1);
+  }, [limit, localQuery]);
+
+  const dataset = useMemo(() => getGraphDataset(localQuery, limitNum), [localQuery, limitNum]);
+  const tableRows = useMemo(() => getTableRows(limitNum, dataset), [limitNum, dataset]);
+
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(tableRows.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * pageSize;
+  const endIdx = Math.min(startIdx + pageSize, tableRows.length);
+  const visibleRows = tableRows.slice(startIdx, endIdx);
+
+  const getPageNumbers = () => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, 5];
+    }
+    if (currentPage >= totalPages - 2) {
+      return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
+  };
 
   const legendItems = [
     { label: 'Genre',      color: '#38A169', dot: true  },
@@ -1737,6 +1767,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
             query={localQuery} setQuery={setLocalQuery}
             sparqlQuery={dataset.sparqlQuery}
             nodeCount={dataset.nodes.length}
+            limit={limit} setLimit={setLimit}
             onRunAnalysis={() => {}}
           />
         </div>
@@ -1795,7 +1826,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
                   </tr>
                 </thead>
                 <tbody>
-                  {tableRows.slice((page - 1) * 10, page * 10).map((row, i) => (
+                  {visibleRows.map((row, i) => (
                     <tr key={i} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: '1px solid #1c1c1f' }}>
                       <td style={{ padding: '14px 0', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: '#f3f4f6' }}>
                         {row.household}
@@ -1818,18 +1849,18 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
             {/* Pagination */}
             <div className="flex items-center justify-between pt-6">
               <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: '#71717a' }}>
-                Showing 10 of {tableRows.length} results
+                Showing {tableRows.length > 0 ? `${startIdx + 1}–${endIdx}` : 0} of {tableRows.length} results
               </span>
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
+                  disabled={currentPage === 1}
                   className="flex items-center justify-center p-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   style={{ color: '#8e8e93', background: 'transparent', border: 'none' }}
                 >
                   <ChevronLeft size={16} strokeWidth={1.5} />
                 </button>
-                {[1, 2].map(p => (
+                {getPageNumbers().map(p => (
                   <button
                     key={p}
                     onClick={() => setPage(p)}
@@ -1837,19 +1868,19 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
                     style={{
                       width: 26,
                       height: 26,
-                      backgroundColor: page === p ? '#27272a' : 'transparent',
-                      border: page === p ? '1px solid #3f3f46' : '1px solid transparent',
-                      color: page === p ? '#ffffff' : '#71717a',
+                      backgroundColor: currentPage === p ? '#27272a' : 'transparent',
+                      border: currentPage === p ? '1px solid #3f3f46' : '1px solid transparent',
+                      color: currentPage === p ? '#ffffff' : '#71717a',
                       fontFamily: "'Season Sans', 'Inter', sans-serif",
-                      fontWeight: page === p ? 500 : 400
+                      fontWeight: currentPage === p ? 500 : 400
                     }}
                   >
                     {p}
                   </button>
                 ))}
                 <button
-                  onClick={() => setPage(p => Math.min(2, p + 1))}
-                  disabled={page === 2}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
                   className="flex items-center justify-center p-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   style={{ color: '#8e8e93', background: 'transparent', border: 'none' }}
                 >

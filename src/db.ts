@@ -1402,44 +1402,77 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Dynamic Table Bindings Generator respecting Limit
+// ─────────────────────────────────────────────────────────────────────────────
+export function getTableRows(limit: number = 20, dataset?: GraphDataset): TableRow[] {
+  const rows: TableRow[] = [];
+  const baseSambaIds = [
+    'e8bbb6fa0afd5cb6', 'b9ccc7fa0cfe6dcb7', 'c1ddd8fa1e0f7ece8', 'd2eee9fa2f217fcf9',
+    'e3ff0afa3g3230f0a', 'f4gg1bfa4h4341g1b', 'g5hh2cfa5i5452h2c', 'h6ii3dfa6j6563i3d',
+    'i7jj4efa7k7674j4e', 'j8kk5ffb8l8785k5f', 'k9ll6ggc9m9896l6g', 'l0mm7hhd0n0907m7h',
+    'm1nn8iie1o1018n8i', 'n2oo9jjf2p2129o9j', 'o3pp0kkg3q3230p0k', 'p4qq1llh4r4341q1l',
+    'q5rr2mmi5s5452r2m', 'r6ss3nnj6t6563s3n', 's7tt4ook7u7674t4o', 't8uu5ppl8v8785u5p',
+  ];
+
+  const householdNodes = dataset?.nodes.filter(n => n.type === 'household') ?? [];
+
+  for (let i = 0; i < limit; i++) {
+    const hhNum = (34003493403040340n + BigInt(i)).toString();
+    const sambaId = householdNodes[i]?.label ?? (baseSambaIds[i % baseSambaIds.length] + (i >= baseSambaIds.length ? `_${i}` : ''));
+    const genreScore = (1.0 + (i % 15) * 0.1).toFixed(1);
+    const topicScore = '1.0';
+    rows.push({
+      household: `samba.tv/${hhNum}`,
+      sambaId,
+      genreScore,
+      topicScore,
+    });
+  }
+  return rows;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Query Engine: Select matching dataset for any user query or fallback
 // ─────────────────────────────────────────────────────────────────────────────
-export function getGraphDataset(queryText: string): GraphDataset {
+export function getGraphDataset(queryText: string, limit: number = 20): GraphDataset {
   const q = (queryText || '').toLowerCase().trim();
+  let ds: GraphDataset;
 
   if (q.includes('samba tv') && (q.includes('device') || q.includes('3') || q.includes('more'))) {
-    return buildExample1_Devices();
-  }
-  if (q.includes('texas')) {
-    return buildExample2_Texas();
-  }
-  if (q.includes('75') || q.includes('income')) {
-    return buildExample3_Income();
-  }
-  if (q.includes('friends') || (q.includes('new york') && !q.includes('thrones') && !q.includes('married'))) {
-    return buildExample4_FriendsNY();
-  }
-  if (q.includes('game of thrones') || q.includes('thrones') || q.includes('married')) {
-    return buildExample6_GoTMarried();
+    ds = buildExample1_Devices();
+  } else if (q.includes('texas')) {
+    ds = buildExample2_Texas();
+  } else if (q.includes('75') || q.includes('income')) {
+    ds = buildExample3_Income();
+  } else if (q.includes('friends') || (q.includes('new york') && !q.includes('thrones') && !q.includes('married'))) {
+    ds = buildExample4_FriendsNY();
+  } else if (q.includes('game of thrones') || q.includes('thrones') || q.includes('married')) {
+    ds = buildExample6_GoTMarried();
+  } else {
+    // Genre detection
+    const detectedGenre = genres.find(g => q.includes(g.name.toLowerCase()));
+    // Topic detection
+    const detectedTopic = topics.find(t => q.includes(t.name.toLowerCase()));
+
+    if (detectedGenre && detectedTopic) {
+      ds = buildExample5_ComedySports(detectedGenre.name, detectedTopic.name);
+    } else if (detectedGenre && !detectedTopic) {
+      ds = buildExample5_ComedySports(detectedGenre.name, 'Sports');
+    } else if (detectedTopic && !detectedGenre) {
+      ds = buildExample5_ComedySports('Comedy', detectedTopic.name);
+    } else {
+      // Default rich scene: Comedy & Sports
+      ds = buildExample5_ComedySports('Comedy', 'Sports');
+    }
   }
 
-  // Genre detection
-  const detectedGenre = genres.find(g => q.includes(g.name.toLowerCase()));
-  // Topic detection
-  const detectedTopic = topics.find(t => q.includes(t.name.toLowerCase()));
-
-  if (detectedGenre && detectedTopic) {
-    return buildExample5_ComedySports(detectedGenre.name, detectedTopic.name);
+  // Ensure SPARQL query LIMIT reflects the user-selected limit
+  if (ds && ds.sparqlQuery) {
+    ds = {
+      ...ds,
+      sparqlQuery: ds.sparqlQuery.replace(/LIMIT\s+\d+/i, `LIMIT ${limit}`),
+    };
   }
 
-  if (detectedGenre && !detectedTopic) {
-    return buildExample5_ComedySports(detectedGenre.name, 'Sports');
-  }
-
-  if (detectedTopic && !detectedGenre) {
-    return buildExample5_ComedySports('Comedy', detectedTopic.name);
-  }
-
-  // Default rich scene: Comedy & Sports
-  return buildExample5_ComedySports('Comedy', 'Sports');
+  return ds;
 }
