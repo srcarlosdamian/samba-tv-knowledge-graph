@@ -895,12 +895,15 @@ function EditorRow({ label, color, colorDot, accentColor, sliderMin, sliderMax, 
   );
 }
 
+type EditorTab = 'nodes' | 'lines' | 'selection' | 'labels';
+
 function GraphEditorPanel({ config, onChange, onClose }: {
   config: GraphConfig;
   onChange: (c: GraphConfig) => void;
   onClose: () => void;
 }) {
-  const panelWidth = 272;
+  const panelWidth = 296;
+  const [activeTab, setActiveTab] = useState<EditorTab>('selection');
   const [pos, setPos] = useState<{ x: number; y: number }>(() => {
     const w = typeof window !== 'undefined' ? window.innerWidth : 1200;
     return { x: Math.max(20, w - panelWidth - 24), y: 64 };
@@ -951,6 +954,13 @@ function GraphEditorPanel({ config, onChange, onClose }: {
     };
   }, [isDragging]);
 
+  const tabs: { id: EditorTab; label: string }[] = [
+    { id: 'nodes', label: 'Nodes' },
+    { id: 'lines', label: 'Lines' },
+    { id: 'selection', label: 'Selection' },
+    { id: 'labels', label: 'Labels' },
+  ];
+
   return (
     <div className="fixed flex flex-col" style={{
       top: pos.y, left: pos.x, zIndex: 50, width: panelWidth,
@@ -965,7 +975,7 @@ function GraphEditorPanel({ config, onChange, onClose }: {
       <div
         onPointerDown={startDrag}
         className="flex items-center justify-between px-3 py-2.5 sticky top-0 cursor-grab active:cursor-grabbing select-none"
-        style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', zIndex: 1, touchAction: 'none' }}
+        style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', zIndex: 10, touchAction: 'none' }}
       >
         <div className="flex items-center gap-1.5 flex-1 drag-handle">
           <div className="flex items-center justify-center p-1 rounded hover:bg-[var(--bg-btn)] text-[var(--text-muted)]" title="Drag to move panel">
@@ -980,149 +990,344 @@ function GraphEditorPanel({ config, onChange, onClose }: {
         </button>
       </div>
 
+      {/* Tabs Bar */}
+      <div className="flex items-center p-1.5 mx-2.5 mt-2.5 rounded-lg" style={{ backgroundColor: 'var(--bg-card-alt)', border: '1px solid var(--border-mid)' }}>
+        {tabs.map(t => {
+          const active = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className="flex-1 py-1 text-center rounded transition-all cursor-pointer"
+              style={{
+                fontFamily: "'Season Sans', 'Inter', sans-serif",
+                fontSize: 11,
+                fontWeight: active ? 600 : 400,
+                color: active ? '#ffffff' : 'var(--text-muted)',
+                backgroundColor: active ? 'var(--bg-card)' : 'transparent',
+                boxShadow: active ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+                border: 'none',
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="p-3 flex flex-col gap-0">
-        {/* Section: Overall Graph Size */}
-        <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
-          Overall Graph Size
-        </div>
-        <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
-          <div className="flex items-center justify-between">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
-              Global Scale
-            </span>
-            <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-              {((config.globalScale ?? 1.0) * 100).toFixed(0)}%
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Scale</span>
-            <input
-              type="range"
-              min={0.3}
-              max={2.5}
-              step={0.05}
-              value={config.globalScale ?? 1.0}
-              onChange={e => onChange({ ...config, globalScale: parseFloat(e.target.value) })}
-              style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+        {/* ════════════════════════════════════════════════════════════════════
+            TAB 1: NODES
+        ════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'nodes' && (
+          <>
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Overall Scale
+            </div>
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+              <div className="flex items-center justify-between">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Global Scale
+                </span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {((config.globalScale ?? 1.0) * 100).toFixed(0)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Scale</span>
+                <input
+                  type="range"
+                  min={0.3}
+                  max={2.5}
+                  step={0.05}
+                  value={config.globalScale ?? 1.0}
+                  onChange={e => onChange({ ...config, globalScale: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+                />
+              </div>
+            </div>
+
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Node Glow Aura
+            </div>
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500, flex: 1 }}>Base glow</span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', width: 32, textAlign: 'right' }}>
+                  {(config.glowIntensity ?? 0.25).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Glow</span>
+                <input type="range" min={0} max={1} step={0.01} value={config.glowIntensity ?? 0.25}
+                  onChange={e => onChange({ ...config, glowIntensity: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }} />
+              </div>
+            </div>
+
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Node Categories
+            </div>
+            {GROUP_META.map(({ type, label }) => (
+              <EditorRow key={type}
+                label={label} color={config.colors[type]} colorDot
+                sliderMin={0.3} sliderMax={2.5} sliderStep={0.05} sliderValue={config.sizes[type]} sliderLabel="Size"
+                onColorChange={hex => onChange({ ...config, colors: { ...config.colors, [type]: hex } })}
+                onSliderChange={val => onChange({ ...config, sizes: { ...config.sizes, [type]: val } })}
+              />
+            ))}
+          </>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════════════
+            TAB 2: LINES
+        ════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'lines' && (
+          <>
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Dotted &amp; Animated Line Flow
+            </div>
+            <div className="flex flex-col gap-2.5 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+              <div className="flex items-center justify-between">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Dotted Lines Effect
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.edgeDashed !== false}
+                    onChange={e => onChange({ ...config, edgeDashed: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-8 h-4.5 bg-[#333333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-[var(--accent)]" />
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Flow Speed
+                </span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {(config.edgeDashSpeed ?? 1.2).toFixed(1)}×
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Speed</span>
+                <input
+                  type="range"
+                  min={0.2}
+                  max={3.0}
+                  step={0.1}
+                  value={config.edgeDashSpeed ?? 1.2}
+                  onChange={e => onChange({ ...config, edgeDashSpeed: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+                />
+              </div>
+            </div>
+
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Line Colors &amp; Opacity
+            </div>
+            <EditorRow
+              label="Standard edges" color={config.edgeColor}
+              accentColor="var(--accent)"
+              sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.edgeOpacity} sliderLabel="Opacity"
+              onColorChange={hex => onChange({ ...config, edgeColor: hex })}
+              onSliderChange={val => onChange({ ...config, edgeOpacity: val })}
             />
-          </div>
-        </div>
-
-        {/* Section: Nodes */}
-        <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
-          Nodes
-        </div>
-        {GROUP_META.map(({ type, label }) => (
-          <EditorRow key={type}
-            label={label} color={config.colors[type]} colorDot
-            sliderMin={0.3} sliderMax={2.5} sliderStep={0.05} sliderValue={config.sizes[type]} sliderLabel="Size"
-            onColorChange={hex => onChange({ ...config, colors: { ...config.colors, [type]: hex } })}
-            onSliderChange={val => onChange({ ...config, sizes: { ...config.sizes, [type]: val } })}
-          />
-        ))}
-
-        {/* Section: Glow */}
-        <div className="mt-2 mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
-          Glow
-        </div>
-        <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
-          <div className="flex items-center gap-2">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500, flex: 1 }}>Node glow</span>
-            <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', width: 32, textAlign: 'right' }}>
-              {(config.glowIntensity ?? 0.25).toFixed(2)}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Intensity</span>
-            <input type="range" min={0} max={1} step={0.01} value={config.glowIntensity ?? 0.25}
-              onChange={e => onChange({ ...config, glowIntensity: parseFloat(e.target.value) })}
-              style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }} />
-          </div>
-        </div>
-
-        {/* Section: Lines */}
-        <div className="mt-2 mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
-          Lines (Edges)
-        </div>
-        <EditorRow
-          label="Edge lines" color={config.edgeColor}
-          accentColor="var(--accent)"
-          sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.edgeOpacity} sliderLabel="Opacity"
-          onColorChange={hex => onChange({ ...config, edgeColor: hex })}
-          onSliderChange={val => onChange({ ...config, edgeOpacity: val })}
-        />
-        <EditorRow
-          label="Hub edge lines" color={config.hubEdgeColor}
-          accentColor="var(--accent)"
-          sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.edgeOpacity} sliderLabel="Opacity"
-          onColorChange={hex => onChange({ ...config, hubEdgeColor: hex })}
-          onSliderChange={val => onChange({ ...config, edgeOpacity: val })}
-        />
-
-        {/* Section: Text & Labels */}
-        <div className="mt-3 mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
-          Text &amp; Labels
-        </div>
-        <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
-          <div className="flex items-center justify-between">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
-              Node Text Size
-            </span>
-            <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-              {((config.textSize ?? 1.0) * 100).toFixed(0)}%
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Size</span>
-            <input
-              type="range"
-              min={0.4}
-              max={2.5}
-              step={0.05}
-              value={config.textSize ?? 1.0}
-              onChange={e => onChange({ ...config, textSize: parseFloat(e.target.value) })}
-              style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+            <EditorRow
+              label="Hub bridge edges" color={config.hubEdgeColor}
+              accentColor="var(--accent)"
+              sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.edgeOpacity} sliderLabel="Opacity"
+              onColorChange={hex => onChange({ ...config, hubEdgeColor: hex })}
+              onSliderChange={val => onChange({ ...config, edgeOpacity: val })}
             />
-          </div>
-        </div>
+          </>
+        )}
 
-        <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
-          <div className="flex items-center justify-between">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
-              Node Text Opacity
-            </span>
-            <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-              {((config.textOpacity ?? 1.0) * 100).toFixed(0)}%
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Opacity</span>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.05}
-              value={config.textOpacity ?? 1.0}
-              onChange={e => onChange({ ...config, textOpacity: parseFloat(e.target.value) })}
-              style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+        {/* ════════════════════════════════════════════════════════════════════
+            TAB 3: SELECTION & GLOW BLUR
+        ════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'selection' && (
+          <>
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Selection Color
+            </div>
+            <div className="flex flex-col gap-2.5 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: config.selectionColor ?? '#ffffff', flexShrink: 0 }} />
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                    Highlight &amp; Active Line
+                  </span>
+                </div>
+                <ColorSwatch value={config.selectionColor ?? '#ffffff'} onChange={hex => onChange({ ...config, selectionColor: hex })} />
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex items-center gap-1.5 pt-1">
+                {[
+                  { name: 'Pure White', hex: '#ffffff' },
+                  { name: 'Sky Blue', hex: '#60a5fa' },
+                  { name: 'Emerald', hex: '#38A169' },
+                  { name: 'Coral Rose', hex: '#f43f5e' },
+                  { name: 'Amber Gold', hex: '#facc15' },
+                  { name: 'Magenta', hex: '#D53F8C' },
+                ].map(p => (
+                  <button
+                    key={p.hex}
+                    onClick={() => onChange({ ...config, selectionColor: p.hex })}
+                    title={p.name}
+                    className="flex-1 rounded transition-transform hover:scale-110 cursor-pointer"
+                    style={{
+                      height: 18,
+                      backgroundColor: p.hex,
+                      border: (config.selectionColor ?? '#ffffff').toLowerCase() === p.hex.toLowerCase() ? '2px solid #ffffff' : '1px solid rgba(255,255,255,0.15)',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Selection Glow Blur &amp; Halo
+            </div>
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+              <div className="flex items-center justify-between">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Soft Blur Intensity
+                </span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {(config.selectionBlur ?? 1.0).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Blur</span>
+                <input
+                  type="range"
+                  min={0.0}
+                  max={2.5}
+                  step={0.05}
+                  value={config.selectionBlur ?? 1.0}
+                  onChange={e => onChange({ ...config, selectionBlur: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: config.selectionColor ?? 'var(--accent)', height: 4 }}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+              <div className="flex items-center justify-between">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Halo Mesh Opacity
+                </span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {((config.selectionHaloOpacity ?? 0.35) * 100).toFixed(0)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Halo</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.02}
+                  value={config.selectionHaloOpacity ?? 0.35}
+                  onChange={e => onChange({ ...config, selectionHaloOpacity: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: config.selectionColor ?? 'var(--accent)', height: 4 }}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                Animated Line Connection
+              </span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={config.animateConnection !== false}
+                  onChange={e => onChange({ ...config, animateConnection: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-8 h-4.5 bg-[#333333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-[var(--accent)]" />
+              </label>
+            </div>
+          </>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════════════
+            TAB 4: LABELS & TEXT
+        ════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'labels' && (
+          <>
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Node Labels
+            </div>
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
+              <div className="flex items-center justify-between">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Node Text Size
+                </span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {((config.textSize ?? 1.0) * 100).toFixed(0)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Size</span>
+                <input
+                  type="range"
+                  min={0.4}
+                  max={2.5}
+                  step={0.05}
+                  value={config.textSize ?? 1.0}
+                  onChange={e => onChange({ ...config, textSize: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+              <div className="flex items-center justify-between">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Node Text Opacity
+                </span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {((config.textOpacity ?? 1.0) * 100).toFixed(0)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Opacity</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={config.textOpacity ?? 1.0}
+                  onChange={e => onChange({ ...config, textOpacity: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+                />
+              </div>
+            </div>
+
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Edge Relation Labels
+            </div>
+            <EditorRow
+              label="Edge relation text" color={config.edgeTextColor ?? '#888888'}
+              accentColor="var(--accent)"
+              sliderMin={0.2} sliderMax={2.0} sliderStep={0.05} sliderValue={config.edgeTextSize ?? 0.45} sliderLabel="Size"
+              onColorChange={hex => onChange({ ...config, edgeTextColor: hex })}
+              onSliderChange={val => onChange({ ...config, edgeTextSize: val })}
             />
-          </div>
-        </div>
-
-        <EditorRow
-          label="Edge relation text" color={config.edgeTextColor ?? '#888888'}
-          accentColor="var(--accent)"
-          sliderMin={0.2} sliderMax={2.0} sliderStep={0.05} sliderValue={config.edgeTextSize ?? 0.45} sliderLabel="Size"
-          onColorChange={hex => onChange({ ...config, edgeTextColor: hex })}
-          onSliderChange={val => onChange({ ...config, edgeTextSize: val })}
-        />
+          </>
+        )}
       </div>
 
       {/* Reset */}
       <div className="px-3 pb-3">
         <button onClick={() => onChange(DEFAULT_GRAPH_CONFIG)}
-          className="w-full flex items-center justify-center rounded-lg"
-          style={{ height: 30, backgroundColor: 'var(--bg-btn)', border: '1px solid var(--border)', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>
+          className="w-full flex items-center justify-center rounded-lg transition-colors hover:bg-[var(--bg-card-alt)] cursor-pointer"
+          style={{ height: 32, backgroundColor: 'var(--bg-btn)', border: '1px solid var(--border)', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>
           Reset to defaults
         </button>
       </div>

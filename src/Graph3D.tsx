@@ -20,12 +20,20 @@ export interface GraphConfig {
   edgeColor: string;
   hubEdgeColor: string;
   edgeOpacity: number;
+  edgeDashed?: boolean;    // dotted/dashed animated lines effect
+  edgeDashSpeed?: number;  // flow speed multiplier (0.2 to 3.0)
+
+  // ─── Selection & Highlight (Selección y Destello) ───────────────────────────
+  selectionColor?: string;       // color for selection highlight & lines (default #ffffff)
+  selectionHaloOpacity?: number; // 0 to 1.0 (default 0.35)
+  selectionBlur?: number;        // 0 to 2.5, soft blur & halo aura intensity (default 1.0)
+  animateConnection?: boolean;   // animate lines connecting outwards on click (default true)
 
   // ─── Text & Labels (Texto y Etiquetas) ─────────────────────────────────────
   textSize?: number;       // 0.4 to 2.5, node text size multiplier (default 1.0)
   textOpacity?: number;    // 0 to 1.0, node text label opacity (default 1.0)
   edgeTextColor?: string;  // color for edge relationship & weight text (default #888888)
-  edgeTextSize?: number;   // 0.4 to 2.0, edge text size multiplier (default 1.0)
+  edgeTextSize?: number;   // 0.4 to 2.0, edge text size multiplier (default 0.45)
   showEdgeText?: boolean;  // toggle edge text labels
 }
 
@@ -61,6 +69,14 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   edgeColor: '#6a7a8a',
   hubEdgeColor: '#9aaaaa',
   edgeOpacity: 0.45,
+  edgeDashed: true,
+  edgeDashSpeed: 1.2,
+
+  // Selection default
+  selectionColor: '#ffffff',
+  selectionHaloOpacity: 0.35,
+  selectionBlur: 1.0,
+  animateConnection: true,
 
   // Text / Labels default
   textSize: 1.0,
@@ -206,7 +222,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
     const meshToNode = new Map<THREE.Mesh, Node3DData>();
     const nodeAlpha = new Map<string, number>();
 
-    // ─── Radial Luminous Glow Texture (Outer Aura / Estela) ───────────────────
+    // ─── Radial Luminous Glow Texture (Outer Aura / Soft Blur Estela) ────────
     function createGlowTexture(): THREE.CanvasTexture {
       const canvas = document.createElement('canvas');
       canvas.width = 128;
@@ -214,9 +230,10 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       const ctx = canvas.getContext('2d')!;
       const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
       gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.75)');
-      gradient.addColorStop(0.42, 'rgba(255, 255, 255, 0.30)');
-      gradient.addColorStop(0.72, 'rgba(255, 255, 255, 0.08)');
+      gradient.addColorStop(0.18, 'rgba(255, 255, 255, 0.82)');
+      gradient.addColorStop(0.38, 'rgba(255, 255, 255, 0.40)');
+      gradient.addColorStop(0.65, 'rgba(255, 255, 255, 0.12)');
+      gradient.addColorStop(0.88, 'rgba(255, 255, 255, 0.02)');
       gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 128, 128);
@@ -251,7 +268,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       meshToNode.set(mesh, n);
       nodeAlpha.set(n.id, 0);
 
-      // Outer Luminous Glow Aura (Estela / Haze)
+      // Outer Luminous Glow Aura (Estela / Soft Blur Haze)
       const glowMat = new THREE.SpriteMaterial({
         map: glowTexture,
         color: hex,
@@ -266,10 +283,10 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       pivot.add(glowSprite);
       glowMap.set(n.id, glowSprite);
 
-      // Selection Halo mesh (White 30% opacity on active selection)
-      const haloGeo = new THREE.SphereGeometry(n.size * 1.36, 20, 16);
+      // Selection Halo mesh (Soft configurable opacity on active selection)
+      const haloGeo = new THREE.SphereGeometry(n.size * 1.36, 24, 20);
       const haloMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: cssToHex(configRef.current.selectionColor ?? '#ffffff'),
         transparent: true,
         opacity: 0,
         wireframe: false,
@@ -286,7 +303,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
     interface EdgeState {
       data: Edge3DData;
       line: THREE.Line;
-      material: THREE.LineBasicMaterial;
+      material: THREE.LineDashedMaterial;
       isHub: boolean;
       revealed: boolean;
       currentOpacity: number;
@@ -311,14 +328,18 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       const isHub = (nodeA?.type === 'genre' || nodeA?.type === 'topic' || nodeA?.type === 'series') &&
                     (nodeB?.type === 'genre' || nodeB?.type === 'topic' || nodeB?.type === 'series');
 
-      const mat = new THREE.LineBasicMaterial({
+      const mat = new THREE.LineDashedMaterial({
         color: cssToHex(isHub ? configRef.current.hubEdgeColor : configRef.current.edgeColor),
         transparent: true,
         opacity: 0,
+        dashSize: isHub ? 8 : 6,
+        gapSize: isHub ? 5 : 4,
+        scale: 1,
         linewidth: 1,
       });
 
       const line = new THREE.Line(geo, mat);
+      line.computeLineDistances();
       pivot.add(line);
 
       const mid = e.weight || e.rel ? {
@@ -371,6 +392,9 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       const curCfg = configRef.current;
       const defaultEdgeColor = cssToHex(curCfg.edgeColor);
       const defaultHubEdgeColor = cssToHex(curCfg.hubEdgeColor);
+      const selColorHex = cssToHex(curCfg.selectionColor ?? '#ffffff');
+      const selHaloOpacity = curCfg.selectionHaloOpacity ?? 0.35;
+      const selBlur = curCfg.selectionBlur ?? 1.0;
 
       if (!nodeId) {
         // Deselect all: restore full visibility, natural geometry, and default colors
@@ -382,6 +406,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
             posAttr.setXYZ(0, a.position.x, a.position.y, a.position.z);
             posAttr.setXYZ(1, b.position.x, b.position.y, b.position.z);
             posAttr.needsUpdate = true;
+            es.line.computeLineDistances();
             if (es.mid) {
               es.mid.x = (a.position.x + b.position.x) / 2;
               es.mid.y = (a.position.y + b.position.y) / 2;
@@ -424,9 +449,9 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       }
 
       // Single-click selection:
-      // 1. White 30% opacity halo on selected node
+      // 1. Configurable halo and soft blur aura on selected node
       // 2. Background nodes & edges attenuate (dim)
-      // 3. Connecting lines draw dynamically from selected node to neighbors in pure white
+      // 3. Connecting lines draw dynamically from selected node to neighbors in selectionColor
       activeNeighborIds.add(nodeId);
 
       const selMesh = nodeMap.get(nodeId);
@@ -450,20 +475,23 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
             }
 
             // Animate line connection from selected node outward
-            es.isConnecting = true;
-            es.connectProgress = 0;
-            es.originPos = startPos.clone();
-            es.targetPos = neighborMesh.position.clone();
+            if (curCfg.animateConnection !== false) {
+              es.isConnecting = true;
+              es.connectProgress = 0;
+              es.originPos = startPos.clone();
+              es.targetPos = neighborMesh.position.clone();
 
-            const posAttr = es.line.geometry.attributes.position as THREE.BufferAttribute;
-            posAttr.setXYZ(0, startPos.x, startPos.y, startPos.z);
-            posAttr.setXYZ(1, startPos.x, startPos.y, startPos.z);
-            posAttr.needsUpdate = true;
+              const posAttr = es.line.geometry.attributes.position as THREE.BufferAttribute;
+              posAttr.setXYZ(0, startPos.x, startPos.y, startPos.z);
+              posAttr.setXYZ(1, startPos.x, startPos.y, startPos.z);
+              posAttr.needsUpdate = true;
+              es.line.computeLineDistances();
 
-            if (es.mid) es.mid.visible = false;
+              if (es.mid) es.mid.visible = false;
+            }
           }
 
-          es.material.color.setHex(0xffffff); // Pure white luminous line
+          es.material.color.setHex(selColorHex); // Configurable selection luminous line color
           es.targetOpacity = 0.95;
         } else {
           es.isConnecting = false;
@@ -484,12 +512,12 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
         if (halo) {
           const haloMat = halo.material as THREE.MeshBasicMaterial;
           if (isSelf) {
-            haloMat.color.setHex(0xffffff);
-            haloMat.opacity = 0.30; // White with 30% opacity
+            haloMat.color.setHex(selColorHex);
+            haloMat.opacity = selHaloOpacity;
             halo.scale.setScalar(1.42 * (curCfg.sizes[n.type] ?? 1));
           } else if (isNeighbor) {
-            haloMat.color.setHex(0xffffff);
-            haloMat.opacity = 0.16;
+            haloMat.color.setHex(selColorHex);
+            haloMat.opacity = selHaloOpacity * 0.5;
             halo.scale.setScalar(1.22 * (curCfg.sizes[n.type] ?? 1));
           } else {
             haloMat.opacity = 0;
@@ -514,17 +542,17 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
 
         if (sprite) {
           if (isSelf) {
-            sprite.material.color.setHex(0xffffff);
-            sprite.material.opacity = Math.min(1.0, curCfg.glowIntensity * 1.7);
-            const selScale = n.size * 4.6 * (curCfg.sizes[n.type] ?? 1);
+            sprite.material.color.setHex(selColorHex);
+            sprite.material.opacity = Math.min(1.0, (curCfg.glowIntensity ?? 0.45) * 1.8 * selBlur);
+            const selScale = n.size * (4.8 + selBlur * 1.2) * (curCfg.sizes[n.type] ?? 1);
             sprite.scale.set(selScale, selScale, 1);
           } else if (isNeighbor) {
             sprite.material.color.setHex(cssToHex(curCfg.colors[n.type] ?? '#4E6E9D'));
-            sprite.material.opacity = curCfg.glowIntensity * 0.85;
+            sprite.material.opacity = (curCfg.glowIntensity ?? 0.45) * 0.85;
             const nbScale = n.size * 3.6 * (curCfg.sizes[n.type] ?? 1);
             sprite.scale.set(nbScale, nbScale, 1);
           } else {
-            sprite.material.opacity = curCfg.glowIntensity * 0.08;
+            sprite.material.opacity = (curCfg.glowIntensity ?? 0.45) * 0.08;
           }
         }
       });
@@ -911,6 +939,10 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
     let lastHubEdgeColor = configRef.current.hubEdgeColor;
     let lastEdgeOpacity = configRef.current.edgeOpacity;
     let lastGlobalScale = configRef.current.globalScale ?? 1.0;
+    let lastSelectionColor = configRef.current.selectionColor ?? '#ffffff';
+    let lastSelectionHaloOpacity = configRef.current.selectionHaloOpacity ?? 0.35;
+    let lastSelectionBlur = configRef.current.selectionBlur ?? 1.0;
+    let lastEdgeDashed = configRef.current.edgeDashed !== false;
 
     function syncConfig() {
       const c = configRef.current;
@@ -980,8 +1012,10 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
         lastCfgSizes = { ...c.sizes };
       }
 
-      // 4. Edge Colors & Opacities
-      const edgeChanged = c.edgeColor !== lastEdgeColor || c.hubEdgeColor !== lastHubEdgeColor || c.edgeOpacity !== lastEdgeOpacity;
+      // 4. Edge Colors & Opacities & Dashes
+      const curEdgeDashed = c.edgeDashed !== false;
+      const dashedToggled = curEdgeDashed !== lastEdgeDashed;
+      const edgeChanged = c.edgeColor !== lastEdgeColor || c.hubEdgeColor !== lastHubEdgeColor || c.edgeOpacity !== lastEdgeOpacity || dashedToggled;
       if (edgeChanged) {
         if (!selectedNodeId) {
           edgeStates.forEach(es => {
@@ -989,11 +1023,29 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
             if (revealDone && es.revealed) {
               es.targetOpacity = es.isHub ? c.edgeOpacity * 1.15 : c.edgeOpacity;
             }
+            if (dashedToggled) {
+              es.material.dashSize = curEdgeDashed ? (es.isHub ? 8 : 6) : 99999;
+              es.material.gapSize = curEdgeDashed ? (es.isHub ? 5 : 4) : 0;
+            }
           });
         }
         lastEdgeColor = c.edgeColor;
         lastHubEdgeColor = c.hubEdgeColor;
         lastEdgeOpacity = c.edgeOpacity;
+        lastEdgeDashed = curEdgeDashed;
+      }
+
+      // 5. Selection Color, Blur, or Halo Opacity changed while node selected
+      const curSelColor = c.selectionColor ?? '#ffffff';
+      const curSelHaloOpacity = c.selectionHaloOpacity ?? 0.35;
+      const curSelBlur = c.selectionBlur ?? 1.0;
+      if (curSelColor !== lastSelectionColor || curSelHaloOpacity !== lastSelectionHaloOpacity || curSelBlur !== lastSelectionBlur) {
+        if (selectedNodeId) {
+          applySelectionHighlight(selectedNodeId);
+        }
+        lastSelectionColor = curSelColor;
+        lastSelectionHaloOpacity = curSelHaloOpacity;
+        lastSelectionBlur = curSelBlur;
       }
     }
 
@@ -1009,6 +1061,15 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       // Update Reveal physics
       updateReveal(dt);
 
+      // Marching dashes/dots animated flow along lines
+      const dashSpeed = configRef.current.edgeDashSpeed ?? 1.2;
+      const isDashed = configRef.current.edgeDashed !== false;
+      if (isDashed) {
+        edgeStates.forEach(es => {
+          (es.material as any).dashOffset = ((es.material as any).dashOffset ?? 0) - dt * 24 * dashSpeed;
+        });
+      }
+
       // Edge opacity smooth lerp & connection line drawing animation
       edgeStates.forEach(es => {
         es.currentOpacity += (es.targetOpacity - es.currentOpacity) * 0.15;
@@ -1023,6 +1084,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
           posAttr.setXYZ(0, es.originPos.x, es.originPos.y, es.originPos.z);
           posAttr.setXYZ(1, curEnd.x, curEnd.y, curEnd.z);
           posAttr.needsUpdate = true;
+          es.line.computeLineDistances();
 
           if (es.mid) {
             es.mid.x = (es.originPos.x + curEnd.x) / 2;
