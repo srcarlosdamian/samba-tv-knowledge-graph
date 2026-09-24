@@ -507,21 +507,82 @@ function GraphEditorPanel({ config, onChange, onClose }: {
   onChange: (c: GraphConfig) => void;
   onClose: () => void;
 }) {
+  const panelWidth = 272;
+  const [pos, setPos] = useState<{ x: number; y: number }>(() => {
+    const w = typeof window !== 'undefined' ? window.innerWidth : 1200;
+    return { x: Math.max(20, w - panelWidth - 24), y: 64 };
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<{ startMouseX: number; startMouseY: number; startPosX: number; startPosY: number } | null>(null);
+
+  const startDrag = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('button:not(.drag-handle)') || target.closest('input')) return;
+
+    dragRef.current = {
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startPosX: pos.x,
+      startPosY: pos.y,
+    };
+    setIsDragging(true);
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!dragRef.current) return;
+      const dx = e.clientX - dragRef.current.startMouseX;
+      const dy = e.clientY - dragRef.current.startMouseY;
+      const maxX = Math.max(10, window.innerWidth - panelWidth - 10);
+      const maxY = Math.max(10, window.innerHeight - 80);
+      setPos({
+        x: Math.max(10, Math.min(maxX, dragRef.current.startPosX + dx)),
+        y: Math.max(10, Math.min(maxY, dragRef.current.startPosY + dy)),
+      });
+    };
+
+    const handlePointerUp = () => {
+      setIsDragging(false);
+      dragRef.current = null;
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [isDragging]);
+
   return (
-    <div className="absolute flex flex-col" style={{
-      top: 64, left: 68, zIndex: 30, width: 272,
+    <div className="fixed flex flex-col" style={{
+      top: pos.y, left: pos.x, zIndex: 50, width: panelWidth,
       backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)',
-      borderRadius: 10, boxShadow: '0 8px 24px var(--shadow)', pointerEvents: 'auto',
+      borderRadius: 10,
+      boxShadow: isDragging ? '0 12px 36px rgba(0,0,0,0.45)' : '0 8px 24px var(--shadow)',
+      pointerEvents: 'auto',
       maxHeight: 'calc(100vh - 80px)', overflowY: 'auto',
+      userSelect: isDragging ? 'none' : 'auto',
     }}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 sticky top-0" style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', zIndex: 1 }}>
-        <div className="flex items-center gap-2">
+      {/* Header with move handle */}
+      <div
+        onPointerDown={startDrag}
+        className="flex items-center justify-between px-3 py-2.5 sticky top-0 cursor-grab active:cursor-grabbing select-none"
+        style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', zIndex: 1, touchAction: 'none' }}
+      >
+        <div className="flex items-center gap-1.5 flex-1 drag-handle">
+          <div className="flex items-center justify-center p-1 rounded hover:bg-[var(--bg-btn)] text-[var(--text-muted)]" title="Drag to move panel">
+            <Move size={14} strokeWidth={1.5} />
+          </div>
           <Sliders size={14} strokeWidth={1.5} color="var(--text-muted)" />
           <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Graph Editor</span>
         </div>
-        <button onClick={onClose} className="flex items-center justify-center rounded"
-          style={{ width: 22, height: 22, background: 'transparent', border: 'none' }}>
+        <button onClick={onClose} className="flex items-center justify-center rounded hover:bg-[var(--bg-btn)] transition-colors"
+          style={{ width: 22, height: 22, background: 'transparent', border: 'none', cursor: 'pointer' }}>
           <X size={14} strokeWidth={1.5} color="var(--text-dim)" />
         </button>
       </div>

@@ -332,17 +332,25 @@ const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: 
           nodeMap.get(n.id)!.scale.setScalar(Math.max(0, eased));
           nodeAlpha.set(n.id, easeInOutCubic(localT));
 
-          const li = edges.findIndex(e => e.to === n.id || e.from === n.id);
-          if (li >= 0) {
-            (edgeLines[li].material as THREE.LineBasicMaterial).opacity = easeInOutCubic(localT) * configRef.current.edgeOpacity;
-            if (edgeMids[li]) edgeMids[li].visible = localT > 0.5;
-          }
+          edges.forEach((e, li) => {
+            if (e.to === n.id || e.from === n.id) {
+              (edgeLines[li].material as THREE.LineBasicMaterial).opacity = easeInOutCubic(localT) * configRef.current.edgeOpacity;
+              if (edgeMids[li]) edgeMids[li].visible = localT > 0.5;
+            }
+          });
         });
       }
 
       if (revealClock >= REVEAL_END) {
         revealDone = true;
-        // don't hard-stop — let autoRotVel ease out naturally
+        const curCfg = configRef.current;
+        edgeLines.forEach((line, li) => {
+          const hub = isHubLine[li];
+          const mat = line.material as THREE.LineBasicMaterial;
+          mat.color.setHex(cssToHex(hub ? curCfg.hubEdgeColor : curCfg.edgeColor));
+          mat.opacity = hub ? curCfg.edgeOpacity * 1.1 : curCfg.edgeOpacity;
+        });
+        edgeMids.forEach(m => { m.visible = true; });
       }
     }
 
@@ -493,10 +501,11 @@ const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: 
       if (edgeChanged) {
         edgeLines.forEach((line, li) => {
           const mat = line.material as THREE.LineBasicMaterial;
-          if (mat.opacity === 0) return; // not yet revealed
           const hub = isHubLine[li];
           mat.color.setHex(cssToHex(hub ? c.hubEdgeColor : c.edgeColor));
-          mat.opacity = hub ? c.edgeOpacity * 1.1 : c.edgeOpacity;
+          if (revealDone) {
+            mat.opacity = hub ? c.edgeOpacity * 1.1 : c.edgeOpacity;
+          }
         });
         lastEdgeColor    = c.edgeColor;
         lastHubEdgeColor = c.hubEdgeColor;
