@@ -354,9 +354,9 @@ function SelectDropdown({ label, options, value, onChange }: {
   }, []);
 
   return (
-    <div className="flex flex-col gap-1 w-full relative" ref={ref}>
+    <div className="flex flex-col gap-0.5 w-full relative" ref={ref}>
       {label && (
-        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: '#8a8a8a', lineHeight: '14px' }}>
           {label}
         </span>
       )}
@@ -365,17 +365,17 @@ function SelectDropdown({ label, options, value, onChange }: {
         className="relative flex items-center justify-between rounded-md w-full transition-colors cursor-pointer"
         style={{
           backgroundColor: '#141414',
-          height: 36,
-          paddingLeft: 12,
-          paddingRight: 12,
+          height: 28,
+          paddingLeft: 10,
+          paddingRight: 10,
           border: open ? '1px solid #5b7aa5' : '1px solid #282828',
           textAlign: 'left',
         }}
       >
-        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: '#e5e5e5', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: '#e5e5e5', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {selected.label}
         </span>
-        <ChevronDown size={14} strokeWidth={1.5} color="#8a8a8a"
+        <ChevronDown size={13} strokeWidth={1.5} color="#8a8a8a"
           style={{ transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }} />
       </button>
       {open && (
@@ -568,11 +568,11 @@ function SparqlCodeViewer({ code, onCopy, copied }: { code: string; onCopy: () =
   };
 
   return (
-    <div className="relative rounded-md overflow-hidden" style={{ backgroundColor: '#141414', border: '1px solid #282828', padding: '10px 10px 28px 10px' }}>
-      <div className="flex flex-col gap-0.5 font-mono text-[11px] leading-[17px] overflow-x-auto hide-scrollbar" style={{ maxHeight: 190 }}>
+    <div className="relative rounded-md overflow-hidden" style={{ backgroundColor: '#141414', border: '1px solid #282828', padding: '8px 8px 22px 8px' }}>
+      <div className="flex flex-col gap-0.5 font-mono text-[10px] leading-[15px] overflow-x-auto hide-scrollbar" style={{ maxHeight: 95 }}>
         {lines.map((line, idx) => (
-          <div key={idx} className="flex gap-3 items-baseline">
-            <span style={{ color: '#52525b', width: 14, textAlign: 'right', userSelect: 'none', flexShrink: 0, fontSize: 10 }}>
+          <div key={idx} className="flex gap-2 items-baseline">
+            <span style={{ color: '#52525b', width: 12, textAlign: 'right', userSelect: 'none', flexShrink: 0, fontSize: 9.5 }}>
               {idx + 1}
             </span>
             <span className="whitespace-pre flex-1 font-mono">
@@ -583,11 +583,11 @@ function SparqlCodeViewer({ code, onCopy, copied }: { code: string; onCopy: () =
       </div>
       <button
         onClick={onCopy}
-        className="absolute bottom-1.5 right-1.5 flex items-center justify-center rounded p-1 transition-colors cursor-pointer hover:bg-[#2e2e2e]"
-        style={{ backgroundColor: '#1e1e1e', border: '1px solid #333333', width: 24, height: 24 }}
+        className="absolute bottom-1 right-1 flex items-center justify-center rounded p-1 transition-colors cursor-pointer hover:bg-[#2e2e2e]"
+        style={{ backgroundColor: '#1e1e1e', border: '1px solid #333333', width: 20, height: 20 }}
         title={copied ? 'Copied!' : 'Copy SPARQL'}
       >
-        {copied ? <Check size={12} color="#48bb78" /> : <Copy size={12} strokeWidth={1.5} color="#9e9e9e" />}
+        {copied ? <Check size={11} color="#48bb78" /> : <Copy size={11} strokeWidth={1.5} color="#9e9e9e" />}
       </button>
     </div>
   );
@@ -616,12 +616,12 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
   };
 
   return (
-    <div className="flex flex-col gap-3.5 rounded-xl shrink-0 hide-scrollbar"
+    <div className="flex flex-col gap-2 rounded-xl shrink-0 hide-scrollbar"
       style={{
         backgroundColor: '#1e1e1e',
-        width: 300,
-        padding: '16px 16px 18px 16px',
-        maxHeight: 'calc(100vh - 70px)',
+        width: 275,
+        padding: '12px 12px 14px 12px',
+        maxHeight: 'calc(100vh - 105px)',
         border: '1px solid rgba(255, 255, 255, 0.06)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
         position: 'relative',
@@ -629,24 +629,24 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
         overflowY: 'auto',
       }}>
 
-      <h2 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontWeight: 400, fontSize: 24, color: '#f3f4f6', lineHeight: '28px', letterSpacing: '-0.3px' }}>
+      <h2 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontWeight: 400, fontSize: 19, color: '#f3f4f6', lineHeight: '23px', letterSpacing: '-0.2px' }}>
         Knowledge Graph
       </h2>
 
       {/* Display toggle */}
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
-          <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Display</span>
-          <span style={{ fontSize: 12, color: '#737373', lineHeight: '14px' }}>{nodeCount ?? 20} nodes</span>
+          <span style={{ fontSize: 11, color: '#8a8a8a', lineHeight: '14px' }}>Display</span>
+          <span style={{ fontSize: 11, color: '#737373', lineHeight: '14px' }}>{nodeCount ?? 20} nodes</span>
         </div>
-        <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', border: '1px solid #282828', height: 32 }}>
+        <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', border: '1px solid #282828', height: 28 }}>
           {(['graph', 'table'] as GraphTab[]).map(tab => (
             <button key={tab} onClick={() => setGraphTab(tab)}
               className="flex flex-1 items-center justify-center rounded transition-colors"
               style={{
                 backgroundColor: graphTab === tab ? '#282828' : 'transparent',
                 color: graphTab === tab ? '#ffffff' : '#8a8a8a',
-                fontSize: 12.5,
+                fontSize: 11.5,
                 fontWeight: graphTab === tab ? 500 : 400,
                 border: 'none',
                 cursor: 'pointer',
@@ -658,8 +658,8 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       </div>
 
       {/* Instructions */}
-      <div className="flex flex-col gap-1.5">
-        <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Instructions</span>
+      <div className="flex flex-col gap-1">
+        <span style={{ fontSize: 11, color: '#8a8a8a', lineHeight: '14px' }}>Instructions</span>
         <textarea
           value={query}
           onChange={e => setQuery(e.target.value)}
@@ -667,12 +667,12 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
           className="rounded-md resize-none outline-none"
           style={{
             backgroundColor: '#141414',
-            padding: '10px 12px',
+            padding: '7px 9px',
             border: '1px solid #282828',
-            fontSize: 13,
+            fontSize: 12,
             color: '#e5e5e5',
-            lineHeight: '20px',
-            height: 84,
+            lineHeight: '17px',
+            height: 56,
             fontFamily: "'Season Sans', 'Inter', sans-serif",
           }}
         />
@@ -680,39 +680,39 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       </div>
 
       {/* Limit */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-0.5">
         <SelectDropdown label="Limit" options={LIMITS} value={limit} onChange={setLimit} />
       </div>
 
       {/* Technical details */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
-          <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Technical details</span>
+          <span style={{ fontSize: 11, color: '#8a8a8a', lineHeight: '14px' }}>Technical details</span>
           <button
             onClick={() => setTechExpanded(p => !p)}
-            className="flex items-center justify-center rounded p-1 hover:bg-[#2e2e2e] transition-colors"
-            style={{ border: '1px solid #2e2e2e', width: 24, height: 24, background: '#141414', cursor: 'pointer' }}
+            className="flex items-center justify-center rounded p-0.5 hover:bg-[#2e2e2e] transition-colors"
+            style={{ border: '1px solid #2e2e2e', width: 20, height: 20, background: '#141414', cursor: 'pointer' }}
             title="Toggle details"
           >
             {techExpanded
-              ? <ChevronUp size={13} strokeWidth={1.5} color="#9e9e9e" />
-              : <ChevronDown size={13} strokeWidth={1.5} color="#9e9e9e" />}
+              ? <ChevronUp size={12} strokeWidth={1.5} color="#9e9e9e" />
+              : <ChevronDown size={12} strokeWidth={1.5} color="#9e9e9e" />}
           </button>
         </div>
 
         {techExpanded && (
-          <div className="flex flex-col gap-2.5 pt-0.5">
+          <div className="flex flex-col gap-1.5 pt-0.5">
             <SelectDropdown options={MODELS} value={model} onChange={setModel} />
 
             {/* Select / Construct Toggle */}
-            <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', border: '1px solid #282828', height: 30 }}>
+            <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', border: '1px solid #282828', height: 26 }}>
               <button
                 onClick={() => setSparqlTab('select')}
                 className="flex flex-1 items-center justify-center rounded transition-colors"
                 style={{
                   backgroundColor: sparqlTab === 'select' ? '#282828' : 'transparent',
                   color: sparqlTab === 'select' ? '#ffffff' : '#8a8a8a',
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: sparqlTab === 'select' ? 500 : 400,
                   border: 'none',
                   cursor: 'pointer',
@@ -726,7 +726,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
                 style={{
                   backgroundColor: sparqlTab === 'construct' ? '#282828' : 'transparent',
                   color: sparqlTab === 'construct' ? '#ffffff' : '#8a8a8a',
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: sparqlTab === 'construct' ? 500 : 400,
                   border: 'none',
                   cursor: 'pointer',
@@ -743,11 +743,11 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
 
       <button
         onClick={onRunAnalysis}
-        className="w-full flex items-center justify-center rounded-lg transition-opacity hover:opacity-90 cursor-pointer mt-1"
+        className="w-full flex items-center justify-center rounded-lg transition-opacity hover:opacity-90 cursor-pointer mt-0.5"
         style={{
           backgroundColor: '#5b7aa5',
-          height: 42,
-          fontSize: 14,
+          height: 34,
+          fontSize: 12.5,
           fontWeight: 500,
           color: '#ffffff',
           border: 'none',
@@ -1103,12 +1103,12 @@ function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3DData; onC
 
   return (
     <div
-      className="flex flex-col gap-3 rounded-xl shrink-0 hide-scrollbar"
+      className="flex flex-col gap-2.5 rounded-xl shrink-0 hide-scrollbar"
       style={{
         backgroundColor: '#1e1e1e',
-        width: 290,
-        padding: '14px 14px 16px 14px',
-        maxHeight: 'calc(100vh - 70px)',
+        width: 275,
+        padding: '12px 12px 14px 12px',
+        maxHeight: 'calc(100vh - 105px)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
         position: 'relative',
         zIndex: 10,
@@ -1122,9 +1122,9 @@ function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3DData; onC
             style={{
               fontFamily: "'Season Mix', 'Newsreader', serif",
               fontWeight: 400,
-              fontSize: 22,
+              fontSize: 19,
               color: '#f3f4f6',
-              lineHeight: '26px',
+              lineHeight: '23px',
               letterSpacing: '-0.2px',
             }}
           >
