@@ -65,7 +65,7 @@ function SambaTvLogo({ width = 24, height = 22 }: { width?: number; height?: num
 }
 
 function KnowledgeGraphNavIcon({ size = 20 }: { size?: number }) {
-  return <VectorPolygon size={size} strokeWidth={1.8} />;
+  return <VectorPolygon size={size} strokeWidth={1} />;
 }
 
 function AudienceNavIcon({ size = 20 }: { size?: number }) {
@@ -74,14 +74,14 @@ function AudienceNavIcon({ size = 20 }: { size?: number }) {
       <path
         d="M13 3.5C17.7 3.9 20.1 6.3 20.5 11H13V3.5Z"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M21 13C21 17.97 16.97 22 12 22C7.03 22 3 17.97 3 13C3 8.03 7.03 4 12 4"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1"
         strokeLinecap="round"
       />
     </svg>
@@ -163,7 +163,7 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
             className="flex items-center justify-center rounded-lg transition-colors"
             style={{ width: 32, height: 32, backgroundColor: showGraphEditor ? 'rgba(103,129,168,0.25)' : 'transparent' }}
           >
-            <Sliders size={18} strokeWidth={1.5} color={showGraphEditor ? ICON_W : ICON_DIM} />
+            <Sliders size={18} strokeWidth={1} color={showGraphEditor ? ICON_W : ICON_DIM} />
           </button>
           {/* Avatar */}
           <div className="relative">
