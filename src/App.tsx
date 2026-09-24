@@ -1493,215 +1493,363 @@ function GenresModal({ onClose, selectedGenres, onConfirm }: {
   );
 }
 
-// ─── Audience View ────────────────────────────────────────────────────────────
-function MiniBarChart({ values, color }: { values: number[]; color: string }) {
-  const max = Math.max(...values);
+// ─── Audience Profile (Cohort View) ──────────────────────────────────────────
+function getStateTileColor(val: number) {
+  const norm = Math.max(0, Math.min(1, (val - 0.8) / 0.7));
+  const r = Math.round(35 + norm * (103 - 35));
+  const g = Math.round(48 + norm * (129 - 48));
+  const b = Math.round(68 + norm * (168 - 68));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function StateCartogram({ tiles }: { tiles: typeof audienceData.stateTiles }) {
+  // 7 rows x 11 columns grid
+  const grid = Array.from({ length: 7 }, () => Array(11).fill(null));
+  tiles.forEach(t => {
+    if (grid[t.r]) grid[t.r][t.c] = t;
+  });
+
   return (
-    <div className="flex items-end gap-0.5 h-16 w-full">
-      {values.map((v, i) => (
-        <div key={i} className="flex-1 rounded-sm" style={{ height: `${(v / max) * 100}%`, backgroundColor: color, minWidth: 4 }} />
+    <div className="flex flex-col gap-[3px] select-none">
+      {grid.map((row, ri) => (
+        <div key={ri} className="flex gap-[3px]">
+          {row.map((cell, ci) => {
+            if (!cell) {
+              return <div key={ci} className="w-[20px] h-[19px]" />;
+            }
+            return (
+              <div
+                key={ci}
+                className="w-[20px] h-[19px] rounded-[3px] flex items-center justify-center transition-transform hover:scale-110 cursor-pointer"
+                style={{
+                  backgroundColor: getStateTileColor(cell.val),
+                }}
+                title={`${cell.code}: ${cell.val.toFixed(2)}×`}
+              >
+                <span style={{ fontSize: 8, fontWeight: 500, color: 'rgba(255,255,255,0.85)', letterSpacing: '-0.2px' }}>
+                  {cell.code}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       ))}
     </div>
   );
 }
 
-function HorizBar({ value, max, color }: { value: number; max: number; color: string }) {
-  return (
-    <div className="flex-1 rounded-full overflow-hidden" style={{ height: 6, backgroundColor: 'var(--border)' }}>
-      <div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, backgroundColor: color }} />
-    </div>
-  );
-}
-
-function SeedInterestSidebar({ onAddGenre }: { onAddGenre: () => void }) {
-  return (
-    <div className="flex flex-col gap-4 shrink-0 rounded-lg overflow-y-auto"
-      style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', width: 260, padding: 12, maxHeight: 'calc(100vh - 32px)' }}>
-
-      <p style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)', lineHeight: '1.5' }}>Seed interests</p>
-
-      {/* Genres */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 16, color: 'var(--text)' }}>Genres</span>
-          <div className="flex gap-2">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>856 available</span>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)', fontWeight: 600 }}>1 selected</span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-1 rounded-lg p-2" style={{ border: '1px solid var(--border)' }}>
-          <div className="flex items-center gap-2">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, fontWeight: 500, color: '#cb3557', flex: 1 }}>Sports</span>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>Interested</span>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>0.45</span>
-            <button><Trash2 size={14} strokeWidth={1.5} color="var(--text-dim)" /></button>
-          </div>
-          <div className="relative py-1.5">
-            <div className="rounded-full overflow-hidden" style={{ height: 4, backgroundColor: 'var(--border)' }}>
-              <div className="h-full rounded-full" style={{ width: '50%', backgroundColor: 'var(--accent)' }} />
-            </div>
-            <div className="absolute rounded-full" style={{ width: 14, height: 14, backgroundColor: 'var(--accent)', border: '2px solid var(--bg-card)', top: '50%', left: 'calc(50% - 7px)', transform: 'translateY(-50%)', cursor: 'pointer' }} />
-          </div>
-        </div>
-      </div>
-
-      <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
-
-      {/* Topics */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 16, color: 'var(--text)' }}>Topics</span>
-          <div className="flex gap-2">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>34 shown</span>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)', fontWeight: 600 }}>1 selected</span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-1 rounded-lg p-2" style={{ border: '1px solid var(--border)' }}>
-          <div className="flex items-center gap-2">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, fontWeight: 500, color: '#77cca6', flex: 1 }}>News &amp; Politics</span>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>Interested</span>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>0.45</span>
-            <button><Trash2 size={14} strokeWidth={1.5} color="var(--text-dim)" /></button>
-          </div>
-          <div className="relative py-1.5">
-            <div className="rounded-full overflow-hidden" style={{ height: 4, backgroundColor: 'var(--border)' }}>
-              <div className="h-full rounded-full" style={{ width: '50%', backgroundColor: 'var(--accent)' }} />
-            </div>
-            <div className="absolute rounded-full" style={{ width: 14, height: 14, backgroundColor: 'var(--accent)', border: '2px solid var(--bg-card)', top: '50%', left: 'calc(50% - 7px)', transform: 'translateY(-50%)', cursor: 'pointer' }} />
-          </div>
-        </div>
-      </div>
-
-      <button onClick={onAddGenre}
-        className="flex items-center justify-center gap-2 rounded-md w-full"
-        style={{ border: '1px solid var(--border)', height: 40, background: 'transparent', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: 'var(--text-btn)' }}>
-        <Plus size={16} strokeWidth={1.5} color="var(--text-btn)" />
-        Add genre or topic
-      </button>
-    </div>
-  );
-}
-
-function AudienceView({ onAddGenre }: { onAddGenre: () => void }) {
+function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
   const d = audienceData;
+
   return (
-    <div className="flex flex-1 min-h-screen" style={{ backgroundColor: 'var(--bg)', transition: 'background-color 0.2s' }}>
-      <div className="flex flex-1 gap-6 p-4">
-        <SeedInterestSidebar onAddGenre={onAddGenre} />
-        <div className="flex flex-col gap-4 flex-1 overflow-y-auto">
-          {/* Title row */}
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 30, color: 'var(--text)' }}>Audience profile</span>
-            <div className="flex items-center gap-8">
-              <div className="flex gap-4 items-center">
-                {[{ label: 'Households', val: d.households }, { label: 'Est. population', val: d.population }].map(({ label, val }) => (
-                  <div key={label} className="flex flex-col items-center gap-1">
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>{label}</span>
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 30, color: 'var(--text)', lineHeight: 1 }}>{val}</span>
+    <div
+      className="flex flex-1 flex-col overflow-y-auto hide-scrollbar"
+      style={{
+        backgroundColor: '#121212',
+        color: '#ffffff',
+        minHeight: '100vh',
+        padding: '28px 36px 40px 36px',
+        fontFamily: "'Season Sans', 'Inter', sans-serif",
+      }}
+    >
+      {/* Header Row */}
+      <div className="flex items-center justify-between pb-6">
+        <h1 style={{ fontFamily: "'Season Mix', 'Inter', sans-serif", fontSize: 28, fontWeight: 400, color: '#f3f4f6', letterSpacing: '-0.3px' }}>
+          Cohort Profile
+        </h1>
+
+        <div className="flex items-center gap-7">
+          <div className="flex flex-col items-end">
+            <span style={{ fontSize: 11, color: '#737373', lineHeight: '14px' }}>Households</span>
+            <span style={{ fontSize: 26, fontWeight: 400, color: '#ffffff', lineHeight: '30px' }}>{d.households}</span>
+          </div>
+          <div className="flex flex-col items-end">
+            <span style={{ fontSize: 11, color: '#737373', lineHeight: '14px' }}>Est. population</span>
+            <span style={{ fontSize: 26, fontWeight: 400, color: '#ffffff', lineHeight: '30px' }}>{d.population}</span>
+          </div>
+          {onBackToGraph && (
+            <button
+              onClick={onBackToGraph}
+              className="flex items-center justify-center rounded-lg transition-colors cursor-pointer"
+              style={{
+                border: '1px solid #2e2e2e',
+                backgroundColor: 'transparent',
+                color: '#8fa7c7',
+                padding: '6px 14px',
+                fontSize: 13,
+                fontWeight: 500,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#4a5568'; e.currentTarget.style.color = '#b4cbef'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#2e2e2e'; e.currentTarget.style.color = '#8fa7c7'; }}
+            >
+              Back to graph
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="flex flex-col gap-4 flex-1">
+        {/* Top Row: Also interested in + Where they live */}
+        <div className="grid grid-cols-12 gap-4">
+          {/* Also interested in (7 cols) */}
+          <div
+            className="col-span-12 lg:col-span-7 flex flex-col justify-between rounded-2xl p-6"
+            style={{
+              backgroundColor: 'transparent',
+              border: '1px solid #222222',
+            }}
+          >
+            <div>
+              <h2 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>
+                Also interested in
+              </h2>
+              <p style={{ fontSize: 12, color: '#666666', marginTop: 4, marginBottom: 18 }}>
+                Index vs. all households — 1.00× is average. Click a row to add it as a seed.
+              </p>
+
+              {/* Items List */}
+              <div className="flex flex-col gap-3">
+                {d.alsoInterestedIn.map(item => (
+                  <div key={item.name} className="flex items-center gap-3">
+                    <div
+                      className="rounded-full shrink-0"
+                      style={{
+                        width: 6,
+                        height: 6,
+                        backgroundColor: item.type === 'genre' ? '#6781a8' : '#e87f9b',
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 13,
+                        color: '#dedede',
+                        width: 140,
+                        flexShrink: 0,
+                        fontWeight: 400,
+                      }}
+                    >
+                      {item.name}
+                    </span>
+
+                    {/* Progress Bar Track */}
+                    <div className="flex-1 rounded-full overflow-hidden" style={{ height: 6, backgroundColor: '#202020' }}>
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${item.pct * 100}%`,
+                          backgroundColor: '#6781a8',
+                        }}
+                      />
+                    </div>
+
+                    <span style={{ fontSize: 13, fontWeight: 500, color: '#ffffff', width: 38, textAlign: 'right', flexShrink: 0 }}>
+                      {item.index}
+                    </span>
+                    <span style={{ fontSize: 13, color: '#737373', width: 44, textAlign: 'right', flexShrink: 0 }}>
+                      {item.count}
+                    </span>
                   </div>
                 ))}
               </div>
-              <button className="flex items-center justify-center rounded"
-                style={{ border: '1px solid var(--accent)', height: 40, padding: '0 16px', background: 'transparent', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: 'var(--accent)' }}>
-                View tech inquiry
-              </button>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between mt-5 pt-3">
+              <div className="flex gap-4 items-center">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#6781a8' }} />
+                  <span style={{ fontSize: 11, color: '#737373' }}>Genre</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#e87f9b' }} />
+                  <span style={{ fontSize: 11, color: '#737373' }}>Topic</span>
+                </div>
+              </div>
+              <span style={{ fontSize: 11, color: '#555555' }}>households co-occurring</span>
             </div>
           </div>
 
-          {/* Top two cards */}
-          <div className="flex gap-6 flex-wrap">
-            {/* Also interested in */}
-            <div className="flex flex-col gap-4 rounded-xl p-6 flex-1" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)' }}>
-              <div>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)', display: 'block' }}>Also interested in</span>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)', display: 'block', marginTop: 4 }}>Index vs. all households — 1.00× is average. Click a row to add it as a seed.</span>
+          {/* Where they live (5 cols) */}
+          <div
+            className="col-span-12 lg:col-span-5 flex flex-col justify-between rounded-2xl p-6"
+            style={{
+              backgroundColor: 'transparent',
+              border: '1px solid #222222',
+            }}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h2 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>
+                  Where they live
+                </h2>
+                <div className="flex items-center gap-1.5">
+                  <span style={{ fontSize: 11, color: '#666666' }}>0.8×</span>
+                  <div
+                    className="w-10 rounded-full"
+                    style={{
+                      height: 4,
+                      background: 'linear-gradient(to right, rgb(35, 48, 68), rgb(103, 129, 168))',
+                    }}
+                  />
+                  <span style={{ fontSize: 11, color: '#666666' }}>1.5×</span>
+                </div>
               </div>
-              <div className="flex flex-col gap-2.5">
-                {d.alsoInterestedIn.map(item => {
-                  const barW = (parseFloat(item.index) / 4) * 100;
-                  return (
-                    <div key={item.name} className="flex items-center gap-3">
-                      <div className="rounded shrink-0" style={{ width: 8, height: 8, backgroundColor: item.type === 'genre' ? 'var(--accent)' : '#e87f9b' }} />
-                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)', width: 140, flexShrink: 0 }}>{item.name}</span>
-                      <div className="flex-1 rounded-sm overflow-hidden" style={{ height: 8, backgroundColor: 'var(--border)' }}>
-                        <div className="h-full rounded-sm" style={{ width: `${barW}%`, backgroundColor: 'var(--accent)' }} />
-                      </div>
-                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-ph)', width: 36, textAlign: 'right', flexShrink: 0 }}>{item.index}</span>
-                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-ph)', width: 44, textAlign: 'right', flexShrink: 0 }}>{item.count}</span>
+              <p style={{ fontSize: 12, color: '#666666', marginBottom: 18 }}>
+                State index vs. national baseline - state is the finest geography in the graph
+              </p>
+
+              {/* Cartogram + Top States */}
+              <div className="flex items-start justify-between gap-4">
+                <StateCartogram tiles={d.stateTiles} />
+
+                {/* Top States List */}
+                <div className="flex flex-col gap-2 shrink-0 pr-2">
+                  <span style={{ fontSize: 10, letterSpacing: '0.5px', color: '#666666', fontWeight: 600, textTransform: 'uppercase', marginBottom: 2 }}>
+                    TOP STATES
+                  </span>
+                  {d.topStates.map(s => (
+                    <div key={s.name} className="flex items-center justify-between gap-5">
+                      <span style={{ fontSize: 13, color: '#dedede', fontWeight: 400 }}>{s.name}</span>
+                      <span style={{ fontSize: 13, color: '#ffffff', fontWeight: 500 }}>{s.index}</span>
                     </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <p style={{ fontSize: 11, color: '#555555', marginTop: 14 }}>
+              Graph stores full state names — map codes client-side.
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom Row: 4 Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Age */}
+          <div
+            className="flex flex-col justify-between rounded-2xl p-5"
+            style={{
+              backgroundColor: 'transparent',
+              border: '1px solid #222222',
+              minHeight: 180,
+            }}
+          >
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Age</h3>
+              <p style={{ fontSize: 11, color: '#666666', marginTop: 2, marginBottom: 16 }}>People per band, summed</p>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-end justify-between gap-1 h-[68px] w-full px-0.5">
+                {d.ageBands.map((v, i) => {
+                  const max = 75;
+                  const h = (v / max) * 100;
+                  return (
+                    <div
+                      key={i}
+                      className="flex-1 rounded-t-[2px] transition-all hover:opacity-85"
+                      style={{
+                        height: `${h}%`,
+                        backgroundColor: '#6781a8',
+                      }}
+                      title={`${d.ageBandLabels[i]}: ${v}%`}
+                    />
                   );
                 })}
               </div>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex gap-4">
-                  {[{ label: 'Genre', color: 'var(--accent)' }, { label: 'Topic', color: '#e87f9b' }].map(({ label, color }) => (
-                    <div key={label} className="flex gap-2 items-center">
-                      <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: color }} />
-                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>{label}</span>
-                    </div>
-                  ))}
-                </div>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>households co-occurring</span>
-              </div>
-            </div>
-
-            {/* Where they live */}
-            <div className="flex flex-col gap-4 rounded-xl p-6" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', minWidth: 280 }}>
-              <div>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)', display: 'block' }}>Where they live</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>0.8×</span>
-                  <div className="flex-1 rounded-full overflow-hidden" style={{ height: 4, backgroundColor: 'var(--border)' }}>
-                    <div className="h-full rounded-full" style={{ width: '60%', backgroundColor: 'var(--accent)' }} />
-                  </div>
-                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>1.5×</span>
-                </div>
-              </div>
-              <div className="rounded flex items-center justify-center" style={{ backgroundColor: 'var(--bg-input)', height: 120, border: '1px solid var(--border)' }}>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>State index map</span>
-              </div>
-              <div>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)', display: 'block', marginBottom: 8 }}>TOP STATES</span>
-                <div className="flex flex-col gap-1.5">
-                  {d.topStates.map(s => (
-                    <div key={s.name} className="flex items-center justify-between">
-                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)' }}>{s.name}</span>
-                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-ph)' }}>{s.index}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="flex justify-between w-full">
+                {d.ageBandLabels.map((lbl, i) => (
+                  <span key={i} style={{ fontSize: 8, color: '#555555', textAlign: 'center', flex: 1 }}>
+                    {lbl}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Bottom four cards */}
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex flex-col gap-3 rounded-xl p-4 flex-1" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', minWidth: 160 }}>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Age</span>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>People per band, summed</span>
-              <MiniBarChart values={d.ageBands} color="var(--accent)" />
+          {/* Household Income */}
+          <div
+            className="flex flex-col justify-between rounded-2xl p-5"
+            style={{
+              backgroundColor: 'transparent',
+              border: '1px solid #222222',
+              minHeight: 180,
+            }}
+          >
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Household income</h3>
+              <p style={{ fontSize: 11, color: '#666666', marginTop: 2, marginBottom: 16 }}>11 bands · skews mid-market</p>
             </div>
-            <div className="flex flex-col gap-3 rounded-xl p-4 flex-1" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', minWidth: 160 }}>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Household income</span>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>11 bands · skews mid-market</span>
-              <MiniBarChart values={d.incomes} color="var(--accent)" />
-            </div>
-            <div className="flex flex-col gap-3 rounded-xl p-4 flex-1" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', minWidth: 160 }}>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Race &amp; ethnicity</span>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>People per band, summed</span>
-              <div className="flex flex-col gap-2">
-                {d.race.map(r => (
-                  <div key={r.label} className="flex items-center gap-2">
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', width: 60, flexShrink: 0 }}>{r.label}</span>
-                    <HorizBar value={r.pct} max={1} color="var(--accent)" />
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)', width: 40, textAlign: 'right' }}>{r.value}</span>
-                  </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-end justify-between gap-1 h-[68px] w-full px-0.5">
+                {d.incomes.map((v, i) => {
+                  const max = 75;
+                  const h = (v / max) * 100;
+                  return (
+                    <div
+                      key={i}
+                      className="flex-1 rounded-t-[2px] transition-all hover:opacity-85"
+                      style={{
+                        height: `${h}%`,
+                        backgroundColor: '#6781a8',
+                      }}
+                      title={`${d.incomeLabels[i]}: ${v}%`}
+                    />
+                  );
+                })}
+              </div>
+              <div className="flex justify-between w-full">
+                {d.incomeLabels.map((lbl, i) => (
+                  <span key={i} style={{ fontSize: 7.5, color: '#555555', textAlign: 'center', flex: 1 }}>
+                    {lbl}
+                  </span>
                 ))}
               </div>
             </div>
-            <div className="flex flex-col gap-3 rounded-xl p-4 flex-1" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', minWidth: 160 }}>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Household makeup</span>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>Average per household</span>
+          </div>
+
+          {/* Race & Ethnicity */}
+          <div
+            className="flex flex-col justify-between rounded-2xl p-5"
+            style={{
+              backgroundColor: 'transparent',
+              border: '1px solid #222222',
+              minHeight: 180,
+            }}
+          >
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Race &amp; ethnicity</h3>
+              <p style={{ fontSize: 11, color: '#666666', marginTop: 2, marginBottom: 14 }}>People per band, summed</p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {d.race.map(r => (
+                <div key={r.label} className="flex items-center gap-2">
+                  <span style={{ fontSize: 12, color: '#dedede', width: 55, flexShrink: 0 }}>{r.label}</span>
+                  <div className="flex-1 rounded-full overflow-hidden" style={{ height: 5, backgroundColor: '#202020' }}>
+                    <div className="h-full rounded-full" style={{ width: `${r.pct * 100}%`, backgroundColor: '#6781a8' }} />
+                  </div>
+                  <span style={{ fontSize: 12, color: '#737373', width: 38, textAlign: 'right', flexShrink: 0 }}>{r.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Household Makeup */}
+          <div
+            className="flex flex-col justify-between rounded-2xl p-5"
+            style={{
+              backgroundColor: 'transparent',
+              border: '1px solid #222222',
+              minHeight: 180,
+            }}
+          >
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Household makeup</h3>
+              <p style={{ fontSize: 11, color: '#666666', marginTop: 2, marginBottom: 12 }}>Average per household</p>
+
               <div className="flex flex-col gap-2">
                 {[
                   { label: 'Household size', val: d.householdMakeup.size },
@@ -1709,20 +1857,21 @@ function AudienceView({ onAddGenre }: { onAddGenre: () => void }) {
                   { label: 'Children', val: d.householdMakeup.children },
                 ].map(({ label, val }) => (
                   <div key={label} className="flex items-center justify-between">
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)' }}>{label}</span>
-                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 20, fontWeight: 500, color: 'var(--text)' }}>{val}</span>
+                    <span style={{ fontSize: 12, color: '#9e9e9e' }}>{label}</span>
+                    <span style={{ fontSize: 18, fontWeight: 400, color: '#ffffff' }}>{val}</span>
                   </div>
                 ))}
               </div>
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>Male {d.householdMakeup.male}</span>
-                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>Female {d.householdMakeup.female}</span>
-                </div>
-                <div className="flex rounded-full overflow-hidden" style={{ height: 6 }}>
-                  <div style={{ flex: d.householdMakeup.malePct, backgroundColor: '#4a6b9a' }} />
-                  <div style={{ flex: d.householdMakeup.femalePct, backgroundColor: '#cb3557' }} />
-                </div>
+            </div>
+
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-1">
+                <span style={{ fontSize: 11, color: '#737373' }}>Male {d.householdMakeup.male}</span>
+                <span style={{ fontSize: 11, color: '#737373' }}>Female {d.householdMakeup.female}</span>
+              </div>
+              <div className="flex rounded-full overflow-hidden" style={{ height: 5 }}>
+                <div style={{ flex: d.householdMakeup.malePct, backgroundColor: '#6781a8' }} />
+                <div style={{ flex: d.householdMakeup.femalePct, backgroundColor: '#d9485c' }} />
               </div>
             </div>
           </div>
@@ -1768,7 +1917,7 @@ export default function App() {
             onUpdateConfig={setGraphConfig}
           />
         )}
-        {view === 'audience' && <AudienceView onAddGenre={() => setShowGenres(true)} />}
+        {view === 'audience' && <AudienceView onBackToGraph={() => setView('graph')} />}
         {showGenres && <GenresModal onClose={() => setShowGenres(false)} selectedGenres={selGenres} onConfirm={ids => setSelGenres(ids)} />}
       </div>
     </ThemeCtx.Provider>
