@@ -590,35 +590,35 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
           const isNeighbor = activeNeighborIds.has(n.id);
           const isMagenta = magentaHighlightedNodeIds.has(n.id);
 
-          const fontSize = (isHub ? 13 : isSelected ? 11.5 : 9.5) * dpr * nodeTextScale;
-          ctx.font = `${isHub || isSelected ? '600' : '400'} ${fontSize}px Inter, 'Season Sans', sans-serif`;
+          const fontSize = (isHub ? 13 : isSelected ? 12 : 10) * dpr * nodeTextScale;
+          ctx.font = `${isHub || isSelected ? '600' : '500'} ${fontSize}px Inter, 'Season Sans', sans-serif`;
           ctx.textAlign = 'center';
 
-          // Background attenuation on text
+          // All node labels are pure white (#ffffff)
           if (selectedNodeId) {
             if (isSelected) {
               ctx.globalAlpha = 1.0 * nodeTextAlpha;
               ctx.fillStyle = '#ffffff';
             } else if (isNeighbor) {
               ctx.globalAlpha = 0.95 * nodeTextAlpha;
-              ctx.fillStyle = cfg.colors[n.type] ?? '#ffffff';
+              ctx.fillStyle = '#ffffff';
             } else {
-              ctx.globalAlpha = 0.14 * alpha * nodeTextAlpha; // Attenuated background label
-              ctx.fillStyle = cfg.colors[n.type] ?? '#888888';
+              ctx.globalAlpha = 0.18 * alpha * nodeTextAlpha; // Attenuated background label
+              ctx.fillStyle = '#ffffff';
             }
           } else {
             ctx.globalAlpha = alpha * nodeTextAlpha;
             if (isMagenta) {
-              ctx.fillStyle = '#D53F8C';
+              ctx.fillStyle = '#ff70c7';
             } else {
-              ctx.fillStyle = cfg.colors[n.type] ?? '#ffffff';
+              ctx.fillStyle = '#ffffff'; // White text
             }
           }
 
           ctx.shadowColor = 'rgba(0,0,0,0.95)';
           ctx.shadowBlur = (isHub ? 6 : 4) * dpr;
 
-          const yOffset = isHub ? n.size + 16 : -n.size - 4;
+          const yOffset = isHub ? n.size + 16 : -n.size - 5;
           ctx.fillText(n.label, sx * dpr, (sy + yOffset) * dpr);
           ctx.shadowBlur = 0;
           ctx.globalAlpha = 1;
@@ -628,7 +628,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       // Edge weight & relation labels
       if (cfg.showEdgeText !== false) {
         const edgeTextScale = cfg.edgeTextSize ?? 1.0;
-        const edgeColor = cfg.edgeTextColor ?? '#888888';
+        const edgeColor = cfg.edgeTextColor ?? '#d1d5db';
 
         edgeStates.forEach(es => {
           const m = es.mid;
@@ -644,13 +644,13 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
           if (m.rel) {
             ctx.font = `400 ${8.5 * d2 * edgeTextScale}px Inter, sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillStyle = selectedNodeId ? '#e2e8f0' : edgeColor;
+            ctx.fillStyle = selectedNodeId ? '#ffffff' : '#d1d5db';
             ctx.fillText(m.rel, sx * d2, (sy - 6 * edgeTextScale) * d2);
           }
           if (m.weight) {
             ctx.font = `600 ${9 * d2 * edgeTextScale}px Inter, sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillStyle = selectedNodeId ? '#ffffff' : (edgeColor === '#888888' ? '#bbbbbb' : edgeColor);
+            ctx.fillStyle = '#ffffff';
             ctx.fillText(m.weight, sx * d2, (sy + 5 * edgeTextScale) * d2);
           }
           ctx.shadowBlur = 0;
