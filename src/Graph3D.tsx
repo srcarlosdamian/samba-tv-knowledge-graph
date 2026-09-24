@@ -114,10 +114,10 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   animateConnection: true,
 
   // Text / Labels default
-  textSize: 1.0,
+  textSize: 0.75,
   textOpacity: 1.0,
-  individualTextOpacity: 0.75,
-  householdTextOpacity: 0.85,
+  individualTextOpacity: 0.40,
+  householdTextOpacity: 0.45,
   hubTextOpacity: 1.0,
   edgeTextColor: '#888888',
   edgeTextSize: 0.45,
