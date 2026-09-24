@@ -438,16 +438,16 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
       {canScrollLeft && (
         <button
           onClick={() => scrollBy(-100)}
-          className="absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 pl-0.5"
+          className="absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 pl-0"
           style={{
-            background: 'linear-gradient(to right, var(--bg-card) 60%, transparent)',
+            background: 'linear-gradient(to right, var(--bg-card) 65%, transparent)',
             border: 'none',
             cursor: 'pointer',
           }}
           title="Scroll left"
         >
-          <div className="p-0.5 rounded-full bg-[var(--bg-btn)] hover:bg-[var(--border-mid)] text-[var(--text-muted)] transition-colors">
-            <ChevronLeft size={12} strokeWidth={2} />
+          <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#2e2e2e] hover:bg-[#3d3d3d] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors shadow-sm">
+            <ChevronLeft size={12} strokeWidth={2.2} />
           </div>
         </button>
       )}
@@ -456,16 +456,16 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
       {canScrollRight && (
         <button
           onClick={() => scrollBy(100)}
-          className="absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 pr-0.5"
+          className="absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 pr-0"
           style={{
-            background: 'linear-gradient(to left, var(--bg-card) 60%, transparent)',
+            background: 'linear-gradient(to left, var(--bg-card) 65%, transparent)',
             border: 'none',
             cursor: 'pointer',
           }}
           title="Scroll right"
         >
-          <div className="p-0.5 rounded-full bg-[var(--bg-btn)] hover:bg-[var(--border-mid)] text-[var(--text-muted)] transition-colors">
-            <ChevronRight size={12} strokeWidth={2} />
+          <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#2e2e2e] hover:bg-[#3d3d3d] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors shadow-sm">
+            <ChevronRight size={12} strokeWidth={2.2} />
           </div>
         </button>
       )}
@@ -488,26 +488,27 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
               onClick={() => onSelect(tag)}
               className="flex items-center justify-center rounded-md shrink-0 transition-all duration-150 active:scale-95 cursor-pointer"
               style={{
-                backgroundColor: isActive ? 'rgba(103, 129, 168, 0.22)' : 'var(--bg-input)',
-                border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
+                backgroundColor: isActive ? '#383838' : '#282828',
+                border: 'none',
+                outline: 'none',
                 padding: '0 10px',
                 height: 26,
                 fontFamily: "'Season Sans', 'Inter', sans-serif",
                 fontSize: 12,
-                fontWeight: isActive ? 550 : 400,
-                color: isActive ? 'var(--text)' : 'var(--text-muted)',
+                fontWeight: isActive ? 500 : 400,
+                color: isActive ? '#f3f4f6' : '#9e9e9e',
                 whiteSpace: 'nowrap',
               }}
               onMouseEnter={e => {
                 if (!isActive) {
-                  e.currentTarget.style.backgroundColor = 'var(--border)';
-                  e.currentTarget.style.color = 'var(--text)';
+                  e.currentTarget.style.backgroundColor = '#333333';
+                  e.currentTarget.style.color = '#e5e5e5';
                 }
               }}
               onMouseLeave={e => {
                 if (!isActive) {
-                  e.currentTarget.style.backgroundColor = 'var(--bg-input)';
-                  e.currentTarget.style.color = 'var(--text-muted)';
+                  e.currentTarget.style.backgroundColor = '#282828';
+                  e.currentTarget.style.color = '#9e9e9e';
                 }
               }}
             >
