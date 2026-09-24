@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, createContext, useContext } from 
 import {
   Network, Sun, Moon, ChevronDown, ArrowRight, Plus,
   Trash2, Search, X, Copy, ChevronUp, ChevronLeft, ChevronRight,
-  Download, Sliders, ZoomIn, ZoomOut, Move, Tv, Check
+  Download, Sliders, ZoomIn, ZoomOut, Move, Tv, Check, VectorPolygon
 } from 'lucide-react';
 import {
   genres, topics, tableRows, audienceData,
@@ -65,18 +65,7 @@ function SambaTvLogo({ width = 24, height = 22 }: { width?: number; height?: num
 }
 
 function KnowledgeGraphNavIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flexShrink: 0 }}>
-      <line x1="13.2" y1="6.8" x2="18" y2="10.2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-      <line x1="18.8" y1="12.8" x2="15.2" y2="17.2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-      <line x1="12.8" y1="18.2" x2="7.8" y2="14.8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-      <line x1="7.2" y1="12.2" x2="10.8" y2="7.8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-      <circle cx="12" cy="5.5" r="2.2" stroke="currentColor" strokeWidth="1.75" />
-      <circle cx="19.5" cy="11.5" r="2.2" stroke="currentColor" strokeWidth="1.75" />
-      <circle cx="14" cy="19.5" r="2.2" stroke="currentColor" strokeWidth="1.75" />
-      <circle cx="6" cy="13.5" r="2.2" stroke="currentColor" strokeWidth="1.75" />
-    </svg>
-  );
+  return <VectorPolygon size={size} strokeWidth={1.8} />;
 }
 
 function AudienceNavIcon({ size = 20 }: { size?: number }) {
