@@ -1,35 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
-/* ─── Font faces ─────────────────────────────────────────────────────────── */
+@theme {
+  --font-sans: 'Season Sans', 'Inter', sans-serif;
+  --font-display: 'Season Mix', 'Inter', sans-serif;
+}
+
+/* ─── Season Mix (custom, file-scoped) ───────────────────────────────────── */
 @font-face {
-  font-family: "Inter:Medium";
+  font-family: 'Season Mix';
   font-style: normal;
-  font-weight: 500;
-  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+  font-weight: 300;
+  font-display: swap;
+  src: url('/fonts/Season_Mix-Light.woff2') format('woff2');
 }
 @font-face {
-  font-family: "Season Sans:Regular";
+  font-family: 'Season Mix';
+  font-style: normal;
+  font-weight: 420;
+  font-display: swap;
+  src: url('/fonts/Season_Mix-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Season Mix';
+  font-style: normal;
+  font-weight: 580;
+  font-display: swap;
+  src: url('/fonts/Season_Mix-Medium.woff2') format('woff2');
+}
+
+/* ─── Season Sans (custom, file-scoped) ──────────────────────────────────── */
+@font-face {
+  font-family: 'Season Sans';
   font-style: normal;
   font-weight: 400;
-  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+  font-display: swap;
+  src: url('/fonts/Season_Sans-Regular.woff2') format('woff2');
 }
 @font-face {
-  font-family: "Season Sans:Medium";
+  font-family: 'Season Sans';
   font-style: normal;
-  font-weight: 500;
-  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+  font-weight: 550;
+  font-display: swap;
+  src: url('/fonts/Season_Sans-Medium.woff2') format('woff2');
 }
 @font-face {
-  font-family: "Season Sans:SemiBold";
+  font-family: 'Season Sans';
   font-style: normal;
-  font-weight: 600;
-  src: url("https://static.figma.com/font/Inter_1") format("woff2");
-}
-@font-face {
-  font-family: "Season Mix:Medium";
-  font-style: normal;
-  font-weight: 500;
-  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+  font-weight: 650;
+  font-display: swap;
+  src: url('/fonts/Season_Sans-SemiBold.woff2') format('woff2');
 }
 
 /* ─── Dark theme (default) ───────────────────────────────────────────────── */
@@ -104,6 +124,7 @@
 body {
   background-color: var(--bg);
   color: var(--text);
+  font-family: 'Season Sans', 'Inter', sans-serif;
   transition: background-color 0.2s, color 0.2s;
 }
 
