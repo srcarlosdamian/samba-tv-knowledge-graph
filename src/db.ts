@@ -87,12 +87,28 @@ export const topics: Topic[] = [
   { id: 5, name: 'Gaming', count: '440.0k' },
 ];
 
-export const tableRows: TableRow[] = Array.from({ length: 10 }, (_, i) => ({
-  household: `samba.tv/34003493403040${340 + i}`,
-  sambaId: ['6e382a05b1af1d9b','2a3c85ba5b7588ad','3875d60a53a61971','3755283108548888','e00a493c8c98f734','770a764a077729db','6a48bc3421e45de6','4801141778832035','8612846182973880','f95a680f0ed7e4e4'][i],
-  genreScore: (0.95 - i * 0.04).toFixed(2),
-  topicScore: (0.92 - i * 0.03).toFixed(2),
-}));
+export const tableRows: TableRow[] = [
+  { household: 'samba.tv/34003493403040340', sambaId: 'e8bbb6fa0afd5cb6', genreScore: '1.0', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040341', sambaId: 'b9ccc7fa0cfe6dcb7', genreScore: '1.1', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040342', sambaId: 'c1ddd8fa1e0f7ece8', genreScore: '1.2', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040343', sambaId: 'd2eee9fa2f217fcf9', genreScore: '1.3', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040344', sambaId: 'e3ff0afa3g3230f0a', genreScore: '1.4', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040345', sambaId: 'f4gg1bfa4h4341g1b', genreScore: '1.5', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040346', sambaId: 'g5hh2cfa5i5452h2c', genreScore: '1.6', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040347', sambaId: 'h6ii3dfa6j6563i3d', genreScore: '1.7', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040347', sambaId: 'h6ii3dfa6j6563i3d', genreScore: '1.7', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040347', sambaId: 'h6ii3dfa6j6563i3d', genreScore: '1.7', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040348', sambaId: 'i7jj4efa7k7674j4e', genreScore: '1.8', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040349', sambaId: 'j8kk5ffb8l8785k5f', genreScore: '1.8', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040350', sambaId: 'k9ll6ggc9m9896l6g', genreScore: '1.9', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040351', sambaId: 'l0mm7hhd0n0907m7h', genreScore: '1.9', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040352', sambaId: 'm1nn8iie1o1018n8i', genreScore: '2.0', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040353', sambaId: 'n2oo9jjf2p2129o9j', genreScore: '2.0', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040354', sambaId: 'o3pp0kkg3q3230p0k', genreScore: '2.1', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040355', sambaId: 'p4qq1llh4r4341q1l', genreScore: '2.1', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040356', sambaId: 'q5rr2mmi5s5452r2m', genreScore: '2.2', topicScore: '1.0' },
+  { household: 'samba.tv/34003493403040357', sambaId: 'r6ss3nnj6t6563s3n', genreScore: '2.2', topicScore: '1.0' },
+];
 
 export const audienceData = {
   households: '125.4k',

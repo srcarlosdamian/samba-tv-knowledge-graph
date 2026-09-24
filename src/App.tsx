@@ -1278,58 +1278,60 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
       {/* ── Overlay layer: pointer-events none so graph gets mouse/touch ── */}
       <div className="absolute inset-0 flex flex-col" style={{ zIndex: 10, pointerEvents: 'none' }}>
 
-      {/* ── Top floating bar ── */}
-      <div className="flex items-center justify-center p-4" style={{ pointerEvents: 'none' }}>
-        <div className="flex items-center gap-6 rounded-lg px-6 py-2 flex-wrap"
-          style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)', pointerEvents: 'auto' }}>
+      {/* ── Top floating bar (only on graph tab) ── */}
+      {graphTab === 'graph' && (
+        <div className="flex items-center justify-center p-4" style={{ pointerEvents: 'none' }}>
+          <div className="flex items-center gap-6 rounded-lg px-6 py-2 flex-wrap"
+            style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)', pointerEvents: 'auto' }}>
 
-          {/* Stats */}
-          <div className="flex gap-6 items-center">
-            {[
-              { val: dataset.metrics.peopleMatch, sub: 'People match' },
-              { val: dataset.metrics.seedHousehold, sub: 'Seed household' }
-            ].map(({ val, sub }) => (
-              <div key={sub} className="flex flex-col items-center">
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 600, fontSize: 20, color: 'var(--text)', lineHeight: '28px' }}>{val}</span>
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>{sub}</span>
-              </div>
-            ))}
+            {/* Stats */}
+            <div className="flex gap-6 items-center">
+              {[
+                { val: dataset.metrics.peopleMatch, sub: 'People match' },
+                { val: dataset.metrics.seedHousehold, sub: 'Seed household' }
+              ].map(({ val, sub }) => (
+                <div key={sub} className="flex flex-col items-center">
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 600, fontSize: 20, color: 'var(--text)', lineHeight: '28px' }}>{val}</span>
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>{sub}</span>
+                </div>
+              ))}
+            </div>
+
+            <PillDivider />
+
+            {/* Legend */}
+            <div className="flex gap-4 items-center flex-wrap">
+              {legendItems.map(({ label, color, dot }) => (
+                <div key={label} className="flex gap-2 items-center">
+                  {dot
+                    ? <div className="rounded-full" style={{ width: 10, height: 10, backgroundColor: color }} />
+                    : <div style={{ width: 10, height: 2, backgroundColor: color }} />}
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)', lineHeight: '20px' }}>{label}</span>
+                </div>
+              ))}
+            </div>
+
+            <PillDivider />
+
+            {/* Counts */}
+            <div className="flex gap-4 items-center">
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{dataset.nodes.length} nodes</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{dataset.edges.length} edges</span>
+            </div>
+
+            <PillDivider />
+
+            <button onClick={onNavigateAudience}
+              className="flex items-center justify-center rounded-md transition-colors cursor-pointer"
+              style={{ backgroundColor: 'var(--bg-btn)', padding: '0 12px', height: 32, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-btn)', border: 'none' }}>
+              Explore this audience
+            </button>
           </div>
-
-          <PillDivider />
-
-          {/* Legend */}
-          <div className="flex gap-4 items-center flex-wrap">
-            {legendItems.map(({ label, color, dot }) => (
-              <div key={label} className="flex gap-2 items-center">
-                {dot
-                  ? <div className="rounded-full" style={{ width: 10, height: 10, backgroundColor: color }} />
-                  : <div style={{ width: 10, height: 2, backgroundColor: color }} />}
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)', lineHeight: '20px' }}>{label}</span>
-              </div>
-            ))}
-          </div>
-
-          <PillDivider />
-
-          {/* Counts */}
-          <div className="flex gap-4 items-center">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{dataset.nodes.length} nodes</span>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{dataset.edges.length} edges</span>
-          </div>
-
-          <PillDivider />
-
-          <button onClick={onNavigateAudience}
-            className="flex items-center justify-center rounded-md transition-colors"
-            style={{ backgroundColor: 'var(--bg-btn)', padding: '0 12px', height: 32, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-btn)', border: 'none' }}>
-            Explore this audience
-          </button>
         </div>
-      </div>
+      )}
 
       {/* ── Content row: left sidebar + optional table + right node detail card ── */}
-      <div className="flex flex-1 items-start justify-between p-4 gap-4" style={{ pointerEvents: 'none' }}>
+      <div className={`flex flex-1 items-start justify-between ${graphTab === 'table' ? 'p-6 gap-8' : 'p-4 gap-4'}`} style={{ pointerEvents: 'none' }}>
         <div style={{ pointerEvents: 'auto' }}>
           <KnowledgeGraphSidebar
             graphTab={graphTab} setGraphTab={setGraphTab}
@@ -1340,55 +1342,119 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
           />
         </div>
 
-        {/* Results table */}
+        {/* Results table (Exact Figma Design) */}
         {graphTab === 'table' && (
-          <div className="flex flex-col rounded-lg overflow-hidden flex-1 mx-2"
-            style={{ pointerEvents: 'auto', backgroundColor: 'var(--bg-card-alt)', border: '1px solid var(--border)', maxHeight: 'calc(100vh - 130px)' }}>
-            <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 20, fontWeight: 500, color: 'var(--text)' }}>Result bindings</span>
-              <button className="flex items-center gap-2 rounded"
-                style={{ border: '1px solid var(--border)', padding: '0 12px', height: 32, background: 'transparent', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-btn)' }}>
-                <Download size={14} strokeWidth={1.5} color="var(--text-dim)" />
+          <div className="flex flex-col flex-1 pl-4 pr-8 pt-2" style={{ pointerEvents: 'auto' }}>
+            {/* Header with Title & Export Button */}
+            <div className="flex items-center justify-between pb-6">
+              <h1 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 32, fontWeight: 400, color: '#f3f4f6', letterSpacing: '-0.01em' }}>
+                Result bindings
+              </h1>
+              <button
+                onClick={() => {
+                  const header = 'House Hold,SambaId,Genre Score,Topic Score\n';
+                  const csv = header + tableRows.map(r => `"${r.household}","${r.sambaId}","${r.genreScore}","${r.topicScore}"`).join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'result_bindings.csv';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="flex items-center gap-2 rounded px-3.5 py-1.5 transition-colors hover:bg-[#2e2e32] cursor-pointer"
+                style={{
+                  backgroundColor: '#222224',
+                  border: '1px solid #38383c',
+                  fontFamily: "'Season Sans', 'Inter', sans-serif",
+                  fontSize: 13,
+                  fontWeight: 400,
+                  color: '#d1d5db',
+                }}
+              >
                 Export to CSV
               </button>
             </div>
-            <div className="overflow-y-auto flex-1">
-              <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+
+            {/* Table */}
+            <div className="w-full">
+              <table className="w-full text-left" style={{ borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    {['House Hold', 'Samba ID', 'Genre Score', 'Topic Score'].map(h => (
-                      <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, fontWeight: 500, color: 'var(--text-muted)' }}>{h}</th>
-                    ))}
+                  <tr style={{ borderBottom: '1px solid #222226' }}>
+                    <th style={{ padding: '0 0 16px 0', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: '#8e8e93', width: '38%' }}>
+                      House Hold
+                    </th>
+                    <th style={{ padding: '0 0 16px 0', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: '#8e8e93', width: '34%' }}>
+                      Sambald
+                    </th>
+                    <th style={{ padding: '0 0 16px 0', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: '#8e8e93', textAlign: 'right', width: '14%' }}>
+                      Genre Score
+                    </th>
+                    <th style={{ padding: '0 0 16px 0', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, fontWeight: 500, color: '#8e8e93', textAlign: 'right', width: '14%' }}>
+                      Topic Score
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tableRows.map((row, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid var(--border)', backgroundColor: i % 2 === 1 ? 'var(--bg-input)' : 'transparent' }}>
-                      <td style={{ padding: '10px 16px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text)' }}>{row.household}</td>
-                      <td style={{ padding: '10px 16px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text)' }}>{row.sambaId}</td>
-                      <td style={{ padding: '10px 16px', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{row.genreScore}</td>
-                      <td style={{ padding: '10px 16px', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{row.topicScore}</td>
+                  {tableRows.slice((page - 1) * 10, page * 10).map((row, i) => (
+                    <tr key={i} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: '1px solid #1c1c1f' }}>
+                      <td style={{ padding: '14px 0', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: '#f3f4f6' }}>
+                        {row.household}
+                      </td>
+                      <td style={{ padding: '14px 0', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: '#f3f4f6' }}>
+                        {row.sambaId}
+                      </td>
+                      <td style={{ padding: '14px 0', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: '#f3f4f6', textAlign: 'right' }}>
+                        {row.genreScore}
+                      </td>
+                      <td style={{ padding: '14px 0', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: '#f3f4f6', textAlign: 'right' }}>
+                        {row.topicScore}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid var(--border)' }}>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>Showing 10 of 20 results</span>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} className="flex items-center justify-center rounded"
-                  style={{ width: 28, height: 28, border: '1px solid var(--border)', background: 'transparent' }}>
-                  <ChevronLeft size={14} strokeWidth={1.5} color="var(--text-dim)" />
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between pt-6">
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: '#71717a' }}>
+                Showing 10 of {tableRows.length} results
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="flex items-center justify-center p-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  style={{ color: '#8e8e93', background: 'transparent', border: 'none' }}
+                >
+                  <ChevronLeft size={16} strokeWidth={1.5} />
                 </button>
                 {[1, 2].map(p => (
-                  <button key={p} onClick={() => setPage(p)} className="flex items-center justify-center rounded"
-                    style={{ width: 28, height: 28, border: '1px solid var(--border)', backgroundColor: page === p ? '#6781a8' : 'transparent', color: page === p ? '#fff' : '#a3a3a3', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14 }}>
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className="flex items-center justify-center rounded text-xs transition-colors cursor-pointer"
+                    style={{
+                      width: 26,
+                      height: 26,
+                      backgroundColor: page === p ? '#27272a' : 'transparent',
+                      border: page === p ? '1px solid #3f3f46' : '1px solid transparent',
+                      color: page === p ? '#ffffff' : '#71717a',
+                      fontFamily: "'Season Sans', 'Inter', sans-serif",
+                      fontWeight: page === p ? 500 : 400
+                    }}
+                  >
                     {p}
                   </button>
                 ))}
-                <button onClick={() => setPage(p => Math.min(2, p + 1))} className="flex items-center justify-center rounded"
-                  style={{ width: 28, height: 28, border: '1px solid var(--border)', background: 'transparent' }}>
-                  <ChevronRight size={14} strokeWidth={1.5} color="var(--text-dim)" />
+                <button
+                  onClick={() => setPage(p => Math.min(2, p + 1))}
+                  disabled={page === 2}
+                  className="flex items-center justify-center p-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  style={{ color: '#8e8e93', background: 'transparent', border: 'none' }}
+                >
+                  <ChevronRight size={16} strokeWidth={1.5} />
                 </button>
               </div>
             </div>
@@ -1396,26 +1462,28 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
         )}
 
         {/* Right floating card when a node is selected */}
-        {selectedNode && (
+        {selectedNode && graphTab === 'graph' && (
           <div style={{ pointerEvents: 'auto' }}>
             <NodeDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} graphConfig={graphConfig} />
           </div>
         )}
       </div>
 
-      {/* ── Bottom floating bar ── */}
-      <div className="flex items-center justify-center p-4" style={{ pointerEvents: 'none' }}>
-        <div className="flex items-center gap-6 rounded-lg px-6 py-2"
-          style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)', pointerEvents: 'auto' }}>
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
-            Showing {dataset.nodes.length} nodes · {dataset.edges.length} edges
-          </span>
-          <PillDivider />
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
-            Click on any node for details & connections. Double-click to expand.
-          </span>
+      {/* ── Bottom floating bar (only on graph tab) ── */}
+      {graphTab === 'graph' && (
+        <div className="flex items-center justify-center p-4" style={{ pointerEvents: 'none' }}>
+          <div className="flex items-center gap-6 rounded-lg px-6 py-2"
+            style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)', pointerEvents: 'auto' }}>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
+              Showing {dataset.nodes.length} nodes · {dataset.edges.length} edges
+            </span>
+            <PillDivider />
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
+              Click on any node for details & connections. Double-click to expand.
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       </div>{/* end overlay layer */}
 
@@ -1424,20 +1492,22 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
         <GraphEditorPanel config={graphConfig} onChange={onUpdateConfig} onClose={onCloseEditor} />
       )}
 
-      {/* ── Zoom / pan controls ── */}
-      <div className="absolute flex flex-col gap-2 items-center" style={{ bottom: 16, right: 16, zIndex: 20 }}>
-        {([
-          { icon: ZoomIn,  title: 'Zoom in',  onClick: () => graphRef.current?.zoom(-80) },
-          { icon: ZoomOut, title: 'Zoom out', onClick: () => graphRef.current?.zoom(80) },
-          { icon: Move,    title: 'Pan: shift+drag or right-click drag', onClick: undefined },
-        ]).map(({ icon: Icon, title, onClick }) => (
-          <button key={title} onClick={onClick ?? undefined} title={title}
-            className="flex items-center justify-center rounded"
-            style={{ width: 32, height: 32, border: '1px solid var(--border)', backgroundColor: 'var(--bg-input)', cursor: onClick ? 'pointer' : 'default', opacity: onClick ? 1 : 0.5 }}>
-            <Icon size={14} strokeWidth={1.5} color="var(--text-dim)" />
-          </button>
-        ))}
-      </div>
+      {/* ── Zoom / pan controls (only on graph tab) ── */}
+      {graphTab === 'graph' && (
+        <div className="absolute flex flex-col gap-2 items-center" style={{ bottom: 16, right: 16, zIndex: 20 }}>
+          {([
+            { icon: ZoomIn,  title: 'Zoom in',  onClick: () => graphRef.current?.zoom(-80) },
+            { icon: ZoomOut, title: 'Zoom out', onClick: () => graphRef.current?.zoom(80) },
+            { icon: Move,    title: 'Pan: shift+drag or right-click drag', onClick: undefined },
+          ]).map(({ icon: Icon, title, onClick }) => (
+            <button key={title} onClick={onClick ?? undefined} title={title}
+              className="flex items-center justify-center rounded"
+              style={{ width: 32, height: 32, border: '1px solid var(--border)', backgroundColor: 'var(--bg-input)', cursor: onClick ? 'pointer' : 'default', opacity: onClick ? 1 : 0.5 }}>
+              <Icon size={14} strokeWidth={1.5} color="var(--text-dim)" />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
