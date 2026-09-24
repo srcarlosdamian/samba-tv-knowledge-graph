@@ -1180,30 +1180,58 @@ function GraphEditorPanel({ config, onChange, onClose }: {
             </div>
 
             <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
-              Dotted &amp; Animated Line Flow
+              Dotted Overlay &amp; Animated Flow Layer
             </div>
             <div className="flex flex-col gap-2.5 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
               <div className="flex items-center justify-between">
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
-                  Dotted Lines Effect
-                </span>
+                <div>
+                  <div style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                    Dotted Flow on Selection
+                  </div>
+                  <div style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>
+                    Dynamic traveling dots over active links
+                  </div>
+                </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={config.edgeDashed !== false}
-                    onChange={e => onChange({ ...config, edgeDashed: e.target.checked })}
+                    checked={config.enableDottedOverlay !== false}
+                    onChange={e => onChange({ ...config, enableDottedOverlay: e.target.checked })}
                     className="sr-only peer"
                   />
                   <div className="w-8 h-4.5 bg-[#333333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-[var(--accent)]" />
                 </label>
               </div>
 
+              {/* Line Thickness (Grosor) */}
+              <div className="flex items-center justify-between pt-1 border-t border-[var(--border-subtle)]">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Dotted Line Thickness (Grosor)
+                </span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {(config.dottedLineWidth ?? 3.5).toFixed(1)} px
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Width</span>
+                <input
+                  type="range"
+                  min={1.0}
+                  max={12.0}
+                  step={0.5}
+                  value={config.dottedLineWidth ?? 3.5}
+                  onChange={e => onChange({ ...config, dottedLineWidth: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+                />
+              </div>
+
+              {/* Flow Speed */}
               <div className="flex items-center justify-between pt-1">
                 <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
                   Flow Speed
                 </span>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-                  {(config.edgeDashSpeed ?? 1.2).toFixed(1)}×
+                  {(config.edgeDashSpeed ?? 1.5).toFixed(1)}×
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -1211,17 +1239,51 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                 <input
                   type="range"
                   min={0.2}
-                  max={3.0}
+                  max={4.0}
                   step={0.1}
-                  value={config.edgeDashSpeed ?? 1.2}
+                  value={config.edgeDashSpeed ?? 1.5}
                   onChange={e => onChange({ ...config, edgeDashSpeed: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+                />
+              </div>
+
+              {/* Dash & Gap */}
+              <div className="flex items-center justify-between pt-1">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Dash / Dot Spacing
+                </span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {config.dottedDashSize ?? 8} / {config.dottedGapSize ?? 6}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Dash</span>
+                <input
+                  type="range"
+                  min={2}
+                  max={24}
+                  step={1}
+                  value={config.dottedDashSize ?? 8}
+                  onChange={e => onChange({ ...config, dottedDashSize: parseInt(e.target.value, 10) })}
+                  style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Gap</span>
+                <input
+                  type="range"
+                  min={2}
+                  max={24}
+                  step={1}
+                  value={config.dottedGapSize ?? 6}
+                  onChange={e => onChange({ ...config, dottedGapSize: parseInt(e.target.value, 10) })}
                   style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
                 />
               </div>
             </div>
 
             <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
-              Line Categories &amp; Colors
+              Base Line Categories (Continuous)
             </div>
             <EditorRow
               label="Affinity lines" color={config.edgeColor}
@@ -1299,6 +1361,47 @@ function GraphEditorPanel({ config, onChange, onClose }: {
             </div>
 
             <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Dotted Flow Layer (Grosor &amp; Conexión)
+            </div>
+            <div className="flex flex-col gap-2.5 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+              <div className="flex items-center justify-between">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Dotted Line Thickness (Grosor)
+                </span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {(config.dottedLineWidth ?? 3.5).toFixed(1)} px
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Grosor</span>
+                <input
+                  type="range"
+                  min={1.0}
+                  max={12.0}
+                  step={0.5}
+                  value={config.dottedLineWidth ?? 3.5}
+                  onChange={e => onChange({ ...config, dottedLineWidth: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: config.selectionColor ?? 'var(--accent)', height: 4 }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1 border-t border-[var(--border-subtle)]">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Animated Line Connection
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.animateConnection !== false}
+                    onChange={e => onChange({ ...config, animateConnection: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-8 h-4.5 bg-[#333333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-[var(--accent)]" />
+                </label>
+              </div>
+            </div>
+
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
               Selection Glow Blur &amp; Halo
             </div>
             <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
@@ -1345,21 +1448,6 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                   style={{ flex: 1, accentColor: config.selectionColor ?? 'var(--accent)', height: 4 }}
                 />
               </div>
-            </div>
-
-            <div className="flex items-center justify-between rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
-                Animated Line Connection
-              </span>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={config.animateConnection !== false}
-                  onChange={e => onChange({ ...config, animateConnection: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-8 h-4.5 bg-[#333333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-[var(--accent)]" />
-              </label>
             </div>
           </>
         )}

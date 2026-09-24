@@ -1,5 +1,8 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as THREE from 'three';
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import {
   type NodeType,
   type Node3DData,
@@ -18,7 +21,7 @@ export interface GraphConfig {
   sizes: Record<string, number>;
   glowIntensity: number;   // 0–1, emissive intensity multiplier
 
-  // ─── Lines (Líneas de Relación) ────────────────────────────────────────────
+  // ─── Base Lines (Líneas Normales Continuas) ─────────────────────────────────
   edgeColor: string;              // Affinity lines color (default #6a7a8a)
   hubEdgeColor: string;           // Hub bridge lines color (default #9aaaaa)
   individualEdgeColor?: string;   // Individual <-> Household cross lines color (default #8e9aaf)
@@ -28,8 +31,15 @@ export interface GraphConfig {
   individualEdgeOpacity?: number; // Individual <-> Household lines opacity (default 0.40)
   deviceEdgeOpacity?: number;     // Device lines opacity (default 0.35)
   showAllEdges?: boolean;         // Reveal 100% of all lines without clicking (default false)
-  edgeDashed?: boolean;           // Dotted/dashed animated flow effect
-  edgeDashSpeed?: number;         // Flow speed multiplier (0.2 to 3.0)
+
+  // ─── Dotted Animated Overlay Layer (Capa Superpuesta de Líneas Punteadas) ───
+  enableDottedOverlay?: boolean;  // Active dotted animated layer on selection (default true)
+  dottedLineWidth?: number;       // Line thickness in px (1.0 to 12.0, default 3.5)
+  dottedLineColor?: string;       // Color for dotted layer (default #ffffff or selectionColor)
+  dottedLineOpacity?: number;     // Opacity for dotted layer (0 to 1.0, default 0.95)
+  edgeDashSpeed?: number;         // Traveling flow speed multiplier (0.2 to 4.0, default 1.5)
+  dottedDashSize?: number;        // Length of dashes (2 to 24, default 8)
+  dottedGapSize?: number;         // Gap between dots (2 to 24, default 6)
 
   // ─── Selection & Highlight (Selección y Destello) ───────────────────────────
   selectionColor?: string;       // Color for selection highlight & active lines (default #ffffff)
@@ -76,7 +86,7 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   },
   glowIntensity: 0.45,
 
-  // Lines default
+  // Base Lines (Normales continuas por defecto)
   edgeColor: '#6a7a8a',
   hubEdgeColor: '#9aaaaa',
   individualEdgeColor: '#8e9aaf',
@@ -86,8 +96,15 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   individualEdgeOpacity: 0.40,
   deviceEdgeOpacity: 0.35,
   showAllEdges: false,
-  edgeDashed: true,
-  edgeDashSpeed: 1.2,
+
+  // Dotted Animated Layer (Capa superpuesta punteada animada)
+  enableDottedOverlay: true,
+  dottedLineWidth: 3.5,
+  dottedLineColor: '#ffffff',
+  dottedLineOpacity: 0.95,
+  edgeDashSpeed: 1.5,
+  dottedDashSize: 8,
+  dottedGapSize: 6,
 
   // Selection default
   selectionColor: '#ffffff',
@@ -381,13 +398,18 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
     interface EdgeState {
       data: Edge3DData;
       line: THREE.Line;
-      material: THREE.LineDashedMaterial;
+      material: THREE.LineBasicMaterial;
       category: EdgeCategory;
       isHub: boolean;
       revealed: boolean;
       currentOpacity: number;
       targetOpacity: number;
       mid?: { x: number; y: number; z: number; weight?: string; rel?: string; visible: boolean };
+
+      // Overlay Dotted Animated Layer (Line2 with configurable thickness)
+      dottedLine: Line2;
+      dottedGeo: LineGeometry;
+      dottedMat: LineMaterial;
       isConnecting?: boolean;
       connectProgress?: number;
       originPos?: THREE.Vector3;
@@ -395,30 +417,50 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
     }
 
     const edgeStates: EdgeState[] = [];
+    const containerW = el.clientWidth || 800;
+    const containerH = el.clientHeight || 600;
 
     edges.forEach((e) => {
       const a = nodeMap.get(e.from);
       const b = nodeMap.get(e.to);
       if (!a || !b) return;
 
-      const geo = new THREE.BufferGeometry().setFromPoints([a.position, b.position]);
       const category = getEdgeCategory(e, nodes);
       const isHub = category === 'hub';
       const isInitiallyRevealed = !e.hidden || (configRef.current.showAllEdges ?? false);
 
-      const mat = new THREE.LineDashedMaterial({
+      // 1. Base Normal Line (Solid)
+      const geo = new THREE.BufferGeometry().setFromPoints([a.position, b.position]);
+      const baseMat = new THREE.LineBasicMaterial({
         color: getEdgeColorHex(category, configRef.current),
         transparent: true,
         opacity: 0,
-        dashSize: isHub ? 8 : 6,
-        gapSize: isHub ? 5 : 4,
-        scale: 1,
-        linewidth: 1,
       });
 
-      const line = new THREE.Line(geo, mat);
-      line.computeLineDistances();
+      const line = new THREE.Line(geo, baseMat);
       pivot.add(line);
+
+      // 2. Overlay Dotted Animated Line (Line2 with thickness)
+      const dottedGeo = new LineGeometry();
+      dottedGeo.setPositions([a.position.x, a.position.y, a.position.z, b.position.x, b.position.y, b.position.z]);
+
+      const dottedMat = new LineMaterial({
+        color: cssToHex(configRef.current.dottedLineColor ?? configRef.current.selectionColor ?? '#ffffff'),
+        linewidth: configRef.current.dottedLineWidth ?? 3.5,
+        dashed: true,
+        dashSize: configRef.current.dottedDashSize ?? 8,
+        gapSize: configRef.current.dottedGapSize ?? 6,
+        dashScale: 1,
+        transparent: true,
+        opacity: 0,
+        depthTest: true,
+        resolution: new THREE.Vector2(containerW, containerH),
+      });
+
+      const dottedLine = new Line2(dottedGeo, dottedMat);
+      dottedLine.computeLineDistances();
+      dottedLine.visible = false;
+      pivot.add(dottedLine);
 
       const mid = e.weight || e.rel ? {
         x: (a.position.x + b.position.x) / 2,
@@ -432,7 +474,10 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
       edgeStates.push({
         data: e,
         line,
-        material: mat,
+        material: baseMat,
+        dottedLine,
+        dottedGeo,
+        dottedMat,
         category,
         isHub,
         revealed: isInitiallyRevealed,
@@ -469,8 +514,6 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
       magentaHighlightedNodeIds.clear();
 
       const curCfg = configRef.current;
-      const defaultEdgeColor = cssToHex(curCfg.edgeColor);
-      const defaultHubEdgeColor = cssToHex(curCfg.hubEdgeColor);
       const selColorHex = cssToHex(curCfg.selectionColor ?? '#ffffff');
       const selHaloOpacity = curCfg.selectionHaloOpacity ?? 0.35;
       const selBlur = curCfg.selectionBlur ?? 1.0;
@@ -485,7 +528,10 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
             posAttr.setXYZ(0, a.position.x, a.position.y, a.position.z);
             posAttr.setXYZ(1, b.position.x, b.position.y, b.position.z);
             posAttr.needsUpdate = true;
-            es.line.computeLineDistances();
+
+            es.dottedGeo.setPositions([a.position.x, a.position.y, a.position.z, b.position.x, b.position.y, b.position.z]);
+            es.dottedLine.computeLineDistances();
+
             if (es.mid) {
               es.mid.x = (a.position.x + b.position.x) / 2;
               es.mid.y = (a.position.y + b.position.y) / 2;
@@ -497,6 +543,10 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
           es.material.color.setHex(getEdgeColorHex(es.category, curCfg));
           const isVis = es.revealed || (curCfg.showAllEdges ?? false);
           es.targetOpacity = isVis ? getEdgeBaseOpacity(es.category, curCfg) : 0;
+
+          // Hide overlay dotted layer
+          es.dottedLine.visible = false;
+          es.dottedMat.opacity = 0;
         });
 
         nodes.forEach(n => {
@@ -530,8 +580,8 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
 
       // Single-click selection:
       // 1. Configurable halo and soft blur aura on selected node
-      // 2. Background nodes & edges attenuate (dim)
-      // 3. Connecting lines draw dynamically from selected node to neighbors in selectionColor
+      // 2. Background base lines attenuate (dim)
+      // 3. Overlay Dotted Animated lines activate and flow towards connected neighbors
       activeNeighborIds.add(nodeId);
 
       const selMesh = nodeMap.get(nodeId);
@@ -565,19 +615,44 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
               posAttr.setXYZ(0, startPos.x, startPos.y, startPos.z);
               posAttr.setXYZ(1, startPos.x, startPos.y, startPos.z);
               posAttr.needsUpdate = true;
-              es.line.computeLineDistances();
+
+              es.dottedGeo.setPositions([startPos.x, startPos.y, startPos.z, startPos.x, startPos.y, startPos.z]);
+              es.dottedLine.computeLineDistances();
 
               if (es.mid) es.mid.visible = false;
+            } else {
+              es.isConnecting = false;
+              const posAttr = es.line.geometry.attributes.position as THREE.BufferAttribute;
+              posAttr.setXYZ(0, startPos.x, startPos.y, startPos.z);
+              posAttr.setXYZ(1, neighborMesh.position.x, neighborMesh.position.y, neighborMesh.position.z);
+              posAttr.needsUpdate = true;
+
+              es.dottedGeo.setPositions([startPos.x, startPos.y, startPos.z, neighborMesh.position.x, neighborMesh.position.y, neighborMesh.position.z]);
+              es.dottedLine.computeLineDistances();
             }
           }
 
-          es.material.color.setHex(selColorHex); // Configurable selection luminous line color
-          es.targetOpacity = 0.95;
+          // Base line highlighted beneath dotted line
+          es.material.color.setHex(selColorHex);
+          es.targetOpacity = 0.50;
+
+          // Overlay Dotted Animated Line activated
+          const showDotted = curCfg.enableDottedOverlay !== false;
+          es.dottedLine.visible = showDotted;
+          es.dottedMat.opacity = showDotted ? (curCfg.dottedLineOpacity ?? 0.95) : 0;
+          es.dottedMat.color.setHex(cssToHex(curCfg.dottedLineColor ?? curCfg.selectionColor ?? '#ffffff'));
+          es.dottedMat.linewidth = curCfg.dottedLineWidth ?? 3.5;
+          es.dottedMat.dashSize = curCfg.dottedDashSize ?? 8;
+          es.dottedMat.gapSize = curCfg.dottedGapSize ?? 6;
         } else {
           es.isConnecting = false;
           es.material.color.setHex(getEdgeColorHex(es.category, curCfg));
           const isVis = es.revealed || (curCfg.showAllEdges ?? false);
           es.targetOpacity = isVis ? 0.05 : 0; // Attenuated background edges
+
+          // Hide dotted overlay on background edges
+          es.dottedLine.visible = false;
+          es.dottedMat.opacity = 0;
         }
       });
 
@@ -707,6 +782,8 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
           es.material.color.setHex(getEdgeColorHex(es.category, configRef.current));
           const isVis = es.revealed || (configRef.current.showAllEdges ?? false);
           es.targetOpacity = isVis ? getEdgeBaseOpacity(es.category, configRef.current) : 0;
+          es.dottedLine.visible = false;
+          es.dottedMat.opacity = 0;
         });
 
         nodes.forEach(n => {
@@ -1044,7 +1121,12 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
     let lastSelectionColor = configRef.current.selectionColor ?? '#ffffff';
     let lastSelectionHaloOpacity = configRef.current.selectionHaloOpacity ?? 0.35;
     let lastSelectionBlur = configRef.current.selectionBlur ?? 1.0;
-    let lastEdgeDashed = configRef.current.edgeDashed !== false;
+    let lastDottedLineWidth = configRef.current.dottedLineWidth ?? 3.5;
+    let lastDottedLineColor = configRef.current.dottedLineColor ?? configRef.current.selectionColor ?? '#ffffff';
+    let lastDottedLineOpacity = configRef.current.dottedLineOpacity ?? 0.95;
+    let lastDottedDashSize = configRef.current.dottedDashSize ?? 8;
+    let lastDottedGapSize = configRef.current.dottedGapSize ?? 6;
+    let lastEnableDottedOverlay = configRef.current.enableDottedOverlay !== false;
 
     function syncConfig() {
       const c = configRef.current;
@@ -1114,9 +1196,7 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
         lastCfgSizes = { ...c.sizes };
       }
 
-      // 4. Edge Colors & Opacities & Dashes & Show All
-      const curEdgeDashed = c.edgeDashed !== false;
-      const dashedToggled = curEdgeDashed !== lastEdgeDashed;
+      // 4. Base Edge Colors & Opacities & Show All
       const curShowAllEdges = c.showAllEdges ?? false;
       const showAllEdgesToggled = curShowAllEdges !== lastShowAllEdges;
       const edgeColorsChanged =
@@ -1130,7 +1210,7 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
         c.individualEdgeOpacity !== lastIndividualEdgeOpacity ||
         c.deviceEdgeOpacity !== lastDeviceEdgeOpacity;
 
-      if (edgeColorsChanged || edgeOpacitiesChanged || dashedToggled || showAllEdgesToggled) {
+      if (edgeColorsChanged || edgeOpacitiesChanged || showAllEdgesToggled) {
         edgeStates.forEach(es => {
           const isConnectedToSelection = selectedNodeId && (es.data.from === selectedNodeId || es.data.to === selectedNodeId);
 
@@ -1153,11 +1233,6 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
               es.targetOpacity = isVisible ? getEdgeBaseOpacity(es.category, c) : 0;
             }
           }
-
-          if (dashedToggled) {
-            es.material.dashSize = curEdgeDashed ? (es.isHub ? 8 : 6) : 99999;
-            es.material.gapSize = curEdgeDashed ? (es.isHub ? 5 : 4) : 0;
-          }
         });
 
         lastEdgeColor = c.edgeColor;
@@ -1169,10 +1244,47 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
         lastIndividualEdgeOpacity = c.individualEdgeOpacity;
         lastDeviceEdgeOpacity = c.deviceEdgeOpacity;
         lastShowAllEdges = curShowAllEdges;
-        lastEdgeDashed = curEdgeDashed;
       }
 
-      // 5. Selection Color, Blur, or Halo Opacity changed while node selected
+      // 5. Overlay Dotted Lines Configuration
+      const curDottedLineWidth = c.dottedLineWidth ?? 3.5;
+      const curDottedLineColor = c.dottedLineColor ?? c.selectionColor ?? '#ffffff';
+      const curDottedLineOpacity = c.dottedLineOpacity ?? 0.95;
+      const curDottedDashSize = c.dottedDashSize ?? 8;
+      const curDottedGapSize = c.dottedGapSize ?? 6;
+      const curEnableDotted = c.enableDottedOverlay !== false;
+
+      const dottedChanged =
+        curDottedLineWidth !== lastDottedLineWidth ||
+        curDottedLineColor !== lastDottedLineColor ||
+        curDottedLineOpacity !== lastDottedLineOpacity ||
+        curDottedDashSize !== lastDottedDashSize ||
+        curDottedGapSize !== lastDottedGapSize ||
+        curEnableDotted !== lastEnableDottedOverlay;
+
+      if (dottedChanged) {
+        edgeStates.forEach(es => {
+          es.dottedMat.linewidth = curDottedLineWidth;
+          es.dottedMat.dashSize = curDottedDashSize;
+          es.dottedMat.gapSize = curDottedGapSize;
+
+          const isConnectedToSelection = selectedNodeId && (es.data.from === selectedNodeId || es.data.to === selectedNodeId);
+          if (isConnectedToSelection) {
+            es.dottedLine.visible = curEnableDotted;
+            es.dottedMat.opacity = curEnableDotted ? curDottedLineOpacity : 0;
+            es.dottedMat.color.setHex(cssToHex(curDottedLineColor));
+          }
+        });
+
+        lastDottedLineWidth = curDottedLineWidth;
+        lastDottedLineColor = curDottedLineColor;
+        lastDottedLineOpacity = curDottedLineOpacity;
+        lastDottedDashSize = curDottedDashSize;
+        lastDottedGapSize = curDottedGapSize;
+        lastEnableDottedOverlay = curEnableDotted;
+      }
+
+      // 6. Selection Color, Blur, or Halo Opacity changed while node selected
       const curSelColor = c.selectionColor ?? '#ffffff';
       const curSelHaloOpacity = c.selectionHaloOpacity ?? 0.35;
       const curSelBlur = c.selectionBlur ?? 1.0;
@@ -1198,30 +1310,35 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
       // Update Reveal physics
       updateReveal(dt);
 
-      // Marching dashes/dots animated flow along lines
-      const dashSpeed = configRef.current.edgeDashSpeed ?? 1.2;
-      const isDashed = configRef.current.edgeDashed !== false;
-      if (isDashed) {
-        edgeStates.forEach(es => {
-          (es.material as any).dashOffset = ((es.material as any).dashOffset ?? 0) - dt * 24 * dashSpeed;
-        });
-      }
+      // Marching dashes/dots animated flow along overlay dotted lines
+      const speed = configRef.current.edgeDashSpeed ?? 1.5;
+      const isDottedEnabled = configRef.current.enableDottedOverlay !== false;
 
-      // Edge opacity smooth lerp & connection line drawing animation
       edgeStates.forEach(es => {
+        // Continuous traveling dot flow
+        if (isDottedEnabled && es.dottedLine.visible && es.dottedMat.opacity > 0.01) {
+          es.dottedMat.dashOffset -= speed * dt * 45;
+        }
+
+        // Base line opacity lerp
         es.currentOpacity += (es.targetOpacity - es.currentOpacity) * 0.15;
         es.material.opacity = es.currentOpacity;
 
-        // Dynamic line connection drawing animation
+        // Dynamic line connection drawing animation (outward motion on click)
         if (es.isConnecting && es.originPos && es.targetPos) {
           es.connectProgress = Math.min(1.0, (es.connectProgress ?? 0) + dt * 3.6);
           const easeT = easeOutCubic(es.connectProgress);
           const curEnd = new THREE.Vector3().lerpVectors(es.originPos, es.targetPos, easeT);
+
+          // Update base line
           const posAttr = es.line.geometry.attributes.position as THREE.BufferAttribute;
           posAttr.setXYZ(0, es.originPos.x, es.originPos.y, es.originPos.z);
           posAttr.setXYZ(1, curEnd.x, curEnd.y, curEnd.z);
           posAttr.needsUpdate = true;
-          es.line.computeLineDistances();
+
+          // Update overlay Line2 dotted geometry
+          es.dottedGeo.setPositions([es.originPos.x, es.originPos.y, es.originPos.z, curEnd.x, curEnd.y, curEnd.z]);
+          es.dottedLine.computeLineDistances();
 
           if (es.mid) {
             es.mid.x = (es.originPos.x + curEnd.x) / 2;
@@ -1279,6 +1396,9 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       resizeLc();
+      edgeStates.forEach(es => {
+        es.dottedMat.resolution.set(w, h);
+      });
     });
     ro.observe(el);
 
