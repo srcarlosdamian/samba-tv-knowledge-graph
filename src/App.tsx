@@ -1,14 +1,16 @@
-import { useState, useRef, useEffect, createContext, useContext } from 'react';
+import { useState, useRef, useEffect, useMemo, createContext, useContext } from 'react';
 import {
   Network, Sun, Moon, ChevronDown, ArrowRight, Plus,
   Trash2, Search, X, Copy, ChevronUp, ChevronLeft, ChevronRight,
-  Download, Sliders, ZoomIn, ZoomOut, Move, Tv
+  Download, Sliders, ZoomIn, ZoomOut, Move, Tv, Check
 } from 'lucide-react';
 import {
   genres, topics, tableRows, audienceData,
-  type Genre, type Topic
+  type Genre, type Topic,
+  type NodeType, type Node3DData, type GraphDataset,
+  getGraphDataset
 } from './db';
-import Graph3D, { DEFAULT_GRAPH_CONFIG, GRAPH_SCENE_DATA, type GraphConfig, type NodeType, type Graph3DHandle, type Node3D } from './Graph3D';
+import Graph3D, { DEFAULT_GRAPH_CONFIG, type GraphConfig, type Graph3DHandle } from './Graph3D';
 
 type View = 'home' | 'graph' | 'audience';
 type GraphTab = 'graph' | 'table';
@@ -149,10 +151,12 @@ function HomeView({ onSearch }: { onSearch: (q: string) => void }) {
   const [boxFocused, setBoxFocused] = useState(false);
   const [boxHovered, setBoxHovered] = useState(false);
   const suggestions = [
-    'Married people living in New York who like Game of Thrones',
+    'Households with Samba TV and more than 3 devices',
     'Households in Texas',
-    'Households that like comedy and read about sports',
+    'Households with income over $75k',
     'People in New York who like Friends',
+    'Households that like Comedy and read about Sports',
+    'People who like Game of Thrones, living in New York, who are married',
   ];
 
   return (
@@ -269,9 +273,9 @@ function HomeView({ onSearch }: { onSearch: (q: string) => void }) {
 
 // ─── Dropdown ─────────────────────────────────────────────────────────────────
 const MODELS = [
-  { value: 'haiku',  label: 'Haiku (fast)',     desc: 'Respuestas rápidas, menor precisión' },
-  { value: 'sonnet', label: 'Sonnet (balanced)', desc: 'Balance velocidad / calidad' },
-  { value: 'opus',   label: 'Opus (precise)',    desc: 'Máxima precisión, más lento' },
+  { value: 'haiku',  label: 'Haiku (fast)',     desc: 'Fast response time, lower latency' },
+  { value: 'sonnet', label: 'Sonnet (balanced)', desc: 'Balanced speed and precision' },
+  { value: 'opus',   label: 'Opus (precise)',    desc: 'Maximum precision, in-depth reasoning' },
 ];
 const LIMITS = [
   { value: '10',  label: '10 objects' },
@@ -341,11 +345,12 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   const suggestions = [
+    'Households with Samba TV and more than 3 devices',
     'Households in Texas',
+    'Households with income over $75k',
     'People in New York who like Friends',
-    'Married people in New York',
-    'Comedy & Sports affinities',
-    'Households with high genre score',
+    'Households that like Comedy and read about Sports',
+    'People who like Game of Thrones, living in New York, who are married',
   ];
 
   const updateScrollState = () => {
@@ -470,14 +475,25 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
 }
 
 // ─── Knowledge Graph Sidebar (floating card) ──────────────────────────────────
-function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAnalysis }: {
+function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAnalysis, sparqlQuery, nodeCount }: {
   graphTab: GraphTab; setGraphTab: (t: GraphTab) => void;
   query: string; setQuery: (q: string) => void;
   onRunAnalysis: () => void;
+  sparqlQuery?: string;
+  nodeCount?: number;
 }) {
   const [techExpanded, setTechExpanded] = useState(false);
   const [model, setModel] = useState('haiku');
   const [limit, setLimit] = useState('20');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (sparqlQuery) {
+      navigator.clipboard.writeText(sparqlQuery);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2.5 rounded-lg shrink-0 hide-scrollbar"
@@ -498,7 +514,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>Display</span>
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-dim)', lineHeight: '14px' }}>{GRAPH_SCENE_DATA.nodes.length} nodes</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-dim)', lineHeight: '14px' }}>{nodeCount ?? 37} nodes</span>
         </div>
         <div className="flex gap-1 rounded p-0.5" style={{ backgroundColor: 'var(--bg-input)', height: 28 }}>
           {(['graph', 'table'] as GraphTab[]).map(tab => (
@@ -543,10 +559,10 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
         <div className="flex items-center justify-between">
           <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>Technical details</span>
           <div className="flex gap-2 items-center">
-            <button className="flex items-center justify-center rounded p-1 hover:bg-[var(--bg-btn)] transition-colors"
+            <button onClick={handleCopy} className="flex items-center justify-center rounded p-1 hover:bg-[var(--bg-btn)] transition-colors"
               style={{ border: '1px solid var(--border)', width: 20, height: 20, background: 'transparent', cursor: 'pointer' }}
-              title="Copy query">
-              <Copy size={11} strokeWidth={1.5} color="var(--text-dim)" />
+              title={copied ? 'Copied!' : 'Copy query'}>
+              {copied ? <Check size={11} color="#48bb78" /> : <Copy size={11} strokeWidth={1.5} color="var(--text-dim)" />}
             </button>
             <button onClick={() => setTechExpanded(p => !p)}
               className="flex items-center justify-center rounded p-1 hover:bg-[var(--bg-btn)] transition-colors"
@@ -560,14 +576,8 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
         </div>
         {techExpanded && (
           <div className="rounded p-2 overflow-x-auto hide-scrollbar"
-            style={{ backgroundColor: 'var(--bg-input)', border: 'none', fontFamily: 'monospace', color: 'var(--text-dim)', fontSize: 10, lineHeight: '15px', whiteSpace: 'pre', maxHeight: 110 }}>
-            <span style={{ color: '#9b59b6' }}>PREFIX</span>{' samba <http://samba.tv/ontolo...>\n'}
-            <span style={{ color: '#9b59b6' }}>SELECT</span>{' ?household ?exp\n'}
-            <span style={{ color: '#9b59b6' }}>WHERE</span>{' {\n  '}
-            <span style={{ color: '#4a9bdc' }}>GRAPH</span>{' <http://samba.tv/data/Identit...> {\n'}
-            {'    ?household ...\n    ?exp samba:stateOfResidence '}
-            <span style={{ color: '#e88e2d' }}>"Texas"</span>{'\n  }\n}\n'}
-            <span style={{ color: '#9b59b6' }}>LIMIT</span>{` ${limit}`}
+            style={{ backgroundColor: 'var(--bg-input)', border: 'none', fontFamily: 'monospace', color: 'var(--text-dim)', fontSize: 10, lineHeight: '15px', whiteSpace: 'pre-wrap', maxHeight: 140 }}>
+            {sparqlQuery ?? `PREFIX samba: <http://samba.tv/ontology/graph#>\nSELECT ?household ?device WHERE {\n  ?household samba:hasDevice ?device .\n}\nLIMIT ${limit}`}
           </div>
         )}
       </div>
@@ -588,10 +598,16 @@ function PillDivider() {
 
 // ─── Graph Editor Panel ───────────────────────────────────────────────────────
 const GROUP_META: { type: NodeType; label: string }[] = [
-  { type: 'genre',      label: 'Genre (Comedy hub)' },
-  { type: 'topic',      label: 'Topic (Sports hub)' },
-  { type: 'household',  label: 'Household' },
-  { type: 'individual', label: 'Individual' },
+  { type: 'genre',              label: 'Genre (Hub)' },
+  { type: 'topic',              label: 'Topic (Hub)' },
+  { type: 'household',          label: 'Household' },
+  { type: 'individual',         label: 'Individual Person' },
+  { type: 'device',             label: 'Connected Device' },
+  { type: 'cookie_or_ip',       label: 'Cookie / IP Bridge' },
+  { type: 'series',             label: 'Content Series' },
+  { type: 'experian_household', label: 'Experian Household' },
+  { type: 'state',              label: 'Geographic State' },
+  { type: 'income_bracket',     label: 'Income Bracket' },
 ];
 
 function ColorSwatch({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -798,137 +814,334 @@ function AndroidBrandIcon({ size = 16 }: { size?: number }) {
   );
 }
 
+function CookieBrandIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
+      <path d="M8.5 8.5v.01" />
+      <path d="M7.5 15.5v.01" />
+      <path d="M15.5 15.5v.01" />
+      <path d="M11.5 12v.01" />
+    </svg>
+  );
+}
+
 const TYPE_LABELS: Record<NodeType, string> = {
-  genre: 'Genre',
-  topic: 'Topic',
   household: 'Household',
-  individual: 'Individual',
+  device: 'Connected Device',
+  cookie_or_ip: 'Cookie / IP Match',
+  individual: 'Individual Person',
+  genre: 'Genre (Affinity Hub)',
+  topic: 'Topic (Interest Hub)',
+  series: 'Content Series',
+  experian_household: 'Experian Household',
+  state: 'Geographic State Hub',
+  income_bracket: 'Income Demographic Hub',
 };
 
-function NodeDetailPanel({ node, onClose }: { node: Node3D; onClose: () => void; graphConfig?: GraphConfig }) {
-  const isHub = node.id === 'sports' || node.id === 'comedy';
-
+function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3DData; onClose: () => void; graphConfig?: GraphConfig }) {
+  const [showCampaigns, setShowCampaigns] = useState(false);
   const isHousehold = node.type === 'household';
-  const isIndividual = node.type === 'individual';
-
   const title = TYPE_LABELS[node.type] ?? 'Node';
   const subtitle = node.label;
-
-  const devices = isHousehold
-    ? [
-        { label: 'Samba TV', count: 1, icon: <Tv size={16} strokeWidth={1.5} /> },
-        { label: 'Apple', count: 2, icon: <AppleBrandIcon size={16} /> },
-        { label: 'Android', count: 1, icon: <AndroidBrandIcon size={16} /> },
-      ]
-    : isIndividual
-    ? [
-        { label: 'Apple', count: 1, icon: <AppleBrandIcon size={16} /> },
-        { label: 'Android', count: 1, icon: <AndroidBrandIcon size={16} /> },
-      ]
-    : [
-        { label: 'Samba Reach', count: isHub ? '42.3k' : '18.5k', icon: <Tv size={16} strokeWidth={1.5} /> },
-        { label: 'Affinity Score', count: isHub ? '0.93' : '0.78', icon: <Network size={16} strokeWidth={1.5} /> },
-      ];
-
-  const totalDevices = isHousehold ? 4 : isIndividual ? 2 : isHub ? '42.3k' : '18.5k';
-  const cookiesCount = isHousehold ? 3 : isIndividual ? 2 : 1;
+  const devSummary = node.devicesSummary;
+  const hasDevices = devSummary && devSummary.total > 0;
+  const campaignsCount = node.campaignsCount ?? 4;
+  const nodeColor = graphConfig?.colors[node.type] ?? '#4E6E9D';
 
   return (
     <div
-      className="fixed flex flex-col"
+      className="fixed flex flex-col hide-scrollbar"
       style={{
-        top: 72,
-        right: 24,
-        width: 250,
-        zIndex: 40,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        width: 360,
+        zIndex: 50,
         pointerEvents: 'auto',
         backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 12,
-        boxShadow: '0 8px 30px var(--shadow)',
-        padding: '16px 14px',
-        animation: 'slideInRight 0.18s cubic-bezier(0.22,1,0.36,1)',
+        borderLeft: '1px solid var(--border)',
+        boxShadow: '-6px 0 28px rgba(0,0,0,0.18)',
+        padding: '24px 20px',
+        overflowY: 'auto',
+        animation: 'slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div className="flex flex-col gap-0.5">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 18, fontWeight: 500, color: 'var(--text)', lineHeight: '24px' }}>
-            {title}
-          </span>
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-muted)', lineHeight: '18px' }}>
+        <div className="flex flex-col gap-1 pr-2">
+          <div className="flex items-center gap-1.5">
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                backgroundColor: nodeColor,
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+            />
+            <span
+              style={{
+                fontFamily: "'Season Sans', 'Inter', sans-serif",
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--text-dim)',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {title}
+            </span>
+          </div>
+          <span
+            style={{
+              fontFamily: "'Season Sans', 'Inter', sans-serif",
+              fontSize: 17,
+              fontWeight: 600,
+              color: 'var(--text)',
+              lineHeight: '22px',
+              wordBreak: 'break-all',
+            }}
+          >
             {subtitle}
           </span>
         </div>
         <button
           onClick={onClose}
-          className="flex items-center justify-center rounded hover:bg-[var(--bg-btn)] transition-colors"
-          style={{ width: 22, height: 22, background: 'transparent', border: 'none', cursor: 'pointer', flexShrink: 0 }}
+          className="flex items-center justify-center rounded-lg hover:bg-[var(--bg-btn)] transition-colors p-1"
+          style={{ width: 28, height: 28, background: 'transparent', border: 'none', cursor: 'pointer', flexShrink: 0 }}
+          title="Close details"
         >
-          <X size={14} strokeWidth={1.5} color="var(--text-dim)" />
+          <X size={16} strokeWidth={1.5} color="var(--text-dim)" />
         </button>
       </div>
 
-      <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '12px 0' }} />
+      <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '16px 0' }} />
 
-      {/* Devices Section */}
-      <div className="flex flex-col gap-2.5">
-        <div className="flex items-center justify-between">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-muted)' }}>
-            {isHousehold || isIndividual ? 'Devices' : 'Audience metrics'}
-          </span>
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-dim)' }}>
-            {totalDevices}
-          </span>
-        </div>
-
-        <div className="flex flex-col gap-2.5 pl-0.5">
-          {devices.map(d => (
-            <div key={d.label} className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-[var(--text-muted)]">
-                {d.icon}
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-muted)' }}>
-                  {d.label}
-                </span>
-              </div>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-dim)' }}>
-                {d.count}
+      {/* Household specific: Connected Devices box */}
+      {isHousehold && (
+        <>
+          <div className="flex flex-col gap-2.5 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', border: '1px solid var(--border)' }}>
+            <div className="flex items-center justify-between">
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Connected devices
+              </span>
+              <span
+                className="px-2 py-0.5 rounded-full text-xs"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-muted)',
+                  fontFamily: "'Season Sans', 'Inter', sans-serif",
+                  fontSize: 11,
+                  fontWeight: 500,
+                }}
+              >
+                {hasDevices ? `${devSummary.total} total` : '0 devices'}
               </span>
             </div>
-          ))}
+
+            {hasDevices ? (
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {/* 📺 Samba TV */}
+                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-input)' }}>
+                  <div
+                    className="flex items-center justify-center rounded-full text-white"
+                    style={{ width: 26, height: 26, backgroundColor: '#2563eb', flexShrink: 0 }}
+                  >
+                    <Tv size={14} strokeWidth={1.75} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
+                      {devSummary.sambaTv}
+                    </span>
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: 'var(--text-muted)' }}>
+                      Samba TV
+                    </span>
+                  </div>
+                </div>
+
+                {/* 🤖 Android */}
+                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-input)' }}>
+                  <div
+                    className="flex items-center justify-center rounded-full text-white"
+                    style={{ width: 26, height: 26, backgroundColor: '#16a34a', flexShrink: 0 }}
+                  >
+                    <AndroidBrandIcon size={14} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
+                      {devSummary.android}
+                    </span>
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: 'var(--text-muted)' }}>
+                      Android
+                    </span>
+                  </div>
+                </div>
+
+                {/* 🍏 Apple */}
+                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-input)' }}>
+                  <div
+                    className="flex items-center justify-center rounded-full text-white"
+                    style={{ width: 26, height: 26, backgroundColor: '#475569', flexShrink: 0 }}
+                  >
+                    <AppleBrandIcon size={14} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
+                      {devSummary.apple}
+                    </span>
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: 'var(--text-muted)' }}>
+                      Apple
+                    </span>
+                  </div>
+                </div>
+
+                {/* 🍪 Cookie / IP */}
+                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-input)' }}>
+                  <div
+                    className="flex items-center justify-center rounded-full text-white"
+                    style={{ width: 26, height: 26, backgroundColor: '#d97706', flexShrink: 0 }}
+                  >
+                    <CookieBrandIcon size={14} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
+                      {devSummary.cookieOrIp}
+                    </span>
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: 'var(--text-muted)' }}>
+                      Cookie / IP
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p
+                style={{
+                  fontFamily: "'Season Sans', 'Inter', sans-serif",
+                  fontSize: 12,
+                  fontStyle: 'italic',
+                  color: 'var(--text-dim)',
+                  margin: '4px 0',
+                }}
+              >
+                This household has no devices or cookies in this sample
+              </p>
+            )}
+          </div>
+
+          <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '14px 0' }} />
+        </>
+      )}
+
+      {/* Flat Property List */}
+      <div className="flex flex-col gap-2 flex-1">
+        <span
+          style={{
+            fontFamily: "'Season Sans', 'Inter', sans-serif",
+            fontSize: 11,
+            fontWeight: 600,
+            color: 'var(--text-dim)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            marginBottom: 2,
+          }}
+        >
+          Properties
+        </span>
+
+        {node.properties && node.properties.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {node.properties.map((p, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col gap-0.5 p-2 rounded"
+                style={{
+                  backgroundColor: p.isNote ? 'rgba(237, 137, 54, 0.08)' : 'var(--bg-card-alt)',
+                  border: p.isNote ? '1px solid rgba(237, 137, 54, 0.3)' : '1px solid var(--border)',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "'Season Sans', 'Inter', sans-serif",
+                    fontSize: 11,
+                    color: p.isNote ? '#dd6b20' : 'var(--text-muted)',
+                    fontWeight: p.isNote ? 600 : 500,
+                  }}
+                >
+                  {p.label}
+                </span>
+                <span
+                  style={{
+                    fontFamily: p.value.startsWith('0x') || p.value.includes('.') || p.value.length > 14 ? 'monospace' : "'Season Sans', 'Inter', sans-serif",
+                    fontSize: 12.5,
+                    color: 'var(--text)',
+                    wordBreak: 'break-all',
+                  }}
+                >
+                  {p.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            className="p-3 rounded text-center"
+            style={{ backgroundColor: 'var(--bg-input)', color: 'var(--text-dim)', fontSize: 12 }}
+          >
+            No additional properties available
+          </div>
+        )}
+      </div>
+
+      {/* Household specific: View Past Campaigns Button & Inline Expansion */}
+      {isHousehold && (
+        <div className="mt-4 flex flex-col gap-2">
+          <button
+            onClick={() => setShowCampaigns(prev => !prev)}
+            className="w-full flex items-center justify-between px-3.5 rounded-lg transition-all duration-150 cursor-pointer"
+            style={{
+              height: 38,
+              backgroundColor: showCampaigns ? 'rgba(103, 129, 168, 0.2)' : 'var(--bg-btn)',
+              border: showCampaigns ? '1px solid var(--accent)' : '1px solid var(--border)',
+              fontFamily: "'Season Sans', 'Inter', sans-serif",
+              fontSize: 13,
+              fontWeight: 500,
+              color: 'var(--text-btn)',
+            }}
+          >
+            <span>View past campaigns</span>
+            {showCampaigns ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+          </button>
+
+          {showCampaigns && (
+            <div
+              className="flex flex-col gap-1.5 p-3 rounded-lg text-left"
+              style={{
+                backgroundColor: 'var(--bg-input)',
+                border: '1px solid var(--border)',
+                animation: 'fadeIn 0.15s ease-out',
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
+                  Campaign History
+                </span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: '#48bb78', fontWeight: 600 }}>
+                  Active Match
+                </span>
+              </div>
+              <p style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11.5, color: 'var(--text-muted)', lineHeight: '16px', margin: 0 }}>
+                Active in <strong style={{ color: 'var(--text)' }}>{campaignsCount} past ad campaigns</strong> across Connected TV & Mobile (Q1–Q3 2026).
+              </p>
+              <div className="flex items-center justify-between pt-1 text-xs" style={{ color: 'var(--text-dim)', borderTop: '1px solid var(--border)' }}>
+                <span>Exposure Frequency: 3.2×</span>
+                <span>Confidence: 94%</span>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-
-      <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '12px 0' }} />
-
-      {/* Cookies Section */}
-      <div className="flex items-center justify-between">
-        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-muted)' }}>
-          Cookies
-        </span>
-        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text-dim)' }}>
-          {cookiesCount}
-        </span>
-      </div>
-
-      <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '14px 0 12px' }} />
-
-      {/* Action Button */}
-      <button
-        onClick={onClose}
-        className="w-full flex items-center justify-center rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
-        style={{
-          height: 36,
-          backgroundColor: 'var(--bg-btn)',
-          border: '1px solid var(--border)',
-          fontFamily: "'Season Sans', 'Inter', sans-serif",
-          fontSize: 13,
-          fontWeight: 500,
-          color: 'var(--text-btn)',
-        }}
-      >
-        View past campaigns
-      </button>
+      )}
     </div>
   );
 }
@@ -942,8 +1155,10 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
   const [graphTab, setGraphTab] = useState<GraphTab>('graph');
   const [localQuery, setLocalQuery] = useState(query);
   const [page, setPage] = useState(1);
-  const [selectedNode, setSelectedNode] = useState<Node3D | null>(null);
+  const [selectedNode, setSelectedNode] = useState<Node3DData | null>(null);
   const graphRef = useRef<Graph3DHandle>(null);
+
+  const dataset = useMemo(() => getGraphDataset(localQuery), [localQuery]);
 
   const legendItems = [
     { label: 'Genre',      color: '#38A169', dot: true  },
@@ -959,7 +1174,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 
       {/* ── Graph fills the entire background — receives all pointer events ── */}
       <div className="absolute inset-0" style={{ zIndex: 0 }}>
-        <Graph3D ref={graphRef} config={graphConfig} onNodeClick={setSelectedNode} />
+        <Graph3D ref={graphRef} dataset={dataset} config={graphConfig} onNodeClick={setSelectedNode} />
       </div>
 
       {/* ── Overlay layer: pointer-events none so graph gets mouse/touch ── */}
@@ -972,7 +1187,10 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 
           {/* Stats */}
           <div className="flex gap-6 items-center">
-            {[{ val: '75.7k', sub: 'People match' }, { val: '67.5k', sub: 'Seed household' }].map(({ val, sub }) => (
+            {[
+              { val: dataset.metrics.peopleMatch, sub: 'People match' },
+              { val: dataset.metrics.seedHousehold, sub: 'Seed household' }
+            ].map(({ val, sub }) => (
               <div key={sub} className="flex flex-col items-center">
                 <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 600, fontSize: 20, color: 'var(--text)', lineHeight: '28px' }}>{val}</span>
                 <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>{sub}</span>
@@ -998,8 +1216,8 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 
           {/* Counts */}
           <div className="flex gap-4 items-center">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{GRAPH_SCENE_DATA.nodes.length} nodes</span>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{GRAPH_SCENE_DATA.edges.length} edges</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{dataset.nodes.length} nodes</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{dataset.edges.length} edges</span>
           </div>
 
           <PillDivider />
@@ -1018,6 +1236,8 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
           <KnowledgeGraphSidebar
             graphTab={graphTab} setGraphTab={setGraphTab}
             query={localQuery} setQuery={setLocalQuery}
+            sparqlQuery={dataset.sparqlQuery}
+            nodeCount={dataset.nodes.length}
             onRunAnalysis={() => {}}
           />
         </div>
@@ -1083,11 +1303,11 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
         <div className="flex items-center gap-6 rounded-lg px-6 py-2"
           style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)', pointerEvents: 'auto' }}>
           <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
-            Showing 34 of 512,000 households
+            Showing {dataset.nodes.length} nodes · {dataset.edges.length} edges
           </span>
           <PillDivider />
           <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
-            Click on any node for more information.
+            Click on any node for details & connections. Double-click to expand.
           </span>
         </div>
       </div>
@@ -1099,7 +1319,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
         <GraphEditorPanel config={graphConfig} onChange={onUpdateConfig} onClose={onCloseEditor} />
       )}
 
-      {/* ── Node detail panel ── */}
+      {/* ── Node detail panel (Slides from right edge) ── */}
       {selectedNode && (
         <NodeDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} graphConfig={graphConfig} />
       )}

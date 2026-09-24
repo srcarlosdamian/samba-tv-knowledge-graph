@@ -1,128 +1,114 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as THREE from 'three';
+import {
+  type NodeType,
+  type Node3DData,
+  type Edge3DData,
+  type GraphDataset,
+  getGraphDataset
+} from './db';
 
-export type NodeType = 'genre' | 'topic' | 'household' | 'individual';
+export { type NodeType, type Node3DData, type Edge3DData };
 
 export interface GraphConfig {
-  colors:        Record<NodeType, string>;
-  sizes:         Record<NodeType, number>;
+  colors: Record<string, string>;
+  sizes: Record<string, number>;
   glowIntensity: number;   // 0–1, emissive intensity multiplier
-  edgeColor:     string;
-  hubEdgeColor:  string;
-  edgeOpacity:   number;
+  edgeColor: string;
+  hubEdgeColor: string;
+  edgeOpacity: number;
 }
 
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
-  colors:        { genre: '#38A169', topic: '#D53F8C', household: '#4E6E9D', individual: '#EF3557' },
-  sizes:         { genre: 1, topic: 1, household: 1, individual: 1 },
+  colors: {
+    genre: '#38A169',
+    topic: '#D53F8C',
+    household: '#4E6E9D',
+    individual: '#EF3557',
+    device: '#319795',
+    cookie_or_ip: '#ED8936',
+    series: '#805AD5',
+    experian_household: '#4299E1',
+    state: '#ECC94B',
+    income_bracket: '#38B2AC',
+  },
+  sizes: {
+    genre: 1,
+    topic: 1,
+    household: 1,
+    individual: 1,
+    device: 1,
+    cookie_or_ip: 1,
+    series: 1,
+    experian_household: 1,
+    state: 1,
+    income_bracket: 1,
+  },
   glowIntensity: 0.25,
-  edgeColor:     '#6a7a8a',
-  hubEdgeColor:  '#9aaaaa',
-  edgeOpacity:   0.45,
+  edgeColor: '#6a7a8a',
+  hubEdgeColor: '#9aaaaa',
+  edgeOpacity: 0.45,
 };
 
 export interface Graph3DHandle {
   zoom: (delta: number) => void;   // positive = zoom in, negative = zoom out
-  pan:  (dx: number, dy: number) => void;
+  pan: (dx: number, dy: number) => void;
+  resetHighlight: () => void;
 }
 
-function cssToHex(css: string | undefined): number {
-  if (!css) return 0x6a7a8a;
+function cssToHex(css: string | undefined, defaultHex = 0x6a7a8a): number {
+  if (!css) return defaultHex;
   return parseInt(css.replace('#', ''), 16);
 }
 
-// ─── Colors from Figma design ────────────────────────────────────────────────
-const EDGE_COLORS = { edge: 0x6a7a8a, edgeHub: 0x9aaaaa, bg: 0x111111 };
+const BG_COLOR = 0x111111;
+const SELECTION_BLUE = 0x1d4ed8;
+const MAGENTA_TOPIC = 0xD53F8C;
 
-export interface Node3D {
-  id: string; label: string; type: NodeType;
-  x: number; y: number; z: number; size: number;
-}
-interface Edge3D { from: string; to: string; weight?: string; rel?: string }
-
-const HH_IDS = [
-  '2a3c85ba5b7588ad','3875d60a53a61971','6e382a05b1af1d9b','3755283108548888',
-  'e00a493c8c98f734','770a764a077729db','6a48bc3421e45de6','4801141778832035',
-  '8612846182973880','f95a680f0ed7e4e4','c54ccbf5624389ca','e9543400f413ac09',
-  'e8bbb6fa0afd5cb6','dc33e75c07031ad0','a6aa69cc9ce634e8','4569387219552335',
-  '-538117694897656','174916023354764','-587392188977142','5f89f4a6731ff2e9',
-];
-const IND_IDS = [
-  '64aa10689b7507ec','cebcdbf756ee10b4','db3caa36ef541f49','500df0e75055093c',
-  '471cef7a96ef3f2b','804e64b1934d720d','ec988ef278528424','dc33e75c07031ad1',
-  '-2329183756794299','7cf5131e5552f538','95e73a1af61ff2b6','14c6da983a55a902',
-  '64dea901d7af6e7b','ef6d2785d945fd3b','a66a60fc38a72d3d',
-];
-
-function fibSphere(n: number, radius: number): [number, number, number][] {
-  const pts: [number, number, number][] = [];
-  const golden = Math.PI * (3 - Math.sqrt(5));
-  for (let i = 0; i < n; i++) {
-    const y = 1 - (i / (n - 1)) * 2;
-    const r = Math.sqrt(1 - y * y);
-    const theta = golden * i;
-    pts.push([Math.cos(theta) * r * radius, y * radius, Math.sin(theta) * r * radius]);
-  }
-  return pts;
+export interface Graph3DProps {
+  dataset?: GraphDataset;
+  query?: string;
+  config?: GraphConfig;
+  onNodeClick?: (node: Node3DData | null) => void;
 }
 
-export function buildScene(): { nodes: Node3D[]; edges: Edge3D[] } {
-  const nodes: Node3D[] = [];
-  const edges: Edge3D[] = [];
+// ─── Easing Functions ────────────────────────────────────────────────────────
+const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const c1 = 1.70158, c3 = c1 + 1;
+const easeOutBack = (t: number) => 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
 
-  nodes.push({ id: 'sports', label: 'Sports', type: 'topic',  x: -160, y: 0, z: 0, size: 24 });
-  nodes.push({ id: 'comedy', label: 'Comedy', type: 'genre',  x:  160, y: 0, z: 0, size: 22 });
-
-  const positions = fibSphere(35, 310);
-  const hhIds: string[] = [];
-  const indIds: string[] = [];
-
-  for (let i = 0; i < 20; i++) {
-    const [x, y, z] = positions[i];
-    const id = `hh${i}`;
-    nodes.push({ id, label: HH_IDS[i], type: 'household', x, y, z, size: 10 });
-    hhIds.push(id);
-  }
-  for (let i = 20; i < 35; i++) {
-    const [x, y, z] = positions[i];
-    const id = `ind${i - 20}`;
-    nodes.push({ id, label: IND_IDS[i - 20], type: 'individual', x, y, z, size: 10 });
-    indIds.push(id);
-  }
-
-  const weights = ['0.06','0.11','0.17','0.22','0.25','0.28','0.33','0.36','0.39','0.46','0.47','0.49','0.62','0.81','0.93','1.00'];
-  hhIds.forEach((id, i) => {
-    edges.push({ from: i % 2 === 0 ? 'sports' : 'comedy', to: id, rel: 'hasIndividual', weight: weights[i % weights.length] });
-  });
-  indIds.forEach((id, i) => {
-    edges.push({ from: i % 2 === 0 ? 'comedy' : 'sports', to: id, rel: 'hasIndividual', weight: weights[(i + 5) % weights.length] });
-  });
-  edges.push({ from: 'sports', to: 'comedy', weight: '0.81' });
-  hhIds.slice(0, 4).forEach((id, i) => {
-    edges.push({ from: id, to: indIds[i * 3 % indIds.length], weight: weights[i % weights.length] });
-  });
-
-  return { nodes, edges };
-}
-
-export const GRAPH_SCENE_DATA = buildScene();
-
-const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: (node: Node3D | null) => void }>(function Graph3D({ config, onNodeClick }, ref) {
+const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
+  { dataset: customDataset, query, config, onNodeClick },
+  ref
+) {
   const mountRef = useRef<HTMLDivElement>(null);
-  const merged: GraphConfig = { ...DEFAULT_GRAPH_CONFIG, ...config, colors: { ...DEFAULT_GRAPH_CONFIG.colors, ...config?.colors }, sizes: { ...DEFAULT_GRAPH_CONFIG.sizes, ...config?.sizes } };
-  const configRef = useRef(merged);
-  configRef.current = merged;
+
+  const activeDataset = customDataset ?? getGraphDataset(query ?? 'Comedy and Sports');
+
+  const mergedConfig: GraphConfig = {
+    ...DEFAULT_GRAPH_CONFIG,
+    ...config,
+    colors: { ...DEFAULT_GRAPH_CONFIG.colors, ...config?.colors },
+    sizes: { ...DEFAULT_GRAPH_CONFIG.sizes, ...config?.sizes },
+  };
+
+  const configRef = useRef(mergedConfig);
+  configRef.current = mergedConfig;
+
+  const datasetRef = useRef(activeDataset);
+  datasetRef.current = activeDataset;
 
   const onNodeClickRef = useRef(onNodeClick);
   onNodeClickRef.current = onNodeClick;
 
-  // Imperative zoom/pan — updated by the effect via a stable callback ref
   const zoomFnRef = useRef<(delta: number) => void>(() => {});
-  const panFnRef  = useRef<(dx: number, dy: number) => void>(() => {});
+  const panFnRef = useRef<(dx: number, dy: number) => void>(() => {});
+  const resetHighlightRef = useRef<() => void>(() => {});
 
   useImperativeHandle(ref, () => ({
     zoom: (delta) => zoomFnRef.current(delta),
-    pan:  (dx, dy) => panFnRef.current(dx, dy),
+    pan: (dx, dy) => panFnRef.current(dx, dy),
+    resetHighlight: () => resetHighlightRef.current(),
   }));
 
   useEffect(() => {
@@ -133,103 +119,375 @@ const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(W, H);
-    renderer.setClearColor(EDGE_COLORS.bg, 1);
+    renderer.setClearColor(BG_COLOR, 1);
     el.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(55, W / H, 1, 3000);
-    camera.position.set(0, 0, 700);
+    camera.position.set(0, 0, 720);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-    dir.position.set(1, 2, 3); scene.add(dir);
-    const pt = new THREE.PointLight(0x6781a8, 1.2, 1200);
-    pt.position.set(-200, 200, 200); scene.add(pt);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
+    dirLight.position.set(1, 2, 3);
+    scene.add(dirLight);
+    const pointLight = new THREE.PointLight(0x6781a8, 1.3, 1300);
+    pointLight.position.set(-200, 200, 200);
+    scene.add(pointLight);
 
-    const { nodes, edges } = buildScene();
     const pivot = new THREE.Group();
     scene.add(pivot);
 
-    // ─── Materials ───────────────────────────────────────────────────────────
-    const cfg = configRef.current;
-    const matOf: Record<NodeType, THREE.MeshPhongMaterial> = {
-      genre:      new THREE.MeshPhongMaterial({ color: cssToHex(cfg.colors.genre),      shininess: 80, emissive: cssToHex(cfg.colors.genre),      emissiveIntensity: 0.25 }),
-      topic:      new THREE.MeshPhongMaterial({ color: cssToHex(cfg.colors.topic),      shininess: 80, emissive: cssToHex(cfg.colors.topic),      emissiveIntensity: 0.25 }),
-      household:  new THREE.MeshPhongMaterial({ color: cssToHex(cfg.colors.household),  shininess: 60, emissive: cssToHex(cfg.colors.household),  emissiveIntensity: 0.15 }),
-      individual: new THREE.MeshPhongMaterial({ color: cssToHex(cfg.colors.individual), shininess: 60, emissive: cssToHex(cfg.colors.individual), emissiveIntensity: 0.15 }),
-    };
-    // keep ref so animate loop can hot-update materials
-    const matOfRef = matOf;
-
-
-    // ─── Build all node meshes (start hidden) ─────────────────────────────────
-    const nodeMap    = new Map<string, THREE.Mesh>();
-    const meshToNode = new Map<THREE.Mesh, Node3D>();
-    const nodeOrder  = nodes.map(n => n.id);
-
-    nodes.forEach(n => {
-      const mesh = new THREE.Mesh(new THREE.SphereGeometry(n.size, 24, 16), matOf[n.type].clone());
-      mesh.position.set(n.x, n.y, n.z);
-      mesh.scale.setScalar(0); // hidden initially
-      pivot.add(mesh);
-      nodeMap.set(n.id, mesh);
-      meshToNode.set(mesh, n);
-    });
-
-    // ─── Build all edge lines (start invisible) ───────────────────────────────
-    const edgeMids: { x: number; y: number; z: number; weight: string; rel?: string; visible: boolean }[] = [];
-    const edgeLines: THREE.Line[] = [];
-
-    edges.forEach(e => {
-      const a = nodeMap.get(e.from), b = nodeMap.get(e.to);
-      if (!a || !b) return;
-      const geo = new THREE.BufferGeometry().setFromPoints([a.position, b.position]);
-      const isHub = (e.from === 'sports' || e.from === 'comedy') && (e.to === 'sports' || e.to === 'comedy');
-      const line = new THREE.Line(geo, new THREE.LineBasicMaterial({
-        color: cssToHex(isHub ? cfg.hubEdgeColor : cfg.edgeColor),
-        transparent: true, opacity: 0,
-      }));
-      pivot.add(line);
-      edgeLines.push(line);
-      if (e.weight) {
-        edgeMids.push({
-          x: (a.position.x + b.position.x) / 2,
-          y: (a.position.y + b.position.y) / 2,
-          z: (a.position.z + b.position.z) / 2,
-          weight: e.weight, rel: e.rel, visible: false,
-        });
-      }
-    });
-
-    // Stars
+    // Stars background
     const starGeo = new THREE.BufferGeometry();
-    const sp: number[] = [];
-    for (let i = 0; i < 600; i++) sp.push((Math.random()-0.5)*3000, (Math.random()-0.5)*3000, (Math.random()-0.5)*3000);
-    starGeo.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
-    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x2a2a44, size: 1.5, sizeAttenuation: true })));
+    const starPts: number[] = [];
+    for (let i = 0; i < 600; i++) {
+      starPts.push(
+        (Math.random() - 0.5) * 3200,
+        (Math.random() - 0.5) * 3200,
+        (Math.random() - 0.5) * 3200
+      );
+    }
+    starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPts, 3));
+    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x22223a, size: 1.6, sizeAttenuation: true })));
 
-    // ─── Label canvas ────────────────────────────────────────────────────────
+    // ─── Label Canvas ────────────────────────────────────────────────────────
     const lc = document.createElement('canvas');
     lc.style.cssText = 'position:absolute;inset:0;pointer-events:none;';
     el.style.position = 'relative';
     el.appendChild(lc);
+
     function resizeLc() {
-      lc.width  = el!.clientWidth  * window.devicePixelRatio;
+      lc.width = el!.clientWidth * window.devicePixelRatio;
       lc.height = el!.clientHeight * window.devicePixelRatio;
-      lc.style.width  = el!.clientWidth  + 'px';
+      lc.style.width = el!.clientWidth + 'px';
       lc.style.height = el!.clientHeight + 'px';
     }
     resizeLc();
 
     function project(wx: number, wy: number, wz: number) {
       const v = new THREE.Vector3(wx, wy, wz);
-      pivot.localToWorld(v); v.project(camera);
-      return { sx: (v.x * 0.5 + 0.5) * el!.clientWidth, sy: (-v.y * 0.5 + 0.5) * el!.clientHeight, behind: v.z > 1 };
+      pivot.localToWorld(v);
+      v.project(camera);
+      return {
+        sx: (v.x * 0.5 + 0.5) * el!.clientWidth,
+        sy: (-v.y * 0.5 + 0.5) * el!.clientHeight,
+        behind: v.z > 1,
+      };
     }
 
-    // nodeAlpha tracks per-node label visibility (0→1)
-    const nodeAlpha = new Map<string, number>(nodes.map(n => [n.id, 0]));
+    // ─── State & Meshes for current dataset ──────────────────────────────────
+    const nodes = datasetRef.current.nodes;
+    const edges = datasetRef.current.edges;
 
+    const nodeMap = new Map<string, THREE.Mesh>();
+    const haloMap = new Map<string, THREE.Mesh>();
+    const meshToNode = new Map<THREE.Mesh, Node3DData>();
+    const nodeAlpha = new Map<string, number>();
+
+    // Node materials
+    const nodeMaterials = new Map<string, THREE.MeshPhongMaterial>();
+
+    nodes.forEach(n => {
+      const baseColor = configRef.current.colors[n.type] ?? '#4E6E9D';
+      const hex = cssToHex(baseColor);
+      const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
+
+      const mat = new THREE.MeshPhongMaterial({
+        color: hex,
+        shininess: isHub ? 85 : 55,
+        emissive: hex,
+        emissiveIntensity: configRef.current.glowIntensity * (isHub ? 1.0 : 0.4),
+      });
+      nodeMaterials.set(n.id, mat);
+
+      const sphereGeo = new THREE.SphereGeometry(n.size, 24, 18);
+      const mesh = new THREE.Mesh(sphereGeo, mat);
+      mesh.position.set(n.x, n.y, n.z);
+      mesh.scale.setScalar(0); // Start hidden for reveal animation
+      pivot.add(mesh);
+      nodeMap.set(n.id, mesh);
+      meshToNode.set(mesh, n);
+      nodeAlpha.set(n.id, 0);
+
+      // Halo / Border mesh for selection and highlighting
+      const haloGeo = new THREE.SphereGeometry(n.size * 1.32, 16, 12);
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: SELECTION_BLUE,
+        transparent: true,
+        opacity: 0,
+        wireframe: false,
+        depthWrite: false,
+      });
+      const haloMesh = new THREE.Mesh(haloGeo, haloMat);
+      haloMesh.position.set(n.x, n.y, n.z);
+      haloMesh.scale.setScalar(0);
+      pivot.add(haloMesh);
+      haloMap.set(n.id, haloMesh);
+    });
+
+    // Edges
+    interface EdgeState {
+      data: Edge3DData;
+      line: THREE.Line;
+      material: THREE.LineBasicMaterial;
+      isHub: boolean;
+      revealed: boolean;
+      currentOpacity: number;
+      targetOpacity: number;
+      mid?: { x: number; y: number; z: number; weight?: string; rel?: string; visible: boolean };
+    }
+
+    const edgeStates: EdgeState[] = [];
+
+    edges.forEach((e, idx) => {
+      const a = nodeMap.get(e.from);
+      const b = nodeMap.get(e.to);
+      if (!a || !b) return;
+
+      const geo = new THREE.BufferGeometry().setFromPoints([a.position, b.position]);
+      const nodeA = nodes.find(n => n.id === e.from);
+      const nodeB = nodes.find(n => n.id === e.to);
+      const isHub = (nodeA?.type === 'genre' || nodeA?.type === 'topic' || nodeA?.type === 'series') &&
+                    (nodeB?.type === 'genre' || nodeB?.type === 'topic' || nodeB?.type === 'series');
+
+      const mat = new THREE.LineBasicMaterial({
+        color: cssToHex(isHub ? configRef.current.hubEdgeColor : configRef.current.edgeColor),
+        transparent: true,
+        opacity: 0,
+        linewidth: 1,
+      });
+
+      const line = new THREE.Line(geo, mat);
+      pivot.add(line);
+
+      const mid = e.weight || e.rel ? {
+        x: (a.position.x + b.position.x) / 2,
+        y: (a.position.y + b.position.y) / 2,
+        z: (a.position.z + b.position.z) / 2,
+        weight: e.weight,
+        rel: e.rel,
+        visible: false,
+      } : undefined;
+
+      edgeStates.push({
+        data: e,
+        line,
+        material: mat,
+        isHub,
+        revealed: !e.hidden,
+        currentOpacity: 0,
+        targetOpacity: !e.hidden ? configRef.current.edgeOpacity : 0,
+        mid,
+      });
+    });
+
+    // ─── Selection State ─────────────────────────────────────────────────────
+    let selectedNodeId: string | null = null;
+    let magentaHighlightedNodeIds: Set<string> = new Set();
+    let lastClickedNodeId: string | null = null;
+    let lastClickTime = 0;
+
+    // ─── Reveal Animation Track ──────────────────────────────────────────────
+    let revealClock = 0;
+    let revealDone = false;
+    const HUB_IN = 0.85;
+    const NODE_INTERVAL = 0.08;
+    const hubNodes = nodes.filter(n => n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket');
+    const peripheralNodes = nodes.filter(n => !hubNodes.includes(n));
+    const REVEAL_END = HUB_IN + peripheralNodes.length * NODE_INTERVAL + 0.3;
+
+    let autoRotating = true;
+    let autoRotVel = 0;
+    const AUTO_ROT_MAX = 0.22;
+
+    function applySelectionHighlight(nodeId: string | null) {
+      selectedNodeId = nodeId;
+      magentaHighlightedNodeIds.clear();
+
+      const curCfg = configRef.current;
+      const defaultEdgeColor = cssToHex(curCfg.edgeColor);
+      const defaultHubEdgeColor = cssToHex(curCfg.hubEdgeColor);
+
+      if (!nodeId) {
+        // Deselect all
+        edgeStates.forEach(es => {
+          es.material.color.setHex(es.isHub ? defaultHubEdgeColor : defaultEdgeColor);
+          es.targetOpacity = es.revealed ? (es.isHub ? curCfg.edgeOpacity * 1.15 : curCfg.edgeOpacity) : 0;
+        });
+        nodes.forEach(n => {
+          const halo = haloMap.get(n.id);
+          if (halo) {
+            (halo.material as THREE.MeshBasicMaterial).opacity = 0;
+            halo.scale.setScalar(0);
+          }
+          const mat = nodeMaterials.get(n.id);
+          if (mat) {
+            const hex = cssToHex(curCfg.colors[n.type] ?? '#4E6E9D');
+            mat.color.setHex(hex);
+            mat.emissive.setHex(hex);
+            const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
+            mat.emissiveIntensity = curCfg.glowIntensity * (isHub ? 1.0 : 0.4);
+          }
+        });
+        return;
+      }
+
+      // Single-click on node:
+      // 1. Reveal any hidden connections connected to this node
+      // 2. Active connections turn solid dark blue (#1d4ed8) and full opacity
+      // 3. Unconnected visible edges dim to 0.12
+      // 4. Clicked node and all connected neighbor nodes get a thicker halo
+      const connectedNeighborIds = new Set<string>();
+      connectedNeighborIds.add(nodeId);
+
+      edgeStates.forEach(es => {
+        const isConnected = es.data.from === nodeId || es.data.to === nodeId;
+        if (isConnected) {
+          // Reveal if was hidden
+          if (!es.revealed) {
+            es.revealed = true;
+            es.data.hidden = false;
+          }
+          const neighborId = es.data.from === nodeId ? es.data.to : es.data.from;
+          connectedNeighborIds.add(neighborId);
+
+          // Pop-in neighbor node if it wasn't visible
+          const neighborMesh = nodeMap.get(neighborId);
+          if (neighborMesh && neighborMesh.scale.x < 0.2) {
+            neighborMesh.scale.setScalar(curCfg.sizes[nodes.find(n => n.id === neighborId)?.type ?? 'device'] ?? 1);
+            nodeAlpha.set(neighborId, 1);
+          }
+
+          es.material.color.setHex(SELECTION_BLUE);
+          es.targetOpacity = 1.0;
+          if (es.mid) es.mid.visible = true;
+        } else {
+          es.material.color.setHex(es.isHub ? defaultHubEdgeColor : defaultEdgeColor);
+          es.targetOpacity = es.revealed ? 0.12 : 0;
+        }
+      });
+
+      // Update node halos & emissive
+      nodes.forEach(n => {
+        const halo = haloMap.get(n.id);
+        const isSelf = n.id === nodeId;
+        const isNeighbor = connectedNeighborIds.has(n.id);
+
+        if (halo) {
+          const haloMat = halo.material as THREE.MeshBasicMaterial;
+          if (isSelf) {
+            haloMat.color.setHex(SELECTION_BLUE);
+            haloMat.opacity = 0.95;
+            halo.scale.setScalar(1.35 * (curCfg.sizes[n.type] ?? 1));
+          } else if (isNeighbor) {
+            haloMat.color.setHex(SELECTION_BLUE);
+            haloMat.opacity = 0.75;
+            halo.scale.setScalar(1.22 * (curCfg.sizes[n.type] ?? 1));
+          } else {
+            haloMat.opacity = 0;
+            halo.scale.setScalar(0);
+          }
+        }
+      });
+    }
+
+    // Double-click expansions
+    function handleDoubleClick(node: Node3DData) {
+      if (node.type === 'household') {
+        // Expand and reveal all connected subgraphs through any path without depth limit
+        const visited = new Set<string>();
+        const queue: string[] = [node.id];
+        visited.add(node.id);
+
+        while (queue.length > 0) {
+          const currentId = queue.shift()!;
+          edgeStates.forEach(es => {
+            if (es.data.from === currentId || es.data.to === currentId) {
+              es.revealed = true;
+              es.data.hidden = false;
+              const nextId = es.data.from === currentId ? es.data.to : es.data.from;
+              if (!visited.has(nextId)) {
+                visited.add(nextId);
+                queue.push(nextId);
+                const nextMesh = nodeMap.get(nextId);
+                if (nextMesh) {
+                  nextMesh.scale.setScalar(configRef.current.sizes[nodes.find(n => n.id === nextId)?.type ?? 'household'] ?? 1);
+                  nodeAlpha.set(nextId, 1);
+                }
+              }
+            }
+          });
+        }
+        applySelectionHighlight(node.id);
+      } else if (node.type === 'genre') {
+        // Traverse Genre -> Households -> Individuals -> Topics and highlight only Topic nodes in Magenta (#D53F8C)
+        const genreId = node.id;
+        const reachedHouseholds = new Set<string>();
+        edgeStates.forEach(es => {
+          if (es.data.from === genreId) reachedHouseholds.add(es.data.to);
+          if (es.data.to === genreId) reachedHouseholds.add(es.data.from);
+        });
+
+        const reachedIndividuals = new Set<string>();
+        edgeStates.forEach(es => {
+          if (reachedHouseholds.has(es.data.from) && nodes.find(n => n.id === es.data.to)?.type === 'individual') {
+            reachedIndividuals.add(es.data.to);
+          }
+          if (reachedHouseholds.has(es.data.to) && nodes.find(n => n.id === es.data.from)?.type === 'individual') {
+            reachedIndividuals.add(es.data.from);
+          }
+        });
+
+        const reachedTopics = new Set<string>();
+        edgeStates.forEach(es => {
+          if (reachedIndividuals.has(es.data.from) && nodes.find(n => n.id === es.data.to)?.type === 'topic') {
+            reachedTopics.add(es.data.to);
+          }
+          if (reachedIndividuals.has(es.data.to) && nodes.find(n => n.id === es.data.from)?.type === 'topic') {
+            reachedTopics.add(es.data.from);
+          }
+        });
+
+        // Also check direct genre -> topic cross-links if present
+        nodes.filter(n => n.type === 'topic').forEach(t => reachedTopics.add(t.id));
+
+        magentaHighlightedNodeIds = reachedTopics;
+        selectedNodeId = null;
+
+        // Reset edges and highlight magenta topics
+        edgeStates.forEach(es => {
+          es.material.color.setHex(es.isHub ? cssToHex(configRef.current.hubEdgeColor) : cssToHex(configRef.current.edgeColor));
+          es.targetOpacity = es.revealed ? configRef.current.edgeOpacity : 0;
+        });
+
+        nodes.forEach(n => {
+          const halo = haloMap.get(n.id);
+          const mat = nodeMaterials.get(n.id);
+          if (reachedTopics.has(n.id)) {
+            if (halo) {
+              const haloMat = halo.material as THREE.MeshBasicMaterial;
+              haloMat.color.setHex(MAGENTA_TOPIC);
+              haloMat.opacity = 0.95;
+              halo.scale.setScalar(1.4 * (configRef.current.sizes[n.type] ?? 1));
+            }
+            if (mat) {
+              mat.color.setHex(MAGENTA_TOPIC);
+              mat.emissive.setHex(MAGENTA_TOPIC);
+              mat.emissiveIntensity = 0.8;
+            }
+          } else {
+            if (halo) {
+              (halo.material as THREE.MeshBasicMaterial).opacity = 0;
+              halo.scale.setScalar(0);
+            }
+          }
+        });
+      }
+    }
+
+    resetHighlightRef.current = () => applySelectionHighlight(null);
+
+    // ─── Draw 2D Labels ──────────────────────────────────────────────────────
     function drawLabels() {
       const ctx = lc.getContext('2d')!;
       const dpr = window.devicePixelRatio;
@@ -238,131 +496,118 @@ const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: 
       nodes.forEach(n => {
         const alpha = nodeAlpha.get(n.id) ?? 0;
         if (alpha <= 0) return;
-        const mesh = nodeMap.get(n.id); if (!mesh) return;
+        const mesh = nodeMap.get(n.id);
+        if (!mesh) return;
+
         const { sx, sy, behind } = project(n.x, n.y, n.z);
         if (behind) return;
-        const isHub = n.id === 'sports' || n.id === 'comedy';
-        const fontSize = (isHub ? 14 : 9) * dpr;
-        ctx.font = `${isHub ? 600 : 400} ${fontSize}px Inter, monospace`;
+
+        const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
+        const isSelected = selectedNodeId === n.id;
+        const isMagenta = magentaHighlightedNodeIds.has(n.id);
+
+        const fontSize = (isHub ? 13 : isSelected ? 11 : 9) * dpr;
+        ctx.font = `${isHub || isSelected ? '600' : '400'} ${fontSize}px Inter, 'Season Sans', sans-serif`;
         ctx.textAlign = 'center';
-        ctx.globalAlpha = alpha;
+        ctx.globalAlpha = isSelected ? 1 : alpha;
         ctx.shadowColor = 'rgba(0,0,0,0.95)';
-        ctx.shadowBlur = 5 * dpr;
-        ctx.fillStyle = configRef.current.colors[n.type];
-        ctx.fillText(n.label, sx * dpr, (sy + (isHub ? n.size + 18 : -n.size - 4)) * dpr);
+        ctx.shadowBlur = (isHub ? 6 : 4) * dpr;
+
+        if (isMagenta) {
+          ctx.fillStyle = '#D53F8C';
+        } else if (isSelected) {
+          ctx.fillStyle = '#60a5fa';
+        } else {
+          ctx.fillStyle = configRef.current.colors[n.type] ?? '#ffffff';
+        }
+
+        const yOffset = isHub ? n.size + 16 : -n.size - 4;
+        ctx.fillText(n.label, sx * dpr, (sy + yOffset) * dpr);
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
       });
 
-      // Edge weight labels
-      edgeMids.forEach(m => {
-        if (!m.visible) return;
+      // Edge weight & relation labels
+      edgeStates.forEach(es => {
+        const m = es.mid;
+        if (!m || !m.visible || es.currentOpacity < 0.25) return;
         const { sx, sy, behind } = project(m.x, m.y, m.z);
         if (behind) return;
+
         const d2 = window.devicePixelRatio;
-        ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 4 * d2;
+        ctx.shadowColor = 'rgba(0,0,0,0.95)';
+        ctx.shadowBlur = 4 * d2;
+        ctx.globalAlpha = Math.min(1, es.currentOpacity * 1.5);
+
         if (m.rel) {
-          ctx.font = `400 ${9 * d2}px Inter, sans-serif`;
-          ctx.textAlign = 'center'; ctx.fillStyle = '#777777';
-          ctx.fillText(m.rel, sx * d2, (sy - 7) * d2);
+          ctx.font = `400 ${8.5 * d2}px Inter, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#888888';
+          ctx.fillText(m.rel, sx * d2, (sy - 6) * d2);
         }
-        ctx.font = `600 ${9 * d2}px Inter, sans-serif`;
-        ctx.fillStyle = '#bbbbbb'; ctx.fillText(m.weight, sx * d2, (sy + 4) * d2);
+        if (m.weight) {
+          ctx.font = `600 ${9 * d2}px Inter, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = selectedNodeId ? '#93c5fd' : '#bbbbbb';
+          ctx.fillText(m.weight, sx * d2, (sy + 5) * d2);
+        }
         ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
       });
     }
 
-    // ─── Intro animation state ───────────────────────────────────────────────
-    // Two independent tracks:
-    //   revealClock  — drives node/edge appearance (runs to completion, never loops)
-    //   autoRotate   — slow spin during intro, user drag interrupts it at any time
-    //
-    // Phase 0 (0–0.8s):  hubs scale in
-    // Phase 1 (0.8–end): peripheral nodes appear one by one, rotation continues
-    // After reveal:      rotation stops, scene is static
-
-    // ─── Easing functions ────────────────────────────────────────────────────
-    // easeInOutCubic: smooth start and end
-    const easeInOutCubic = (t: number) => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
-    // easeOutBack: overshoots slightly then settles — springy pop
-    const c1 = 1.70158, c3 = c1 + 1;
-    const easeOutBack = (t: number) => 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-
-    let revealClock = 0;
-    let revealDone = false;
-    const HUB_IN   = 0.9;
-    const NODE_INTERVAL = 0.09;
-    const REVEAL_END = HUB_IN + (nodes.length - 2) * NODE_INTERVAL + 0.3;
-
-    // Auto-rotation with smooth ease-in / ease-out
-    const AUTO_ROT_MAX = 0.22;  // max rad/s
-    let autoRotVel = 0;         // current rotation velocity (rad/s)
-    let autoRotating = true;    // user can interrupt any time
-
+    // ─── Reveal Physics Animation ────────────────────────────────────────────
     function updateReveal(dt: number) {
       if (revealDone) return;
       revealClock += dt;
 
-      // Hubs: easeOutBack for a springy scale-in
-      {
-        const rawT = Math.min(revealClock / HUB_IN, 1);
-        const eased = easeOutBack(rawT);
-        ['sports','comedy'].forEach(id => {
-          const mesh = nodeMap.get(id)!;
-          mesh.scale.setScalar(Math.max(0, eased));
-          nodeAlpha.set(id, easeInOutCubic(rawT));
-        });
-        // Hub-to-hub edge fades in with smooth cubic
-        const fadeT = easeInOutCubic(rawT);
-        edgeLines.forEach((line, li) => {
-          const e = edges[li];
-          if (!e) return;
-          if ((e.from === 'sports' || e.from === 'comedy') && (e.to === 'sports' || e.to === 'comedy')) {
-            (line.material as THREE.LineBasicMaterial).opacity = fadeT * configRef.current.edgeOpacity * 1.1;
-          }
-        });
-      }
+      // Hubs pop in first
+      const hubT = Math.min(revealClock / HUB_IN, 1);
+      const hubEased = easeOutBack(hubT);
+      hubNodes.forEach(hn => {
+        const mesh = nodeMap.get(hn.id);
+        if (mesh) {
+          mesh.scale.setScalar(Math.max(0, hubEased * (configRef.current.sizes[hn.type] ?? 1)));
+          nodeAlpha.set(hn.id, easeInOutCubic(hubT));
+        }
+      });
 
-      // Peripheral nodes: easeOutBack pop-in one by one
+      // Peripheral nodes sequence in
       if (revealClock >= HUB_IN) {
         const elapsed = revealClock - HUB_IN;
-        nodes.slice(2).forEach((n, i) => {
+        peripheralNodes.forEach((pn, i) => {
           const revealAt = i * NODE_INTERVAL;
           if (elapsed < revealAt) return;
           const localT = Math.min((elapsed - revealAt) / 0.22, 1);
           const eased = easeOutBack(localT);
-          nodeMap.get(n.id)!.scale.setScalar(Math.max(0, eased));
-          nodeAlpha.set(n.id, easeInOutCubic(localT));
-
-          edges.forEach((e, li) => {
-            if (e.to === n.id || e.from === n.id) {
-              (edgeLines[li].material as THREE.LineBasicMaterial).opacity = easeInOutCubic(localT) * configRef.current.edgeOpacity;
-              if (edgeMids[li]) edgeMids[li].visible = localT > 0.5;
-            }
-          });
+          const mesh = nodeMap.get(pn.id);
+          if (mesh) {
+            mesh.scale.setScalar(Math.max(0, eased * (configRef.current.sizes[pn.type] ?? 1)));
+            nodeAlpha.set(pn.id, easeInOutCubic(localT));
+          }
         });
       }
+
+      // Initial visible edge line fade-in
+      edgeStates.forEach(es => {
+        if (!es.revealed) return;
+        const nodeA = nodeAlpha.get(es.data.from) ?? 0;
+        const nodeB = nodeAlpha.get(es.data.to) ?? 0;
+        const edgeAlpha = Math.min(nodeA, nodeB);
+        es.targetOpacity = edgeAlpha * (es.isHub ? configRef.current.edgeOpacity * 1.15 : configRef.current.edgeOpacity);
+        if (es.mid) es.mid.visible = edgeAlpha > 0.4;
+      });
 
       if (revealClock >= REVEAL_END) {
         revealDone = true;
-        const curCfg = configRef.current;
-        edgeLines.forEach((line, li) => {
-          const hub = isHubLine[li];
-          const mat = line.material as THREE.LineBasicMaterial;
-          mat.color.setHex(cssToHex(hub ? curCfg.hubEdgeColor : curCfg.edgeColor));
-          mat.opacity = hub ? curCfg.edgeOpacity * 1.1 : curCfg.edgeOpacity;
-        });
-        edgeMids.forEach(m => { m.visible = true; });
       }
     }
 
-    // ─── Interaction ─────────────────────────────────────────────────────────
+    // ─── Interaction (Orbit, Pan, Raycasting, Double-Click) ───────────────────
     let isDragging = false, isPanning = false;
     let prevX = 0, prevY = 0, velX = 0, velY = 0;
+    const clampZ = (z: number) => Math.max(280, Math.min(1800, z));
 
-    const clampZ = (z: number) => Math.max(300, Math.min(1600, z));
-
-    // Wire imperative handles
     zoomFnRef.current = (delta) => {
       camera.position.z = clampZ(camera.position.z + delta);
     };
@@ -371,12 +616,19 @@ const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: 
       camera.position.y += dy;
     };
 
+    let mouseDownAt = { x: 0, y: 0 };
+    const raycaster = new THREE.Raycaster();
+
     const onDown = (e: MouseEvent | TouchEvent) => {
-      const { clientX, clientY } = 'touches' in e ? e.touches[0] : e;
-      prevX = clientX; prevY = clientY; velX = 0; velY = 0;
-      // Right-click or middle-click or shift+click → pan
+      const { clientX, clientY } = 'touches' in e ? e.touches[0] : (e as MouseEvent);
+      prevX = clientX;
+      prevY = clientY;
+      velX = 0;
+      velY = 0;
+      mouseDownAt = { x: clientX, y: clientY };
+
       const isRightOrMiddle = 'button' in e && (e.button === 1 || e.button === 2);
-      const isShift = 'shiftKey' in e && e.shiftKey;
+      const isShift = 'shiftKey' in e && (e as MouseEvent).shiftKey;
       if (isRightOrMiddle || isShift) {
         isPanning = true;
       } else {
@@ -384,136 +636,87 @@ const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: 
         isDragging = true;
       }
     };
+
     const onMove = (e: MouseEvent | TouchEvent) => {
-      const { clientX, clientY } = 'touches' in e ? e.touches[0] : e;
-      const dx = clientX - prevX, dy = clientY - prevY;
+      const { clientX, clientY } = 'touches' in e ? e.touches[0] : (e as MouseEvent);
+      const dx = clientX - prevX;
+      const dy = clientY - prevY;
+
       if (isDragging) {
-        velX = dx; velY = dy;
+        velX = dx;
+        velY = dy;
         pivot.rotation.y += dx * 0.005;
         pivot.rotation.x += dy * 0.005;
-        pivot.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pivot.rotation.x));
+        pivot.rotation.x = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, pivot.rotation.x));
       } else if (isPanning) {
-        // scale pan speed with zoom distance
-        const speed = camera.position.z / 800;
+        const speed = camera.position.z / 850;
         camera.position.x -= dx * speed;
         camera.position.y += dy * speed;
       }
-      prevX = clientX; prevY = clientY;
+      prevX = clientX;
+      prevY = clientY;
     };
-    let mouseDownAt = { x: 0, y: 0 };
-    const raycaster = new THREE.Raycaster();
-    raycaster.params.Mesh = {};
 
     const onUp = (e: MouseEvent | TouchEvent) => {
-      const wasDragging = isDragging || isPanning;
-      isDragging = false; isPanning = false;
+      isDragging = false;
+      isPanning = false;
 
-      // Only fire click if pointer barely moved (not a drag)
-      if (!wasDragging || true) {
-        const { clientX, clientY } = 'changedTouches' in e ? e.changedTouches[0] : e as MouseEvent;
-        const dx = clientX - mouseDownAt.x, dy = clientY - mouseDownAt.y;
-        if (Math.sqrt(dx * dx + dy * dy) < 6) {
-          // Raycast
-          const rect = renderer.domElement.getBoundingClientRect();
-          const ndcX = ((clientX - rect.left) / rect.width)  * 2 - 1;
-          const ndcY = -((clientY - rect.top)  / rect.height) * 2 + 1;
-          raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
-          const meshes = [...meshToNode.keys()].filter(m => m.scale.x > 0.05);
-          const hits = raycaster.intersectObjects(meshes);
-          if (hits.length > 0) {
-            const hit = meshToNode.get(hits[0].object as THREE.Mesh) ?? null;
-            onNodeClickRef.current?.(hit);
-          } else {
-            onNodeClickRef.current?.(null); // click empty space → deselect
+      const { clientX, clientY } = 'changedTouches' in e ? e.changedTouches[0] : (e as MouseEvent);
+      const dx = clientX - mouseDownAt.x;
+      const dy = clientY - mouseDownAt.y;
+
+      // If pointer barely moved, treat as Click / Double-Click
+      if (Math.sqrt(dx * dx + dy * dy) < 7) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
+        const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
+
+        const meshes = [...meshToNode.keys()].filter(m => m.scale.x > 0.05);
+        const hits = raycaster.intersectObjects(meshes);
+
+        const now = performance.now();
+
+        if (hits.length > 0) {
+          const hitNode = meshToNode.get(hits[0].object as THREE.Mesh) ?? null;
+          if (hitNode) {
+            const isDouble = lastClickedNodeId === hitNode.id && (now - lastClickTime) < 360;
+            lastClickedNodeId = hitNode.id;
+            lastClickTime = now;
+
+            if (isDouble) {
+              handleDoubleClick(hitNode);
+            } else {
+              applySelectionHighlight(hitNode.id);
+              onNodeClickRef.current?.(hitNode);
+            }
           }
+        } else {
+          // Click empty space: deselect and reset
+          lastClickedNodeId = null;
+          applySelectionHighlight(null);
+          onNodeClickRef.current?.(null);
         }
       }
     };
+
     const onContext = (e: MouseEvent) => e.preventDefault();
 
-    // Track mouse-down position for click vs drag discrimination
-    const _onDown = onDown;
-    const onDownWrapped = (e: MouseEvent | TouchEvent) => {
-      const { clientX, clientY } = 'touches' in e ? e.touches[0] : e as MouseEvent;
-      mouseDownAt = { x: clientX, y: clientY };
-      _onDown(e);
-    };
-
-    renderer.domElement.addEventListener('mousedown', onDownWrapped);
+    renderer.domElement.addEventListener('mousedown', onDown);
     renderer.domElement.addEventListener('contextmenu', onContext);
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
-    renderer.domElement.addEventListener('touchstart', onDownWrapped, { passive: true });
+    renderer.domElement.addEventListener('touchstart', onDown, { passive: true });
     window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onUp);
-    renderer.domElement.addEventListener('wheel', e => {
+    renderer.domElement.addEventListener('wheel', (e) => {
       camera.position.z = clampZ(camera.position.z + e.deltaY * 0.6);
     }, { passive: true });
 
-    // ─── Render loop ─────────────────────────────────────────────────────────
+    // ─── Render Animation Loop ───────────────────────────────────────────────
     let rafId: number;
     let lastTime = performance.now();
     let t = 0;
-
-    // track last config to avoid per-frame work when nothing changed
-    let lastCfgColors    = { ...configRef.current.colors };
-    let lastCfgSizes     = { ...configRef.current.sizes };
-    let lastGlowIntensity = configRef.current.glowIntensity;
-    let lastEdgeColor    = configRef.current.edgeColor;
-    let lastHubEdgeColor = configRef.current.hubEdgeColor;
-    let lastEdgeOpacity  = configRef.current.edgeOpacity;
-
-    // classify each edge line as hub or peripheral once
-    const isHubLine = edgeLines.map((_, li) => {
-      const e = edges[li];
-      return e && (e.from === 'sports' || e.from === 'comedy') && (e.to === 'sports' || e.to === 'comedy');
-    });
-
-    function syncConfig() {
-      const c = configRef.current;
-      const types: NodeType[] = ['genre', 'topic', 'household', 'individual'];
-
-      let colorChanged = false, sizeChanged = false;
-      const glowChanged = c.glowIntensity !== lastGlowIntensity;
-      let edgeChanged = c.edgeColor !== lastEdgeColor || c.hubEdgeColor !== lastHubEdgeColor || c.edgeOpacity !== lastEdgeOpacity;
-      for (const t of types) {
-        if (c.colors[t] !== lastCfgColors[t]) colorChanged = true;
-        if (c.sizes[t]  !== lastCfgSizes[t])  sizeChanged  = true;
-      }
-
-      if (colorChanged || glowChanged) {
-        for (const t of types) {
-          const hex = cssToHex(c.colors[t]);
-          matOfRef[t].color.setHex(hex);
-          matOfRef[t].emissive.setHex(hex);
-          const isHub = t === 'genre' || t === 'topic';
-          matOfRef[t].emissiveIntensity = c.glowIntensity * (isHub ? 1 : 0.6);
-        }
-        if (colorChanged) lastCfgColors = { ...c.colors };
-        if (glowChanged)  lastGlowIntensity = c.glowIntensity;
-      }
-      if (sizeChanged) {
-        nodes.forEach(n => {
-          const mesh = nodeMap.get(n.id);
-          if (!mesh || mesh.scale.x === 0) return;
-          mesh.scale.setScalar(c.sizes[n.type]);
-        });
-        lastCfgSizes = { ...c.sizes };
-      }
-      if (edgeChanged) {
-        edgeLines.forEach((line, li) => {
-          const mat = line.material as THREE.LineBasicMaterial;
-          const hub = isHubLine[li];
-          mat.color.setHex(cssToHex(hub ? c.hubEdgeColor : c.edgeColor));
-          if (revealDone) {
-            mat.opacity = hub ? c.edgeOpacity * 1.1 : c.edgeOpacity;
-          }
-        });
-        lastEdgeColor    = c.edgeColor;
-        lastHubEdgeColor = c.hubEdgeColor;
-        lastEdgeOpacity  = c.edgeOpacity;
-      }
-    }
 
     function animate(now: number) {
       rafId = requestAnimationFrame(animate);
@@ -521,21 +724,23 @@ const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: 
       lastTime = now;
       t += dt;
 
-      syncConfig();
-
-      // Node/edge reveal — always runs until done, independent of rotation
+      // Update Reveal physics
       updateReveal(dt);
 
-      // Rotation
+      // Edge opacity smooth lerp
+      edgeStates.forEach(es => {
+        es.currentOpacity += (es.targetOpacity - es.currentOpacity) * 0.15;
+        es.material.opacity = es.currentOpacity;
+      });
+
+      // Rotation & Inertia
       if (!isDragging) {
         if (autoRotating) {
-          // Ease-in at start: lerp autoRotVel toward target using easeInQuad feel
           const target = revealDone ? 0 : AUTO_ROT_MAX;
           autoRotVel += (target - autoRotVel) * (revealDone ? 0.04 : 0.025) * 60 * dt;
           pivot.rotation.y += autoRotVel * dt;
           if (revealDone && Math.abs(autoRotVel) < 0.001) autoRotVel = 0;
         } else {
-          // Drag inertia: smooth exponential decay
           velX *= Math.pow(0.92, 60 * dt);
           velY *= Math.pow(0.92, 60 * dt);
           pivot.rotation.y += velX * 0.003;
@@ -543,12 +748,15 @@ const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: 
         }
       }
 
-      // Hub pulse (only after reveal)
+      // Hub node subtle idle breathing pulse
       if (revealDone) {
-        const pulse = 1 + Math.sin(t * 2) * 0.03;
-        const cfg2 = configRef.current;
-        nodeMap.get('sports')?.scale.setScalar(cfg2.sizes.topic * pulse);
-        nodeMap.get('comedy')?.scale.setScalar(cfg2.sizes.genre * (pulse + 0.02));
+        const pulse = 1 + Math.sin(t * 2) * 0.025;
+        hubNodes.forEach(hn => {
+          if (hn.id !== selectedNodeId && !magentaHighlightedNodeIds.has(hn.id)) {
+            const mesh = nodeMap.get(hn.id);
+            if (mesh) mesh.scale.setScalar((configRef.current.sizes[hn.type] ?? 1) * pulse);
+          }
+        });
       }
 
       renderer.render(scene, camera);
@@ -558,29 +766,40 @@ const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: 
 
     const ro = new ResizeObserver(() => {
       const w = el!.clientWidth, h = el!.clientHeight;
-      renderer.setSize(w, h); camera.aspect = w / h;
-      camera.updateProjectionMatrix(); resizeLc();
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      resizeLc();
     });
     ro.observe(el);
 
     return () => {
-      cancelAnimationFrame(rafId); ro.disconnect();
-      renderer.domElement.removeEventListener('mousedown', onDownWrapped);
+      cancelAnimationFrame(rafId);
+      ro.disconnect();
+      renderer.domElement.removeEventListener('mousedown', onDown);
       renderer.domElement.removeEventListener('contextmenu', onContext);
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
-      renderer.domElement.removeEventListener('touchstart', onDownWrapped);
+      renderer.domElement.removeEventListener('touchstart', onDown);
       window.removeEventListener('touchmove', onMove);
       window.removeEventListener('touchend', onUp);
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
       if (lc.parentNode === el) el.removeChild(lc);
     };
-  }, []);
+  }, [activeDataset]);
 
   return (
-    <div ref={mountRef}
-      style={{ width: '100%', height: '100%', minHeight: 500, cursor: 'grab', userSelect: 'none', backgroundColor: '#111111' }}
+    <div
+      ref={mountRef}
+      style={{
+        width: '100%',
+        height: '100%',
+        minHeight: 500,
+        cursor: 'grab',
+        userSelect: 'none',
+        backgroundColor: '#111111',
+      }}
     />
   );
 });
