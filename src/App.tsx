@@ -1591,33 +1591,34 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
     >
       {/* Header Row */}
       <div className="flex items-center justify-between pb-6">
-        <h1 style={{ fontFamily: "'Season Mix', 'Inter', sans-serif", fontSize: 28, fontWeight: 400, color: '#f3f4f6', letterSpacing: '-0.3px' }}>
+        <h1 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 30, fontWeight: 400, color: '#f3f4f6', letterSpacing: '-0.3px' }}>
           Cohort Profile
         </h1>
 
         <div className="flex items-center gap-7">
           <div className="flex flex-col items-end">
-            <span style={{ fontSize: 11, color: '#737373', lineHeight: '14px' }}>Households</span>
-            <span style={{ fontSize: 26, fontWeight: 400, color: '#ffffff', lineHeight: '30px' }}>{d.households}</span>
+            <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Households</span>
+            <span style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 28, fontWeight: 400, color: '#ffffff', lineHeight: '32px' }}>{d.households}</span>
           </div>
           <div className="flex flex-col items-end">
-            <span style={{ fontSize: 11, color: '#737373', lineHeight: '14px' }}>Est. population</span>
-            <span style={{ fontSize: 26, fontWeight: 400, color: '#ffffff', lineHeight: '30px' }}>{d.population}</span>
+            <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Est. population</span>
+            <span style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 28, fontWeight: 400, color: '#ffffff', lineHeight: '32px' }}>{d.population}</span>
           </div>
           {onBackToGraph && (
             <button
               onClick={onBackToGraph}
               className="flex items-center justify-center rounded-lg transition-colors cursor-pointer"
               style={{
-                border: '1px solid #2e2e2e',
+                border: '1px solid #384966',
                 backgroundColor: 'transparent',
-                color: '#8fa7c7',
-                padding: '6px 14px',
-                fontSize: 13,
+                color: '#6781a8',
+                padding: '8px 16px',
+                fontSize: 14,
                 fontWeight: 500,
+                fontFamily: "'Season Sans', 'Inter', sans-serif",
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#4a5568'; e.currentTarget.style.color = '#b4cbef'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#2e2e2e'; e.currentTarget.style.color = '#8fa7c7'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#6781a8'; e.currentTarget.style.color = '#8fa7c7'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#384966'; e.currentTarget.style.color = '#6781a8'; }}
             >
               Back to graph
             </button>
@@ -1634,14 +1635,14 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
             className="col-span-12 lg:col-span-7 flex flex-col justify-between rounded-2xl p-6"
             style={{
               backgroundColor: 'transparent',
-              border: '1px solid #222222',
+              border: '1px solid #2e2e2e',
             }}
           >
             <div>
-              <h2 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>
+              <h2 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 20, fontWeight: 400, color: '#ffffff', lineHeight: '24px' }}>
                 Also interested in
               </h2>
-              <p style={{ fontSize: 12, color: '#666666', marginTop: 4, marginBottom: 18 }}>
+              <p style={{ fontSize: 12, color: '#8a8a8a', marginTop: 4, marginBottom: 18 }}>
                 Index vs. all households — 1.00× is average. Click a row to add it as a seed.
               </p>
 
@@ -1696,14 +1697,14 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
               <div className="flex gap-4 items-center">
                 <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#6781a8' }} />
-                  <span style={{ fontSize: 11, color: '#737373' }}>Genre</span>
+                  <span style={{ fontSize: 12, color: '#8a8a8a' }}>Genre</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#e87f9b' }} />
-                  <span style={{ fontSize: 11, color: '#737373' }}>Topic</span>
+                  <span style={{ fontSize: 12, color: '#8a8a8a' }}>Topic</span>
                 </div>
               </div>
-              <span style={{ fontSize: 11, color: '#555555' }}>households co-occurring</span>
+              <span style={{ fontSize: 12, color: '#666666' }}>households co-occurring</span>
             </div>
           </div>
 
@@ -1712,16 +1713,16 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
             className="col-span-12 lg:col-span-5 flex flex-col justify-between rounded-2xl p-6"
             style={{
               backgroundColor: 'transparent',
-              border: '1px solid #222222',
+              border: '1px solid #2e2e2e',
             }}
           >
             <div>
               <div className="flex items-center justify-between mb-1">
-                <h2 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>
+                <h2 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 20, fontWeight: 400, color: '#ffffff', lineHeight: '24px' }}>
                   Where they live
                 </h2>
                 <div className="flex items-center gap-1.5">
-                  <span style={{ fontSize: 11, color: '#666666' }}>0.8×</span>
+                  <span style={{ fontSize: 12, color: '#8a8a8a' }}>0.8×</span>
                   <div
                     className="w-10 rounded-full"
                     style={{
@@ -1729,10 +1730,10 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
                       background: 'linear-gradient(to right, rgb(35, 48, 68), rgb(103, 129, 168))',
                     }}
                   />
-                  <span style={{ fontSize: 11, color: '#666666' }}>1.5×</span>
+                  <span style={{ fontSize: 12, color: '#8a8a8a' }}>1.5×</span>
                 </div>
               </div>
-              <p style={{ fontSize: 12, color: '#666666', marginBottom: 18 }}>
+              <p style={{ fontSize: 12, color: '#8a8a8a', marginBottom: 18 }}>
                 State index vs. national baseline - state is the finest geography in the graph
               </p>
 
@@ -1768,13 +1769,13 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
             className="flex flex-col justify-between rounded-2xl p-5"
             style={{
               backgroundColor: 'transparent',
-              border: '1px solid #222222',
+              border: '1px solid #2e2e2e',
               minHeight: 180,
             }}
           >
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Age</h3>
-              <p style={{ fontSize: 11, color: '#666666', marginTop: 2, marginBottom: 16 }}>People per band, summed</p>
+              <h3 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Age</h3>
+              <p style={{ fontSize: 11, color: '#8a8a8a', marginTop: 2, marginBottom: 16 }}>People per band, summed</p>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -1806,6 +1807,7 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
           </div>
 
           {/* Household Income */}
+          {/* Household income */}
           <div
             className="flex flex-col justify-between rounded-2xl p-5"
             style={{
@@ -1815,8 +1817,8 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
             }}
           >
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Household income</h3>
-              <p style={{ fontSize: 11, color: '#666666', marginTop: 2, marginBottom: 16 }}>11 bands · skews mid-market</p>
+              <h3 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Household income</h3>
+              <p style={{ fontSize: 11, color: '#8a8a8a', marginTop: 2, marginBottom: 16 }}>11 bands · skews mid-market</p>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -1857,8 +1859,8 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
             }}
           >
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Race &amp; ethnicity</h3>
-              <p style={{ fontSize: 11, color: '#666666', marginTop: 2, marginBottom: 14 }}>People per band, summed</p>
+              <h3 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Race &amp; ethnicity</h3>
+              <p style={{ fontSize: 11, color: '#8a8a8a', marginTop: 2, marginBottom: 14 }}>People per band, summed</p>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -1884,8 +1886,8 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
             }}
           >
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Household makeup</h3>
-              <p style={{ fontSize: 11, color: '#666666', marginTop: 2, marginBottom: 12 }}>Average per household</p>
+              <h3 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Household makeup</h3>
+              <p style={{ fontSize: 11, color: '#8a8a8a', marginTop: 2, marginBottom: 12 }}>Average per household</p>
 
               <div className="flex flex-col gap-2">
                 {[
@@ -1895,7 +1897,7 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
                 ].map(({ label, val }) => (
                   <div key={label} className="flex items-center justify-between">
                     <span style={{ fontSize: 12, color: '#9e9e9e' }}>{label}</span>
-                    <span style={{ fontSize: 18, fontWeight: 400, color: '#ffffff' }}>{val}</span>
+                    <span style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 18, fontWeight: 400, color: '#ffffff' }}>{val}</span>
                   </div>
                 ))}
               </div>

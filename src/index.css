@@ -6,50 +6,76 @@
   --font-display: 'Season Mix', 'Newsreader', 'Georgia', serif;
 }
 
-/* ─── Season Mix (custom, file-scoped) ───────────────────────────────────── */
+/* ─── Season Mix (custom brand serif) ────────────────────────────────────── */
 @font-face {
   font-family: 'Season Mix';
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url('/fonts/Season_Mix-Light.woff2') format('woff2');
+  src: local('Season Mix Light'), local('SeasonMix-Light'),
+       url('/fonts/SeasonMix-Light.ttf') format('truetype');
 }
 @font-face {
   font-family: 'Season Mix';
   font-style: normal;
-  font-weight: 420;
+  font-weight: 400;
   font-display: swap;
-  src: url('/fonts/Season_Mix-Regular.woff2') format('woff2');
+  src: local('Season Mix Regular'), local('SeasonMix-Regular'),
+       url('/fonts/SeasonMix-Regular.otf') format('opentype');
+}
+@font-face {
+  font-family: 'Season Mix';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local('Season Mix Medium'), local('SeasonMix-Medium'),
+       url('/fonts/SeasonMix-Medium.otf') format('opentype');
 }
 @font-face {
   font-family: 'Season Mix';
   font-style: normal;
   font-weight: 580;
   font-display: swap;
-  src: url('/fonts/Season_Mix-Medium.woff2') format('woff2');
+  src: local('Season Mix Medium'), local('SeasonMix-Medium'),
+       url('/fonts/SeasonMix-Medium.otf') format('opentype');
 }
 
-/* ─── Season Sans (custom, file-scoped) ──────────────────────────────────── */
+/* ─── Season Sans (custom brand sans) ───────────────────────────────────── */
 @font-face {
   font-family: 'Season Sans';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/Season_Sans-Regular.woff2') format('woff2');
+  src: local('Season Sans Regular'), local('SeasonSans-Regular'),
+       url('/fonts/SeasonSans-Regular.otf') format('opentype'),
+       url('/fonts/SeasonSans-Regular.ttf') format('truetype');
 }
 @font-face {
   font-family: 'Season Sans';
   font-style: normal;
-  font-weight: 550;
+  font-weight: 500;
   font-display: swap;
-  src: url('/fonts/Season_Sans-Medium.woff2') format('woff2');
+  src: local('Season Sans Medium'), local('SeasonSans-Medium'),
+       url('/fonts/SeasonSans-Medium.otf') format('opentype'),
+       url('/fonts/SeasonSans-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Season Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Season Sans SemiBold'), local('SeasonSans-SemiBold'),
+       url('/fonts/SeasonSans-SemiBold.otf') format('opentype'),
+       url('/fonts/SeasonSans-SemiBold.ttf') format('truetype');
 }
 @font-face {
   font-family: 'Season Sans';
   font-style: normal;
   font-weight: 650;
   font-display: swap;
-  src: url('/fonts/Season_Sans-SemiBold.woff2') format('woff2');
+  src: local('Season Sans SemiBold'), local('SeasonSans-SemiBold'),
+       url('/fonts/SeasonSans-SemiBold.otf') format('opentype'),
+       url('/fonts/SeasonSans-SemiBold.ttf') format('truetype');
 }
 
 /* ─── Dark theme (default) ───────────────────────────────────────────────── */
