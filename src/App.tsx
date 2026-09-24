@@ -910,7 +910,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
 
 // ─── Divider pill ─────────────────────────────────────────────────────────────
 function PillDivider() {
-  return <div style={{ width: 1, height: 24, backgroundColor: '#3a3a3a', flexShrink: 0 }} />;
+  return <div style={{ width: 1, height: 18, backgroundColor: '#3a3a3a', flexShrink: 0 }} />;
 }
 
 // ─── Graph Editor Panel ───────────────────────────────────────────────────────
@@ -1914,19 +1914,19 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 
       {/* ── Top floating bar (only on graph tab) ── */}
       {graphTab === 'graph' && (
-        <div className="flex items-center justify-center p-4" style={{ pointerEvents: 'none' }}>
-          <div className="flex items-center gap-6 rounded-lg px-6 py-2 flex-wrap"
+        <div className="flex items-center justify-center pt-3 pb-1 px-4" style={{ pointerEvents: 'none' }}>
+          <div className="flex items-center gap-4 rounded-lg px-4 py-1.5 flex-wrap"
             style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)', pointerEvents: 'auto' }}>
 
             {/* Stats */}
-            <div className="flex gap-6 items-center">
+            <div className="flex gap-4 items-center">
               {[
                 { val: dataset.metrics.peopleMatch, sub: 'People match' },
                 { val: dataset.metrics.seedHousehold, sub: 'Seed household' }
               ].map(({ val, sub }) => (
                 <div key={sub} className="flex flex-col items-center">
-                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 600, fontSize: 20, color: 'var(--text)', lineHeight: '28px' }}>{val}</span>
-                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>{sub}</span>
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 600, fontSize: 16, color: 'var(--text)', lineHeight: '22px' }}>{val}</span>
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: 'var(--text-muted)', lineHeight: '14px' }}>{sub}</span>
                 </div>
               ))}
             </div>
@@ -1934,13 +1934,13 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
             <PillDivider />
 
             {/* Legend */}
-            <div className="flex gap-4 items-center flex-wrap">
+            <div className="flex gap-3 items-center flex-wrap">
               {legendItems.map(({ label, color, dot }) => (
-                <div key={label} className="flex gap-2 items-center">
+                <div key={label} className="flex gap-1.5 items-center">
                   {dot
-                    ? <div className="rounded-full" style={{ width: 10, height: 10, backgroundColor: color }} />
-                    : <div style={{ width: 10, height: 2, backgroundColor: color }} />}
-                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)', lineHeight: '20px' }}>{label}</span>
+                    ? <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: color }} />
+                    : <div style={{ width: 8, height: 2, backgroundColor: color }} />}
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', lineHeight: '16px' }}>{label}</span>
                 </div>
               ))}
             </div>
@@ -1948,16 +1948,16 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
             <PillDivider />
 
             {/* Counts */}
-            <div className="flex gap-4 items-center">
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{dataset.nodes.length} nodes</span>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{dataset.edges.length} edges</span>
+            <div className="flex gap-3 items-center">
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>{dataset.nodes.length} nodes</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>{dataset.edges.length} edges</span>
             </div>
 
             <PillDivider />
 
             <button onClick={onNavigateAudience}
               className="flex items-center justify-center rounded-md transition-colors cursor-pointer"
-              style={{ backgroundColor: 'var(--bg-btn)', padding: '0 12px', height: 32, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-btn)', border: 'none' }}>
+              style={{ backgroundColor: 'var(--bg-btn)', padding: '0 10px', height: 28, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-btn)', border: 'none' }}>
               Explore this audience
             </button>
           </div>
@@ -2106,14 +2106,14 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 
       {/* ── Bottom floating bar (only on graph tab) ── */}
       {graphTab === 'graph' && (
-        <div className="flex items-center justify-center p-4" style={{ pointerEvents: 'none' }}>
-          <div className="flex items-center gap-6 rounded-lg px-6 py-2"
+        <div className="flex items-center justify-center pb-3 pt-1 px-4" style={{ pointerEvents: 'none' }}>
+          <div className="flex items-center gap-4 rounded-lg px-4 py-1.5"
             style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)', pointerEvents: 'auto' }}>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)', lineHeight: '16px' }}>
               Showing {dataset.nodes.length} nodes · {dataset.edges.length} edges
             </span>
             <PillDivider />
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)', lineHeight: '16px' }}>
               Click on any node for details & connections. Double-click to expand.
             </span>
           </div>
