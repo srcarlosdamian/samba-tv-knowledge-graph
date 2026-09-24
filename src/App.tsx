@@ -176,18 +176,6 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
           >
             <Sliders size={18} strokeWidth={1.5} color={showGraphEditor ? ICON_W : ICON_DIM} />
           </button>
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="flex items-center justify-center rounded-lg transition-colors"
-            style={{ width: 32, height: 32, backgroundColor: theme === 'light' ? 'var(--bg-btn)' : 'transparent' }}
-          >
-            {theme === 'dark'
-              ? <Sun size={18} strokeWidth={1.5} color={ICON_DIM} />
-              : <Moon size={18} strokeWidth={1.5} color={ICON_W} />
-            }
-          </button>
           {/* Avatar */}
           <div className="relative">
             <div className="flex items-center justify-center rounded-full text-white text-xs font-medium"
