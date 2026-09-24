@@ -1582,62 +1582,67 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
     <div
       className="flex flex-1 flex-col overflow-y-auto hide-scrollbar"
       style={{
-        backgroundColor: '#121212',
+        backgroundColor: '#1a1a1a',
         color: '#ffffff',
         minHeight: '100vh',
-        padding: '28px 36px 40px 36px',
+        padding: '36px 40px 48px 40px',
         fontFamily: "'Season Sans', 'Inter', sans-serif",
       }}
     >
-      {/* Header Row */}
-      <div className="flex items-center justify-between pb-6">
-        <h1 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 30, fontWeight: 400, color: '#f3f4f6', letterSpacing: '-0.3px' }}>
-          Cohort Profile
-        </h1>
+      <div className="max-w-[1120px] w-full mx-auto flex flex-col gap-5 flex-1">
+        {/* Header Row */}
+        <div className="flex items-center justify-between pb-2 w-full">
+          <h1 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 30, fontWeight: 400, color: '#e5e5e5', letterSpacing: '-0.3px', margin: 0 }}>
+            Cohort Profile
+          </h1>
 
-        <div className="flex items-center gap-7">
-          <div className="flex flex-col items-end">
-            <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Households</span>
-            <span style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 28, fontWeight: 400, color: '#ffffff', lineHeight: '32px' }}>{d.households}</span>
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-5">
+              <div className="flex flex-col items-center justify-center text-center">
+                <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Households</span>
+                <span style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 30, fontWeight: 400, color: '#e5e5e5', lineHeight: '34px' }}>{d.households}</span>
+              </div>
+              <div style={{ width: 1, height: 36, backgroundColor: '#2e2e2e' }} />
+              <div className="flex flex-col items-center justify-center text-center">
+                <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Est. population</span>
+                <span style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 30, fontWeight: 400, color: '#e5e5e5', lineHeight: '34px' }}>{d.population}</span>
+              </div>
+            </div>
+            {onBackToGraph && (
+              <button
+                onClick={onBackToGraph}
+                className="flex items-center justify-center rounded-[6px] transition-colors cursor-pointer"
+                style={{
+                  border: '1px solid #6781a8',
+                  backgroundColor: 'transparent',
+                  color: '#6781a8',
+                  height: 40,
+                  padding: '0 16px',
+                  fontSize: 15,
+                  fontWeight: 400,
+                  fontFamily: "'Season Sans', 'Inter', sans-serif",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(103, 129, 168, 0.12)'; }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+              >
+                Back to graph
+              </button>
+            )}
           </div>
-          <div className="flex flex-col items-end">
-            <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Est. population</span>
-            <span style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 28, fontWeight: 400, color: '#ffffff', lineHeight: '32px' }}>{d.population}</span>
-          </div>
-          {onBackToGraph && (
-            <button
-              onClick={onBackToGraph}
-              className="flex items-center justify-center rounded-lg transition-colors cursor-pointer"
-              style={{
-                border: '1px solid #384966',
-                backgroundColor: 'transparent',
-                color: '#6781a8',
-                padding: '8px 16px',
-                fontSize: 14,
-                fontWeight: 500,
-                fontFamily: "'Season Sans', 'Inter', sans-serif",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#6781a8'; e.currentTarget.style.color = '#8fa7c7'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#384966'; e.currentTarget.style.color = '#6781a8'; }}
-            >
-              Back to graph
-            </button>
-          )}
         </div>
-      </div>
 
-      {/* Main Content Grid */}
-      <div className="flex flex-col gap-4 flex-1">
-        {/* Top Row: Also interested in + Where they live */}
-        <div className="grid grid-cols-12 gap-4">
-          {/* Also interested in (7 cols) */}
-          <div
-            className="col-span-12 lg:col-span-7 flex flex-col justify-between rounded-2xl p-6"
-            style={{
-              backgroundColor: 'transparent',
-              border: '1px solid #2e2e2e',
-            }}
-          >
+        {/* Main Content Grid */}
+        <div className="flex flex-col gap-5 flex-1">
+          {/* Top Row: Also interested in + Where they live */}
+          <div className="grid grid-cols-12 gap-5">
+            {/* Also interested in (7 cols) */}
+            <div
+              className="col-span-12 lg:col-span-7 flex flex-col justify-between rounded-[12px] p-6"
+              style={{
+                backgroundColor: 'transparent',
+                border: '1px solid #2e2e2e',
+              }}
+            >
             <div>
               <h2 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 20, fontWeight: 400, color: '#ffffff', lineHeight: '24px' }}>
                 Also interested in
@@ -1917,6 +1922,7 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
