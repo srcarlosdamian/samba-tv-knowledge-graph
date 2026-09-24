@@ -102,12 +102,12 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
 
   // Dotted Animated Layer (Capa superpuesta punteada animada)
   enableDottedOverlay: true,
-  dottedLineWidth: 3.5,
+  dottedLineWidth: 1.0,
   dottedLineColor: '#ffffff',
-  dottedLineOpacity: 0.95,
-  edgeDashSpeed: 1.5,
-  dottedDashSize: 8,
-  dottedGapSize: 6,
+  dottedLineOpacity: 1.0,
+  edgeDashSpeed: 0.8,
+  dottedDashSize: 2,
+  dottedGapSize: 23,
 
   // Selection default
   selectionColor: '#ffffff',
@@ -138,7 +138,7 @@ function cssToHex(css: string | undefined, defaultHex = 0x6a7a8a): number {
   return parseInt(css.replace('#', ''), 16);
 }
 
-const BG_COLOR = 0x111111;       // Graph canvas bg — very dark, matches design system
+const BG_COLOR = 0x1a1a1a;       // Graph canvas bg — matches design token 0x1A1A1A
 const SELECTION_BLUE = 0x1d4ed8;
 const MAGENTA_TOPIC = 0xBE2440;  // SIGNAL-RED-500 from design tokens
 

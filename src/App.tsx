@@ -515,13 +515,13 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
                 height: 24,
                 paddingLeft: 8,
                 paddingRight: 8,
-                background: isActive ? 'var(--NEUTRAL-300, #4A4D50)' : 'var(--NEUTRAL-200, #2E2E2E)',
+                background: isActive ? 'var(--NEUTRAL-200, #2E2E2E)' : 'var(--white, #1A1A1A)',
                 borderRadius: 6,
-                border: 'none',
+                border: isActive ? '1px solid var(--NEUTRAL-300, #4A4D50)' : '1px solid var(--NEUTRAL-200, #2E2E2E)',
                 gap: 6,
               }}
             >
-              <div style={{ color: isActive ? '#ffffff' : 'var(--NEUTRAL-800, #C6C6C6)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px', whiteSpace: 'nowrap' }}>
+              <div style={{ color: isActive ? 'var(--black, #E5E5E5)' : 'var(--NEUTRAL-600, #A3A3A3)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px', whiteSpace: 'nowrap' }}>
                 {tag}
               </div>
             </button>
@@ -690,7 +690,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       style={{
         width: 290,
         padding: 12,
-        background: 'var(--NEUTRAL-100, #222222)',
+        background: 'var(--NEUTRAL-50, #1E1E1E)',
         boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
         borderRadius: 8,
         gap: 18,
@@ -723,7 +723,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
             style={{
               flex: '1 1 0',
               alignSelf: 'stretch',
-              background: graphTab === 'graph' ? 'var(--whiteAlpha-50, rgba(255, 255, 255, 0.04))' : 'transparent',
+              background: graphTab === 'graph' ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent',
               borderRadius: 4,
               justifyContent: 'center',
               alignItems: 'center',
@@ -742,7 +742,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
             style={{
               flex: '1 1 0',
               alignSelf: 'stretch',
-              background: graphTab === 'table' ? 'var(--whiteAlpha-50, rgba(255, 255, 255, 0.04))' : 'transparent',
+              background: graphTab === 'table' ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent',
               borderRadius: 4,
               justifyContent: 'center',
               alignItems: 'center',
@@ -778,7 +778,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
             paddingBottom: 8,
             background: 'var(--white, #1A1A1A)',
             borderRadius: 4,
-            border: 'none',
+            border: '1px solid var(--NEUTRAL-200, #2E2E2E)',
             color: 'var(--black, #E5E5E5)',
             fontSize: 14,
             fontFamily: "'Season Sans', 'Inter', sans-serif",
@@ -840,7 +840,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
                 style={{
                   flex: '1 1 0',
                   alignSelf: 'stretch',
-                  background: sparqlTab === 'select' ? 'var(--whiteAlpha-50, rgba(255, 255, 255, 0.04))' : 'transparent',
+                  background: sparqlTab === 'select' ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent',
                   borderRadius: 4,
                   justifyContent: 'center',
                   alignItems: 'center',
@@ -859,7 +859,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
                 style={{
                   flex: '1 1 0',
                   alignSelf: 'stretch',
-                  background: sparqlTab === 'construct' ? 'var(--whiteAlpha-50, rgba(255, 255, 255, 0.04))' : 'transparent',
+                  background: sparqlTab === 'construct' ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent',
                   borderRadius: 4,
                   justifyContent: 'center',
                   alignItems: 'center',
@@ -869,7 +869,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
                   cursor: 'pointer',
                 }}
               >
-                <div style={{ color: sparqlTab === 'construct' ? 'var(--NEUTRAL-500, #8A8A8A)' : 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
+                <div style={{ color: sparqlTab === 'construct' ? 'var(--black, #E5E5E5)' : 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
                   Construct
                 </div>
               </button>
@@ -900,7 +900,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
         onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
         onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
       >
-        <div style={{ color: 'white', fontSize: 16, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '24px' }}>
+        <div style={{ color: '#ffffff', fontSize: 15, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, lineHeight: '24px' }}>
           Run Analysis
         </div>
       </button>
@@ -1209,18 +1209,40 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                   Dotted Line Thickness (Grosor)
                 </span>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-                  {(config.dottedLineWidth ?? 3.5).toFixed(1)} px
+                  {(config.dottedLineWidth ?? 1.0).toFixed(1)} px
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Width</span>
                 <input
                   type="range"
-                  min={1.0}
+                  min={0.5}
                   max={12.0}
                   step={0.5}
-                  value={config.dottedLineWidth ?? 3.5}
+                  value={config.dottedLineWidth ?? 1.0}
                   onChange={e => onChange({ ...config, dottedLineWidth: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+                />
+              </div>
+
+              {/* Dotted Line Opacity (Opacidad) */}
+              <div className="flex items-center justify-between pt-1">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Dotted Line Opacity
+                </span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {Math.round((config.dottedLineOpacity ?? 1.0) * 100)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Opacity</span>
+                <input
+                  type="range"
+                  min={0.0}
+                  max={1.0}
+                  step={0.05}
+                  value={config.dottedLineOpacity ?? 1.0}
+                  onChange={e => onChange({ ...config, dottedLineOpacity: parseFloat(e.target.value) })}
                   style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
                 />
               </div>
@@ -1231,17 +1253,17 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                   Flow Speed
                 </span>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-                  {(config.edgeDashSpeed ?? 1.5).toFixed(1)}×
+                  {(config.edgeDashSpeed ?? 0.8).toFixed(1)}×
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Speed</span>
                 <input
                   type="range"
-                  min={0.2}
+                  min={0.1}
                   max={4.0}
                   step={0.1}
-                  value={config.edgeDashSpeed ?? 1.5}
+                  value={config.edgeDashSpeed ?? 0.8}
                   onChange={e => onChange({ ...config, edgeDashSpeed: parseFloat(e.target.value) })}
                   style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
                 />
@@ -1253,17 +1275,17 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                   Dash / Dot Spacing
                 </span>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-                  {config.dottedDashSize ?? 8} / {config.dottedGapSize ?? 6}
+                  {config.dottedDashSize ?? 2} / {config.dottedGapSize ?? 23}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Dash</span>
                 <input
                   type="range"
-                  min={2}
+                  min={1}
                   max={24}
                   step={1}
-                  value={config.dottedDashSize ?? 8}
+                  value={config.dottedDashSize ?? 2}
                   onChange={e => onChange({ ...config, dottedDashSize: parseInt(e.target.value, 10) })}
                   style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
                 />
@@ -1273,9 +1295,9 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                 <input
                   type="range"
                   min={2}
-                  max={24}
+                  max={32}
                   step={1}
-                  value={config.dottedGapSize ?? 6}
+                  value={config.dottedGapSize ?? 23}
                   onChange={e => onChange({ ...config, dottedGapSize: parseInt(e.target.value, 10) })}
                   style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
                 />
@@ -1369,17 +1391,17 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                   Dotted Line Thickness (Grosor)
                 </span>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-                  {(config.dottedLineWidth ?? 3.5).toFixed(1)} px
+                  {(config.dottedLineWidth ?? 1.0).toFixed(1)} px
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Grosor</span>
                 <input
                   type="range"
-                  min={1.0}
+                  min={0.5}
                   max={12.0}
                   step={0.5}
-                  value={config.dottedLineWidth ?? 3.5}
+                  value={config.dottedLineWidth ?? 1.0}
                   onChange={e => onChange({ ...config, dottedLineWidth: parseFloat(e.target.value) })}
                   style={{ flex: 1, accentColor: config.selectionColor ?? 'var(--accent)', height: 4 }}
                 />
@@ -1963,12 +1985,15 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
             <button onClick={onNavigateAudience}
               className="flex items-center justify-center rounded-md transition-colors cursor-pointer"
               style={{
-                backgroundColor: 'var(--PACIFIC--BLUE-500, #6781A8)',
+                backgroundColor: 'var(--NEUTRAL-200, #2E2E2E)',
                 padding: '0 10px', height: 28,
                 fontFamily: "'Season Sans', 'Inter', sans-serif",
-                fontSize: 12, color: '#ffffff', border: 'none',
-                fontWeight: 500
-              }}>
+                fontSize: 12, color: 'var(--black, #E5E5E5)', border: '1px solid var(--NEUTRAL-300, #4A4D50)',
+                fontWeight: 400
+              }}
+              onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--NEUTRAL-300, #4A4D50)'; }}
+              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--NEUTRAL-200, #2E2E2E)'; }}
+            >
               Explore this audience
             </button>
           </div>
@@ -2342,39 +2367,26 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
             Cohort Profile
           </h1>
 
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-5">
-              <div className="flex flex-col items-center justify-center text-center">
-                <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Households</span>
-                <span style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 30, fontWeight: 400, color: '#e5e5e5', lineHeight: '34px' }}>{d.households}</span>
-              </div>
-              <div style={{ width: 1, height: 36, backgroundColor: '#2e2e2e' }} />
-              <div className="flex flex-col items-center justify-center text-center">
-                <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Est. population</span>
-                <span style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 30, fontWeight: 400, color: '#e5e5e5', lineHeight: '34px' }}>{d.population}</span>
-              </div>
-            </div>
-            {onBackToGraph && (
-              <button
-                onClick={onBackToGraph}
-                className="flex items-center justify-center rounded-[6px] transition-colors cursor-pointer"
-                style={{
-                  border: '1px solid #6781a8',
-                  backgroundColor: 'transparent',
-                  color: '#6781a8',
-                  height: 40,
-                  padding: '0 16px',
-                  fontSize: 15,
-                  fontWeight: 400,
-                  fontFamily: "'Season Sans', 'Inter', sans-serif",
-                }}
-                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(103, 129, 168, 0.12)'; }}
-                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-              >
-                Back to graph
-              </button>
-            )}
-          </div>
+          {onBackToGraph && (
+            <button
+              onClick={onBackToGraph}
+              className="flex items-center justify-center rounded-[6px] transition-colors cursor-pointer"
+              style={{
+                border: '1px solid #6781a8',
+                backgroundColor: 'transparent',
+                color: '#6781a8',
+                height: 40,
+                padding: '0 16px',
+                fontSize: 15,
+                fontWeight: 400,
+                fontFamily: "'Season Sans', 'Inter', sans-serif",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(103, 129, 168, 0.12)'; }}
+              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              Back to graph
+            </button>
+          )}
         </div>
 
         {/* Main Content Grid */}
