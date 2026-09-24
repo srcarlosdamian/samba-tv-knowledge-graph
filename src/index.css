@@ -1,0 +1,119 @@
+@import 'tailwindcss';
+
+/* ─── Font faces ─────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "Inter:Medium";
+  font-style: normal;
+  font-weight: 500;
+  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+}
+@font-face {
+  font-family: "Season Sans:Regular";
+  font-style: normal;
+  font-weight: 400;
+  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+}
+@font-face {
+  font-family: "Season Sans:Medium";
+  font-style: normal;
+  font-weight: 500;
+  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+}
+@font-face {
+  font-family: "Season Sans:SemiBold";
+  font-style: normal;
+  font-weight: 600;
+  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+}
+@font-face {
+  font-family: "Season Mix:Medium";
+  font-style: normal;
+  font-weight: 500;
+  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+}
+
+/* ─── Dark theme (default) ───────────────────────────────────────────────── */
+:root, [data-theme="dark"] {
+  --bg:            #1a1a1a;
+  --bg-sidebar:    #1e1e1e;
+  --bg-card:       #222222;
+  --bg-card-alt:   #1e1e1e;
+  --bg-input:      #1a1a1a;
+  --bg-toggle:     #1a1a1a;
+  --bg-tag:        transparent;
+  --bg-btn:        #2e2e2e;
+  --bg-btn-active: #2e2e2e;
+
+  --border:        #2e2e2e;
+  --border-mid:    #3a3a3a;
+  --border-tag:    #4a4d50;
+
+  --text:          #e5e5e5;
+  --text-muted:    #a3a3a3;
+  --text-dim:      #636363;
+  --text-ph:       #8a8a8a;
+  --text-btn:      #c6c6c6;
+  --text-sub:      #b2b2b2;
+
+  --accent:        #6781a8;
+  --accent-hover:  #5a70948c;
+
+  --shadow:        rgba(0,0,0,0.5);
+  --overlay:       rgba(0,0,0,0.7);
+
+  --scrollbar-bg:  #2e2e2e;
+  --scrollbar-thumb: #4a4a4a;
+}
+
+/* ─── Light theme ────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:            #f6f7f7;
+  --bg-sidebar:    #0f0f0f;
+  --bg-card:       #ffffff;
+  --bg-card-alt:   #f0f1f2;
+  --bg-input:      #ffffff;
+  --bg-toggle:     #ebebeb;
+  --bg-tag:        transparent;
+  --bg-btn:        #ebebeb;
+  --bg-btn-active: #e0e0e0;
+
+  --border:        #e2e2e2;
+  --border-mid:    #cccccc;
+  --border-tag:    #c0c0c6;
+
+  --text:          #111111;
+  --text-muted:    #555555;
+  --text-dim:      #888888;
+  --text-ph:       #aaaaaa;
+  --text-btn:      #333333;
+  --text-sub:      #666666;
+
+  --accent:        #4e6e9d;
+  --accent-hover:  #3d5a87;
+
+  --shadow:        rgba(0,0,0,0.12);
+  --overlay:       rgba(0,0,0,0.45);
+
+  --scrollbar-bg:  #e0e0e0;
+  --scrollbar-thumb: #b0b0b0;
+}
+
+/* ─── Global ─────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+textarea, input, button { font-family: inherit; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-bg); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
