@@ -780,6 +780,33 @@ function GraphEditorPanel({ config, onChange, onClose }: {
       </div>
 
       <div className="p-3 flex flex-col gap-0">
+        {/* Section: Overall Graph Size */}
+        <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+          Overall Graph Size
+        </div>
+        <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+          <div className="flex items-center justify-between">
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+              Global Scale
+            </span>
+            <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+              {((config.globalScale ?? 1.0) * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Scale</span>
+            <input
+              type="range"
+              min={0.3}
+              max={2.5}
+              step={0.05}
+              value={config.globalScale ?? 1.0}
+              onChange={e => onChange({ ...config, globalScale: parseFloat(e.target.value) })}
+              style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+            />
+          </div>
+        </div>
+
         {/* Section: Nodes */}
         <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
           Nodes

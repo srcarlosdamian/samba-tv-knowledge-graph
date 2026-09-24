@@ -11,6 +11,7 @@ import {
 export { type NodeType, type Node3DData, type Edge3DData };
 
 export interface GraphConfig {
+  globalScale?: number;    // 0.3 to 2.5, overall scale multiplier for entire graph
   colors: Record<string, string>;
   sizes: Record<string, number>;
   glowIntensity: number;   // 0–1, emissive intensity multiplier
@@ -20,6 +21,7 @@ export interface GraphConfig {
 }
 
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
+  globalScale: 1.0,
   colors: {
     genre: '#38A169',
     topic: '#D53F8C',
@@ -718,11 +720,94 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
     let lastTime = performance.now();
     let t = 0;
 
+    let lastCfgColors = { ...configRef.current.colors };
+    let lastCfgSizes = { ...configRef.current.sizes };
+    let lastGlowIntensity = configRef.current.glowIntensity;
+    let lastEdgeColor = configRef.current.edgeColor;
+    let lastHubEdgeColor = configRef.current.hubEdgeColor;
+    let lastEdgeOpacity = configRef.current.edgeOpacity;
+    let lastGlobalScale = configRef.current.globalScale ?? 1.0;
+
+    function syncConfig() {
+      const c = configRef.current;
+
+      // 1. Overall Graph Scale
+      const curGlobalScale = c.globalScale ?? 1.0;
+      if (curGlobalScale !== lastGlobalScale) {
+        pivot.scale.setScalar(curGlobalScale);
+        lastGlobalScale = curGlobalScale;
+      }
+
+      // 2. Glow or Colors
+      const glowChanged = c.glowIntensity !== lastGlowIntensity;
+      let colorsChanged = false;
+      for (const k of Object.keys(c.colors)) {
+        if (c.colors[k] !== lastCfgColors[k]) {
+          colorsChanged = true;
+          break;
+        }
+      }
+
+      if (colorsChanged || glowChanged) {
+        nodes.forEach(n => {
+          const mat = nodeMaterials.get(n.id);
+          if (mat && selectedNodeId !== n.id && !magentaHighlightedNodeIds.has(n.id)) {
+            const hex = cssToHex(c.colors[n.type] ?? '#4E6E9D');
+            mat.color.setHex(hex);
+            mat.emissive.setHex(hex);
+            const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
+            mat.emissiveIntensity = c.glowIntensity * (isHub ? 1.0 : 0.4);
+          }
+        });
+        if (colorsChanged) lastCfgColors = { ...c.colors };
+        if (glowChanged) lastGlowIntensity = c.glowIntensity;
+      }
+
+      // 3. Node Sizes
+      let sizesChanged = false;
+      for (const k of Object.keys(c.sizes)) {
+        if (c.sizes[k] !== lastCfgSizes[k]) {
+          sizesChanged = true;
+          break;
+        }
+      }
+
+      if (sizesChanged && revealDone) {
+        nodes.forEach(n => {
+          const mesh = nodeMap.get(n.id);
+          if (mesh && mesh.scale.x > 0.05 && selectedNodeId !== n.id) {
+            const sizeMultiplier = c.sizes[n.type] ?? 1.0;
+            mesh.scale.setScalar(sizeMultiplier);
+          }
+        });
+        lastCfgSizes = { ...c.sizes };
+      }
+
+      // 4. Edge Colors & Opacities
+      const edgeChanged = c.edgeColor !== lastEdgeColor || c.hubEdgeColor !== lastHubEdgeColor || c.edgeOpacity !== lastEdgeOpacity;
+      if (edgeChanged) {
+        if (!selectedNodeId) {
+          edgeStates.forEach(es => {
+            es.material.color.setHex(cssToHex(es.isHub ? c.hubEdgeColor : c.edgeColor));
+            if (revealDone && es.revealed) {
+              es.targetOpacity = es.isHub ? c.edgeOpacity * 1.15 : c.edgeOpacity;
+            }
+          });
+        }
+        lastEdgeColor = c.edgeColor;
+        lastHubEdgeColor = c.hubEdgeColor;
+        lastEdgeOpacity = c.edgeOpacity;
+      }
+    }
+
     function animate(now: number) {
       rafId = requestAnimationFrame(animate);
       const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
       t += dt;
+
+      // Sync graph editor configuration in real-time
+      syncConfig();
 
       // Update Reveal physics
       updateReveal(dt);
