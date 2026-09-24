@@ -62,16 +62,17 @@ export interface GraphConfig {
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   globalScale: 1.0,
   colors: {
-    genre: '#38A169',
-    topic: '#D53F8C',
-    household: '#4E6E9D',
-    individual: '#EF3557',
-    device: '#319795',
-    cookie_or_ip: '#ED8936',
-    series: '#805AD5',
-    experian_household: '#4299E1',
-    state: '#ECC94B',
-    income_bracket: '#38B2AC',
+    // Design system tokens (Dark Mode)
+    genre:               '#63BA8C', // green-500
+    topic:               '#BE2440', // SIGNAL-RED-500 (used for Topic/hubs in design)
+    household:           '#6781A8', // PACIFIC-BLUE-500
+    individual:          '#BE2440', // SIGNAL-RED-500 (individuals shown as red dots in design)
+    device:              '#6AC1BF', // teal-500
+    cookie_or_ip:        '#A6684C', // SANDSTONE-500
+    series:              '#9C6FC2', // purple (close to SANDSTONE lighter)
+    experian_household:  '#6781A8', // PACIFIC-BLUE-500 variant
+    state:               '#A6684C', // SANDSTONE-500
+    income_bracket:      '#6AC1BF', // teal-500
   },
   sizes: {
     genre: 0.70,
@@ -87,16 +88,17 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   },
   glowIntensity: 0.45,
 
-  // Base Lines (Normales continuas por defecto)
-  edgeColor: '#6a7a8a',
-  hubEdgeColor: '#9aaaaa',
-  individualEdgeColor: '#8e9aaf',
-  deviceEdgeColor: '#5c7f99',
-  edgeOpacity: 0.45,
-  hubEdgeOpacity: 0.55,
-  individualEdgeOpacity: 0.40,
-  deviceEdgeOpacity: 0.35,
+  // Base Lines — muted, matching NEUTRAL steel grays from design system
+  edgeColor: '#4A4D50',          // NEUTRAL-300
+  hubEdgeColor: '#636363',       // NEUTRAL-400
+  individualEdgeColor: '#4A4D50',// NEUTRAL-300
+  deviceEdgeColor: '#3a3a3a',    // between NEUTRAL-200 and NEUTRAL-300
+  edgeOpacity: 0.55,
+  hubEdgeOpacity: 0.65,
+  individualEdgeOpacity: 0.45,
+  deviceEdgeOpacity: 0.40,
   showAllEdges: false,
+
 
   // Dotted Animated Layer (Capa superpuesta punteada animada)
   enableDottedOverlay: true,
@@ -136,9 +138,9 @@ function cssToHex(css: string | undefined, defaultHex = 0x6a7a8a): number {
   return parseInt(css.replace('#', ''), 16);
 }
 
-const BG_COLOR = 0x111111;
+const BG_COLOR = 0x111111;       // Graph canvas bg — very dark, matches design system
 const SELECTION_BLUE = 0x1d4ed8;
-const MAGENTA_TOPIC = 0xD53F8C;
+const MAGENTA_TOPIC = 0xBE2440;  // SIGNAL-RED-500 from design tokens
 
 export interface Graph3DProps {
   dataset?: GraphDataset;
