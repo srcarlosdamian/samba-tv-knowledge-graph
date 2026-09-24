@@ -33,7 +33,7 @@ function SidebarTooltip({ label, anchorRect }: { label: string; anchorRect: DOMR
       zIndex: 9999, pointerEvents: 'none',
       backgroundColor: '#d9d9d9', color: '#1a1a1a',
       padding: '2px 8px', borderRadius: 4,
-      fontSize: 14, lineHeight: '20px', fontFamily: 'Inter, sans-serif',
+      fontSize: 14, lineHeight: '20px', fontFamily: "'Season Sans', 'Inter', sans-serif",
       whiteSpace: 'nowrap',
     }}>
       <span style={{
@@ -84,7 +84,7 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
       >
         {/* Top */}
         <div className="flex flex-col gap-6 items-center w-full">
-          <button onClick={() => setView('graph')} className="flex items-center justify-center" style={{ width: 24, height: 20 }}>
+          <button onClick={() => setView('home')} className="flex items-center justify-center" style={{ width: 24, height: 20 }}>
             <img alt="logo" src="/assets/05855.svg" style={{ width: 24, height: 20, display: 'block' }} />
           </button>
           <div className="flex flex-col gap-4 items-center w-full">
@@ -131,7 +131,7 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
           {/* Avatar */}
           <div className="relative">
             <div className="flex items-center justify-center rounded-full text-white text-xs font-medium"
-              style={{ width: 28, height: 28, backgroundColor: '#4a5568', fontSize: 11, fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+              style={{ width: 28, height: 28, backgroundColor: '#4a5568', fontSize: 11, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500 }}>
               TA
             </div>
             <div className="absolute rounded-full"
@@ -189,7 +189,7 @@ function HomeView({ onSearch }: { onSearch: (q: string) => void }) {
       <div className="flex flex-col items-center gap-6 w-full" style={{ position: 'relative', zIndex: 1 }}>
 
       <p className="text-center" style={{
-        fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 36,
+        fontFamily: "'Season Mix', 'Inter', sans-serif", fontWeight: 580, fontSize: 36,
         lineHeight: 'normal', color: 'var(--text)', maxWidth: 450,
       }}>
         What insights do you want to uncover today?
@@ -213,7 +213,7 @@ function HomeView({ onSearch }: { onSearch: (q: string) => void }) {
           placeholder="Ask anything about your audience or graph data..."
           className="flex-1 resize-none bg-transparent outline-none w-full"
           style={{
-            fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 16,
+            fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, fontSize: 16,
             lineHeight: '24px', color: query ? 'var(--text)' : 'var(--text-ph)', border: 'none',
             backgroundColor: 'transparent',
           }}
@@ -222,13 +222,13 @@ function HomeView({ onSearch }: { onSearch: (q: string) => void }) {
         <div className="flex items-center justify-between mt-2">
           <button className="flex gap-2 items-center justify-center rounded"
             style={{ border: '1px solid var(--border-mid)', height: 32, padding: '0 12px', background: 'transparent' }}>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-btn)', lineHeight: '20px' }}>20 objects</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-btn)', lineHeight: '20px' }}>20 objects</span>
             <ChevronDown size={12} strokeWidth={1.5} color="var(--text-dim)" />
           </button>
           <div className="flex gap-3 items-center">
             <button className="flex gap-2 items-center justify-center rounded"
               style={{ border: '1px solid var(--border-mid)', height: 32, padding: '0 12px', background: 'transparent' }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-btn)', lineHeight: '20px' }}>Haiku (fast)</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-btn)', lineHeight: '20px' }}>Haiku (fast)</span>
               <ChevronDown size={12} strokeWidth={1.5} color="var(--text-dim)" />
             </button>
             <button
@@ -255,7 +255,7 @@ function HomeView({ onSearch }: { onSearch: (q: string) => void }) {
               height: 32, padding: '0 12px',
               background: query === tag ? 'var(--bg-btn)' : 'var(--bg-tag)',
             }}>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 14, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
               {tag}
             </span>
           </button>
@@ -301,14 +301,14 @@ function SelectDropdown({ label, options, value, onChange }: {
 
   return (
     <div className="flex flex-col gap-2 flex-1 relative" ref={ref}>
-      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-muted)' }}>{label}</span>
+      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)' }}>{label}</span>
       <button onClick={() => setOpen(p => !p)}
         className="relative flex items-center rounded"
         style={{
           backgroundColor: 'var(--bg-input)', height: 32, paddingLeft: 10, paddingRight: 28,
           border: open ? '1px solid var(--accent)' : '1px solid var(--border)', textAlign: 'left',
         }}>
-        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--text)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {selected.label}
         </span>
         <ChevronDown size={12} strokeWidth={1.5} color="var(--text-dim)"
@@ -323,10 +323,10 @@ function SelectDropdown({ label, options, value, onChange }: {
               style={{ backgroundColor: opt.value === value ? 'var(--bg-btn-active)' : 'transparent', borderBottom: '1px solid var(--border)' }}
               onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-btn)')}
               onMouseLeave={e => (e.currentTarget.style.backgroundColor = opt.value === value ? 'var(--bg-btn-active)' : 'transparent')}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: opt.value === value ? 'var(--text)' : 'var(--text-btn)', fontWeight: opt.value === value ? 500 : 400 }}>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: opt.value === value ? 'var(--text)' : 'var(--text-btn)', fontWeight: opt.value === value ? 500 : 400 }}>
                 {opt.label}
               </span>
-              {opt.desc && <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--text-dim)', marginTop: 1 }}>{opt.desc}</span>}
+              {opt.desc && <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-dim)', marginTop: 1 }}>{opt.desc}</span>}
             </button>
           ))}
         </div>
@@ -355,15 +355,15 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
         position: 'relative', zIndex: 10,
       }}>
 
-      <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 20, color: 'var(--text)', lineHeight: '1.5' }}>
+      <p style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)', lineHeight: '1.5' }}>
         Knowledge Graph
       </p>
 
       {/* Display toggle */}
       <div className="flex flex-col gap-[10px]">
         <div className="flex items-center justify-between">
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-muted)', lineHeight: '20px' }}>Display</span>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-dim)', lineHeight: '16px' }}>20 nodes</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)', lineHeight: '20px' }}>Display</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)', lineHeight: '16px' }}>20 nodes</span>
         </div>
         <div className="flex gap-1 rounded p-1" style={{ backgroundColor: 'var(--bg-input)', height: 32 }}>
           {(['graph', 'table'] as GraphTab[]).map(tab => (
@@ -372,7 +372,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
               style={{
                 backgroundColor: graphTab === tab ? 'rgba(255,255,255,0.04)' : 'transparent',
                 color: graphTab === tab ? 'var(--text)' : 'var(--text-dim)',
-                fontFamily: 'Inter, sans-serif', fontSize: 14, border: 'none',
+                fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, border: 'none',
               }}>
               {tab === 'graph' ? 'Graph' : 'Results table'}
             </button>
@@ -382,20 +382,20 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
 
       {/* Instructions */}
       <div className="flex flex-col gap-2">
-        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-muted)', lineHeight: '20px' }}>Instructions</span>
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)', lineHeight: '20px' }}>Instructions</span>
         <textarea value={query} onChange={e => setQuery(e.target.value)}
           placeholder="Ask anything..."
           className="rounded resize-none outline-none"
           style={{
             backgroundColor: 'var(--bg-input)', padding: '8px 12px', border: 'none',
-            fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text)',
+            fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)',
             lineHeight: '20px', height: 128,
           }} />
         <div className="flex gap-2 overflow-hidden">
           {['Households in Texas', 'People in New York who like Friends'].map(tag => (
             <button key={tag} onClick={() => setQuery(tag)}
               className="flex items-center justify-center rounded-md shrink-0"
-              style={{ backgroundColor: 'var(--border)', padding: '0 8px', height: 24, fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-btn)', whiteSpace: 'nowrap', border: 'none' }}>
+              style={{ backgroundColor: 'var(--border)', padding: '0 8px', height: 24, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-btn)', whiteSpace: 'nowrap', border: 'none' }}>
               {tag}
             </button>
           ))}
@@ -413,7 +413,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       {/* Technical details */}
       <div className="flex flex-col gap-[10px]">
         <div className="flex items-center justify-between">
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-muted)', lineHeight: '20px' }}>Technical details</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)', lineHeight: '20px' }}>Technical details</span>
           <div className="flex gap-3 items-center">
             <button className="flex items-center justify-center rounded p-1"
               style={{ border: '1px solid var(--border)', width: 24, height: 24, background: 'transparent' }}>
@@ -444,7 +444,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
 
       <button onClick={onRunAnalysis}
         className="w-full flex items-center justify-center rounded-md transition-opacity hover:opacity-90"
-        style={{ backgroundColor: '#6781a8', height: 40, fontFamily: 'Inter, sans-serif', fontSize: 16, color: '#fff', border: 'none' }}>
+        style={{ backgroundColor: '#6781a8', height: 40, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: '#fff', border: 'none' }}>
         Run Analysis
       </button>
     </div>
@@ -485,12 +485,12 @@ function EditorRow({ label, color, colorDot, accentColor, sliderMin, sliderMax, 
         <div className="flex items-center gap-2">
           {colorDot && <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />}
           {!colorDot && <div style={{ width: 18, height: 2, borderRadius: 1, backgroundColor: color, flexShrink: 0 }} />}
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>{label}</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>{label}</span>
         </div>
         {onColorChange && <ColorSwatch value={color} onChange={onColorChange} />}
       </div>
       <div className="flex items-center gap-2">
-        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>{sliderLabel}</span>
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>{sliderLabel}</span>
         <input type="range" min={sliderMin} max={sliderMax} step={sliderStep} value={sliderValue}
           onChange={e => onSliderChange(parseFloat(e.target.value))}
           style={{ flex: 1, accentColor: accentColor ?? color, height: 4 }} />
@@ -518,7 +518,7 @@ function GraphEditorPanel({ config, onChange, onClose }: {
       <div className="flex items-center justify-between px-4 py-3 sticky top-0" style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', zIndex: 1 }}>
         <div className="flex items-center gap-2">
           <Sliders size={14} strokeWidth={1.5} color="var(--text-muted)" />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Graph Editor</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Graph Editor</span>
         </div>
         <button onClick={onClose} className="flex items-center justify-center rounded"
           style={{ width: 22, height: 22, background: 'transparent', border: 'none' }}>
@@ -528,7 +528,7 @@ function GraphEditorPanel({ config, onChange, onClose }: {
 
       <div className="p-3 flex flex-col gap-0">
         {/* Section: Nodes */}
-        <div className="mb-1" style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+        <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
           Nodes
         </div>
         {GROUP_META.map(({ type, label }) => (
@@ -541,18 +541,18 @@ function GraphEditorPanel({ config, onChange, onClose }: {
         ))}
 
         {/* Section: Glow */}
-        <div className="mt-2 mb-1" style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+        <div className="mt-2 mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
           Glow
         </div>
         <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
           <div className="flex items-center gap-2">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text)', fontWeight: 500, flex: 1 }}>Node glow</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500, flex: 1 }}>Node glow</span>
             <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', width: 32, textAlign: 'right' }}>
               {(config.glowIntensity ?? 0.25).toFixed(2)}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Intensity</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Intensity</span>
             <input type="range" min={0} max={1} step={0.01} value={config.glowIntensity ?? 0.25}
               onChange={e => onChange({ ...config, glowIntensity: parseFloat(e.target.value) })}
               style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }} />
@@ -560,7 +560,7 @@ function GraphEditorPanel({ config, onChange, onClose }: {
         </div>
 
         {/* Section: Lines */}
-        <div className="mt-2 mb-1" style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+        <div className="mt-2 mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
           Lines
         </div>
         <EditorRow
@@ -583,7 +583,7 @@ function GraphEditorPanel({ config, onChange, onClose }: {
       <div className="px-3 pb-3">
         <button onClick={() => onChange(DEFAULT_GRAPH_CONFIG)}
           className="w-full flex items-center justify-center rounded-lg"
-          style={{ height: 30, backgroundColor: 'var(--bg-btn)', border: '1px solid var(--border)', fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-muted)' }}>
+          style={{ height: 30, backgroundColor: 'var(--bg-btn)', border: '1px solid var(--border)', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>
           Reset to defaults
         </button>
       </div>
@@ -640,10 +640,10 @@ function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3D; onClose
         <div className="flex items-center gap-3">
           <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: nodeColor, flexShrink: 0, boxShadow: `0 0 8px ${nodeColor}88` }} />
           <div className="flex flex-col">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: 'var(--text)', lineHeight: '20px' }}>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, fontWeight: 600, color: 'var(--text)', lineHeight: '20px' }}>
               {isHub ? node.label : node.label.slice(0, 16) + (node.label.length > 16 ? '…' : '')}
             </span>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: nodeColor, lineHeight: '16px', fontWeight: 500 }}>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: nodeColor, lineHeight: '16px', fontWeight: 500 }}>
               {meta.label}
             </span>
           </div>
@@ -657,7 +657,7 @@ function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3D; onClose
       <div className="flex flex-col gap-4 p-4 overflow-y-auto flex-1">
         {/* ID */}
         <div className="flex flex-col gap-1">
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Node ID</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Node ID</span>
           <code style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', backgroundColor: 'var(--bg-input)', padding: '4px 8px', borderRadius: 4, wordBreak: 'break-all' }}>
             {node.id}
           </code>
@@ -666,20 +666,20 @@ function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3D; onClose
         {/* Description */}
         {details?.description && (
           <div className="flex flex-col gap-1">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>About</span>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-muted)', lineHeight: '18px' }}>{details.description}</p>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>About</span>
+            <p style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '18px' }}>{details.description}</p>
           </div>
         )}
 
         {/* Metrics */}
         <div className="flex flex-col gap-1">
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Metrics</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Metrics</span>
           <div className="flex flex-col gap-1">
             {metrics.map(({ label, value }) => (
               <div key={label} className="flex items-center justify-between rounded px-3 py-2"
                 style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-muted)' }}>{label}</span>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{value}</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>{label}</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{value}</span>
               </div>
             ))}
           </div>
@@ -687,15 +687,15 @@ function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3D; onClose
 
         {/* Type badge */}
         <div className="flex flex-col gap-1">
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Type</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Type</span>
           <div className="flex items-center gap-2">
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 999, border: `1px solid ${nodeColor}55`, backgroundColor: `${nodeColor}18` }}>
               <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: nodeColor }} />
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: nodeColor, fontWeight: 500 }}>{meta.label}</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: nodeColor, fontWeight: 500 }}>{meta.label}</span>
             </div>
             {isHub && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 999, border: '1px solid var(--border)', backgroundColor: 'var(--bg-btn)' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Hub</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Hub</span>
               </div>
             )}
           </div>
@@ -704,15 +704,15 @@ function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3D; onClose
         {/* Connections */}
         {details?.connections && (
           <div className="flex flex-col gap-1">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Connected to</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Connected to</span>
             <div className="flex flex-wrap gap-1">
               {details.connections.slice(0, 8).map(c => (
-                <span key={c} style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--text-muted)', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: 4 }}>
+                <span key={c} style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: 4 }}>
                   {c}
                 </span>
               ))}
               {details.connections.length > 8 && (
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--text-dim)', padding: '2px 6px' }}>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-dim)', padding: '2px 6px' }}>
                   +{details.connections.length - 8} more
                 </span>
               )}
@@ -724,7 +724,7 @@ function NodeDetailPanel({ node, onClose, graphConfig }: { node: Node3D; onClose
       {/* Footer action */}
       <div className="px-4 py-3" style={{ borderTop: '1px solid var(--border)' }}>
         <button className="w-full flex items-center justify-center gap-2 rounded-lg"
-          style={{ height: 32, backgroundColor: nodeColor, border: 'none', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: '#fff' }}>
+          style={{ height: 32, backgroundColor: nodeColor, border: 'none', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: '#fff' }}>
           <Network size={13} strokeWidth={1.5} color="#fff" />
           Explore node
         </button>
@@ -774,8 +774,8 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
           <div className="flex gap-6 items-center">
             {[{ val: '75.7k', sub: 'People match' }, { val: '67.5k', sub: 'Seed household' }].map(({ val, sub }) => (
               <div key={sub} className="flex flex-col items-center">
-                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 20, color: 'var(--text)', lineHeight: '28px' }}>{val}</span>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>{sub}</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 600, fontSize: 20, color: 'var(--text)', lineHeight: '28px' }}>{val}</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>{sub}</span>
               </div>
             ))}
           </div>
@@ -789,7 +789,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
                 {dot
                   ? <div className="rounded-full" style={{ width: 10, height: 10, backgroundColor: color }} />
                   : <div style={{ width: 10, height: 2, backgroundColor: color }} />}
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text)', lineHeight: '20px' }}>{label}</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)', lineHeight: '20px' }}>{label}</span>
               </div>
             ))}
           </div>
@@ -798,15 +798,15 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 
           {/* Counts */}
           <div className="flex gap-4 items-center">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-dim)' }}>20 nodes</span>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-dim)' }}>20 edges</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>20 nodes</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>20 edges</span>
           </div>
 
           <PillDivider />
 
           <button onClick={onNavigateAudience}
             className="flex items-center justify-center rounded-md transition-colors"
-            style={{ backgroundColor: 'var(--bg-btn)', padding: '0 12px', height: 32, fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-btn)', border: 'none' }}>
+            style={{ backgroundColor: 'var(--bg-btn)', padding: '0 12px', height: 32, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-btn)', border: 'none' }}>
             Explore this audience
           </button>
         </div>
@@ -827,9 +827,9 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
           <div className="flex flex-col rounded-lg overflow-hidden flex-1"
             style={{ pointerEvents: 'auto', backgroundColor: 'var(--bg-card-alt)', border: '1px solid var(--border)', maxHeight: 'calc(100vh - 130px)' }}>
             <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 20, fontWeight: 500, color: 'var(--text)' }}>Result bindings</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 20, fontWeight: 500, color: 'var(--text)' }}>Result bindings</span>
               <button className="flex items-center gap-2 rounded"
-                style={{ border: '1px solid var(--border)', padding: '0 12px', height: 32, background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-btn)' }}>
+                style={{ border: '1px solid var(--border)', padding: '0 12px', height: 32, background: 'transparent', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-btn)' }}>
                 <Download size={14} strokeWidth={1.5} color="var(--text-dim)" />
                 Export to CSV
               </button>
@@ -839,7 +839,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)' }}>
                     {['House Hold', 'Samba ID', 'Genre Score', 'Topic Score'].map(h => (
-                      <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: 'var(--text-muted)' }}>{h}</th>
+                      <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, fontWeight: 500, color: 'var(--text-muted)' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -848,15 +848,15 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
                     <tr key={i} style={{ borderBottom: '1px solid var(--border)', backgroundColor: i % 2 === 1 ? 'var(--bg-input)' : 'transparent' }}>
                       <td style={{ padding: '10px 16px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text)' }}>{row.household}</td>
                       <td style={{ padding: '10px 16px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text)' }}>{row.sambaId}</td>
-                      <td style={{ padding: '10px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{row.genreScore}</td>
-                      <td style={{ padding: '10px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{row.topicScore}</td>
+                      <td style={{ padding: '10px 16px', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{row.genreScore}</td>
+                      <td style={{ padding: '10px 16px', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text)', textAlign: 'center' }}>{row.topicScore}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid var(--border)' }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-dim)' }}>Showing 10 of 20 results</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>Showing 10 of 20 results</span>
               <div className="flex items-center gap-2">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} className="flex items-center justify-center rounded"
                   style={{ width: 28, height: 28, border: '1px solid var(--border)', background: 'transparent' }}>
@@ -864,7 +864,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
                 </button>
                 {[1, 2].map(p => (
                   <button key={p} onClick={() => setPage(p)} className="flex items-center justify-center rounded"
-                    style={{ width: 28, height: 28, border: '1px solid var(--border)', backgroundColor: page === p ? '#6781a8' : 'transparent', color: page === p ? '#fff' : '#a3a3a3', fontFamily: 'Inter, sans-serif', fontSize: 14 }}>
+                    style={{ width: 28, height: 28, border: '1px solid var(--border)', backgroundColor: page === p ? '#6781a8' : 'transparent', color: page === p ? '#fff' : '#a3a3a3', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14 }}>
                     {p}
                   </button>
                 ))}
@@ -882,11 +882,11 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
       <div className="flex items-center justify-center p-4" style={{ pointerEvents: 'none' }}>
         <div className="flex items-center gap-6 rounded-lg px-6 py-2"
           style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)', pointerEvents: 'auto' }}>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
             Showing 34 of 512,000 households
           </span>
           <PillDivider />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)', lineHeight: '20px' }}>
             Click on any node for more information.
           </span>
         </div>
@@ -942,7 +942,7 @@ function GenresModal({ onClose, selectedGenres, onConfirm }: {
         style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', width: 600, padding: 24, maxHeight: '90vh', overflow: 'hidden', boxShadow: '0 20px 60px var(--shadow)' }}>
 
         <div className="flex items-start justify-between">
-          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 30, color: 'var(--text)', lineHeight: 'normal' }}>Add genres</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 30, color: 'var(--text)', lineHeight: 'normal' }}>Add genres</span>
           <button onClick={onClose}><X size={20} strokeWidth={1.5} color="var(--text)" /></button>
         </div>
 
@@ -950,7 +950,7 @@ function GenresModal({ onClose, selectedGenres, onConfirm }: {
           {(['genres', 'topics'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} className="px-4 py-1"
               style={{
-                fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14,
+                fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 14,
                 color: tab === t ? 'var(--accent)' : 'var(--text-dim)',
                 borderBottom: tab === t ? '2px solid var(--accent)' : '2px solid transparent',
                 marginBottom: -2, background: 'transparent',
@@ -961,14 +961,14 @@ function GenresModal({ onClose, selectedGenres, onConfirm }: {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, color: 'var(--text)' }}>Browse {tab}</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: 'var(--text)' }}>Browse {tab}</span>
           <div className="relative">
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search"
               className="w-full rounded outline-none"
-              style={{ backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', height: 48, paddingLeft: 16, paddingRight: 48, fontFamily: 'Inter, sans-serif', fontSize: 16, color: 'var(--text-sub)' }} />
+              style={{ backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', height: 48, paddingLeft: 16, paddingRight: 48, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: 'var(--text-sub)' }} />
             <Search size={18} strokeWidth={1.5} color="var(--text-ph)" style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)' }} />
           </div>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>
             {filtered.length} of {genres.length} available {tab}
           </span>
         </div>
@@ -986,8 +986,8 @@ function GenresModal({ onClose, selectedGenres, onConfirm }: {
                     </svg>
                   )}
                 </button>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, color: 'var(--text)', flex: 1 }}>{item.name}</span>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-dim)' }}>{item.count}</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: 'var(--text)', flex: 1 }}>{item.name}</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{item.count}</span>
               </div>
             ))}
           </div>
@@ -996,12 +996,12 @@ function GenresModal({ onClose, selectedGenres, onConfirm }: {
 
         <div className="flex gap-4 items-center justify-end">
           <button onClick={onClose} className="flex items-center justify-center rounded"
-            style={{ border: '1px solid var(--border)', height: 40, padding: '0 16px', background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: 16, color: 'var(--text-btn)' }}>
+            style={{ border: '1px solid var(--border)', height: 40, padding: '0 16px', background: 'transparent', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: 'var(--text-btn)' }}>
             Cancel
           </button>
           <button onClick={() => { onConfirm(Array.from(checked)); onClose(); }}
             className="flex items-center justify-center rounded"
-            style={{ backgroundColor: 'var(--accent)', height: 40, padding: '0 16px', border: 'none', fontFamily: 'Inter, sans-serif', fontSize: 16, color: '#fff' }}>
+            style={{ backgroundColor: 'var(--accent)', height: 40, padding: '0 16px', border: 'none', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: '#fff' }}>
             Confirm
           </button>
         </div>
@@ -1035,22 +1035,22 @@ function SeedInterestSidebar({ onAddGenre }: { onAddGenre: () => void }) {
     <div className="flex flex-col gap-4 shrink-0 rounded-lg overflow-y-auto"
       style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', width: 260, padding: 12, maxHeight: 'calc(100vh - 32px)' }}>
 
-      <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 20, color: 'var(--text)', lineHeight: '1.5' }}>Seed interests</p>
+      <p style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)', lineHeight: '1.5' }}>Seed interests</p>
 
       {/* Genres */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 16, color: 'var(--text)' }}>Genres</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 16, color: 'var(--text)' }}>Genres</span>
           <div className="flex gap-2">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>856 available</span>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)', fontWeight: 600 }}>1 selected</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>856 available</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)', fontWeight: 600 }}>1 selected</span>
           </div>
         </div>
         <div className="flex flex-col gap-1 rounded-lg p-2" style={{ border: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: '#cb3557', flex: 1 }}>Sports</span>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-dim)' }}>Interested</span>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-dim)' }}>0.45</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, fontWeight: 500, color: '#cb3557', flex: 1 }}>Sports</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>Interested</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>0.45</span>
             <button><Trash2 size={14} strokeWidth={1.5} color="var(--text-dim)" /></button>
           </div>
           <div className="relative py-1.5">
@@ -1067,17 +1067,17 @@ function SeedInterestSidebar({ onAddGenre }: { onAddGenre: () => void }) {
       {/* Topics */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 16, color: 'var(--text)' }}>Topics</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 16, color: 'var(--text)' }}>Topics</span>
           <div className="flex gap-2">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>34 shown</span>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)', fontWeight: 600 }}>1 selected</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>34 shown</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)', fontWeight: 600 }}>1 selected</span>
           </div>
         </div>
         <div className="flex flex-col gap-1 rounded-lg p-2" style={{ border: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, color: '#77cca6', flex: 1 }}>News &amp; Politics</span>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-dim)' }}>Interested</span>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-dim)' }}>0.45</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, fontWeight: 500, color: '#77cca6', flex: 1 }}>News &amp; Politics</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>Interested</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>0.45</span>
             <button><Trash2 size={14} strokeWidth={1.5} color="var(--text-dim)" /></button>
           </div>
           <div className="relative py-1.5">
@@ -1091,7 +1091,7 @@ function SeedInterestSidebar({ onAddGenre }: { onAddGenre: () => void }) {
 
       <button onClick={onAddGenre}
         className="flex items-center justify-center gap-2 rounded-md w-full"
-        style={{ border: '1px solid var(--border)', height: 40, background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: 16, color: 'var(--text-btn)' }}>
+        style={{ border: '1px solid var(--border)', height: 40, background: 'transparent', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: 'var(--text-btn)' }}>
         <Plus size={16} strokeWidth={1.5} color="var(--text-btn)" />
         Add genre or topic
       </button>
@@ -1108,18 +1108,18 @@ function AudienceView({ onAddGenre }: { onAddGenre: () => void }) {
         <div className="flex flex-col gap-4 flex-1 overflow-y-auto">
           {/* Title row */}
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 30, color: 'var(--text)' }}>Audience profile</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 30, color: 'var(--text)' }}>Audience profile</span>
             <div className="flex items-center gap-8">
               <div className="flex gap-4 items-center">
                 {[{ label: 'Households', val: d.households }, { label: 'Est. population', val: d.population }].map(({ label, val }) => (
                   <div key={label} className="flex flex-col items-center gap-1">
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>{label}</span>
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 30, color: 'var(--text)', lineHeight: 1 }}>{val}</span>
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>{label}</span>
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 30, color: 'var(--text)', lineHeight: 1 }}>{val}</span>
                   </div>
                 ))}
               </div>
               <button className="flex items-center justify-center rounded"
-                style={{ border: '1px solid var(--accent)', height: 40, padding: '0 16px', background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: 16, color: 'var(--accent)' }}>
+                style={{ border: '1px solid var(--accent)', height: 40, padding: '0 16px', background: 'transparent', fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: 'var(--accent)' }}>
                 View tech inquiry
               </button>
             </div>
@@ -1130,8 +1130,8 @@ function AudienceView({ onAddGenre }: { onAddGenre: () => void }) {
             {/* Also interested in */}
             <div className="flex flex-col gap-4 rounded-xl p-6 flex-1" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)' }}>
               <div>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 20, color: 'var(--text)', display: 'block' }}>Also interested in</span>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)', display: 'block', marginTop: 4 }}>Index vs. all households — 1.00× is average. Click a row to add it as a seed.</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)', display: 'block' }}>Also interested in</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)', display: 'block', marginTop: 4 }}>Index vs. all households — 1.00× is average. Click a row to add it as a seed.</span>
               </div>
               <div className="flex flex-col gap-2.5">
                 {d.alsoInterestedIn.map(item => {
@@ -1139,12 +1139,12 @@ function AudienceView({ onAddGenre }: { onAddGenre: () => void }) {
                   return (
                     <div key={item.name} className="flex items-center gap-3">
                       <div className="rounded shrink-0" style={{ width: 8, height: 8, backgroundColor: item.type === 'genre' ? 'var(--accent)' : '#e87f9b' }} />
-                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text)', width: 140, flexShrink: 0 }}>{item.name}</span>
+                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)', width: 140, flexShrink: 0 }}>{item.name}</span>
                       <div className="flex-1 rounded-sm overflow-hidden" style={{ height: 8, backgroundColor: 'var(--border)' }}>
                         <div className="h-full rounded-sm" style={{ width: `${barW}%`, backgroundColor: 'var(--accent)' }} />
                       </div>
-                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-ph)', width: 36, textAlign: 'right', flexShrink: 0 }}>{item.index}</span>
-                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-ph)', width: 44, textAlign: 'right', flexShrink: 0 }}>{item.count}</span>
+                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-ph)', width: 36, textAlign: 'right', flexShrink: 0 }}>{item.index}</span>
+                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-ph)', width: 44, textAlign: 'right', flexShrink: 0 }}>{item.count}</span>
                     </div>
                   );
                 })}
@@ -1154,36 +1154,36 @@ function AudienceView({ onAddGenre }: { onAddGenre: () => void }) {
                   {[{ label: 'Genre', color: 'var(--accent)' }, { label: 'Topic', color: '#e87f9b' }].map(({ label, color }) => (
                     <div key={label} className="flex gap-2 items-center">
                       <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: color }} />
-                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>{label}</span>
+                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>{label}</span>
                     </div>
                   ))}
                 </div>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>households co-occurring</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>households co-occurring</span>
               </div>
             </div>
 
             {/* Where they live */}
             <div className="flex flex-col gap-4 rounded-xl p-6" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', minWidth: 280 }}>
               <div>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 20, color: 'var(--text)', display: 'block' }}>Where they live</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)', display: 'block' }}>Where they live</span>
                 <div className="flex items-center gap-2 mt-1">
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>0.8×</span>
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>0.8×</span>
                   <div className="flex-1 rounded-full overflow-hidden" style={{ height: 4, backgroundColor: 'var(--border)' }}>
                     <div className="h-full rounded-full" style={{ width: '60%', backgroundColor: 'var(--accent)' }} />
                   </div>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>1.5×</span>
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>1.5×</span>
                 </div>
               </div>
               <div className="rounded flex items-center justify-center" style={{ backgroundColor: 'var(--bg-input)', height: 120, border: '1px solid var(--border)' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-dim)' }}>State index map</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)' }}>State index map</span>
               </div>
               <div>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)', display: 'block', marginBottom: 8 }}>TOP STATES</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)', display: 'block', marginBottom: 8 }}>TOP STATES</span>
                 <div className="flex flex-col gap-1.5">
                   {d.topStates.map(s => (
                     <div key={s.name} className="flex items-center justify-between">
-                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text)' }}>{s.name}</span>
-                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-ph)' }}>{s.index}</span>
+                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)' }}>{s.name}</span>
+                      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-ph)' }}>{s.index}</span>
                     </div>
                   ))}
                 </div>
@@ -1194,31 +1194,31 @@ function AudienceView({ onAddGenre }: { onAddGenre: () => void }) {
           {/* Bottom four cards */}
           <div className="flex gap-4 flex-wrap">
             <div className="flex flex-col gap-3 rounded-xl p-4 flex-1" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', minWidth: 160 }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Age</span>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>People per band, summed</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Age</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>People per band, summed</span>
               <MiniBarChart values={d.ageBands} color="var(--accent)" />
             </div>
             <div className="flex flex-col gap-3 rounded-xl p-4 flex-1" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', minWidth: 160 }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Household income</span>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>11 bands · skews mid-market</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Household income</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>11 bands · skews mid-market</span>
               <MiniBarChart values={d.incomes} color="var(--accent)" />
             </div>
             <div className="flex flex-col gap-3 rounded-xl p-4 flex-1" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', minWidth: 160 }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Race &amp; ethnicity</span>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>People per band, summed</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Race &amp; ethnicity</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>People per band, summed</span>
               <div className="flex flex-col gap-2">
                 {d.race.map(r => (
                   <div key={r.label} className="flex items-center gap-2">
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-muted)', width: 60, flexShrink: 0 }}>{r.label}</span>
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', width: 60, flexShrink: 0 }}>{r.label}</span>
                     <HorizBar value={r.pct} max={1} color="var(--accent)" />
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)', width: 40, textAlign: 'right' }}>{r.value}</span>
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)', width: 40, textAlign: 'right' }}>{r.value}</span>
                   </div>
                 ))}
               </div>
             </div>
             <div className="flex flex-col gap-3 rounded-xl p-4 flex-1" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', minWidth: 160 }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Household makeup</span>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-ph)' }}>Average per household</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)' }}>Household makeup</span>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-ph)' }}>Average per household</span>
               <div className="flex flex-col gap-2">
                 {[
                   { label: 'Household size', val: d.householdMakeup.size },
@@ -1226,15 +1226,15 @@ function AudienceView({ onAddGenre }: { onAddGenre: () => void }) {
                   { label: 'Children', val: d.householdMakeup.children },
                 ].map(({ label, val }) => (
                   <div key={label} className="flex items-center justify-between">
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-muted)' }}>{label}</span>
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 20, fontWeight: 500, color: 'var(--text)' }}>{val}</span>
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)' }}>{label}</span>
+                    <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 20, fontWeight: 500, color: 'var(--text)' }}>{val}</span>
                   </div>
                 ))}
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-muted)' }}>Male {d.householdMakeup.male}</span>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--text-muted)' }}>Female {d.householdMakeup.female}</span>
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>Male {d.householdMakeup.male}</span>
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>Female {d.householdMakeup.female}</span>
                 </div>
                 <div className="flex rounded-full overflow-hidden" style={{ height: 6 }}>
                   <div style={{ flex: d.householdMakeup.malePct, backgroundColor: '#4a6b9a' }} />
@@ -1251,7 +1251,7 @@ function AudienceView({ onAddGenre }: { onAddGenre: () => void }) {
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [view, setView]             = useState<View>('graph');
+  const [view, setView]             = useState<View>('home');
   const [lastQuery, setLastQuery]   = useState('');
   const [showGenres, setShowGenres] = useState(false);
   const [selGenres, setSelGenres]   = useState<number[]>([1]);
