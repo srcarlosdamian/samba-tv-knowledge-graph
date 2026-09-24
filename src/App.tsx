@@ -539,24 +539,24 @@ function SparqlCodeViewer({ code, onCopy, copied }: { code: string; onCopy: () =
     const upper = token.toUpperCase();
     const keywords = ['PREFIX', 'SELECT', 'WHERE', 'GRAPH', 'LIMIT', 'CONSTRUCT', 'OPTIONAL', 'FILTER', 'BIND', 'COUNT', 'AS', 'A'];
     if (keywords.includes(upper)) {
-      return <span key={key} style={{ color: 'var(--SIGNAL--RED-500, #BE2440)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--SIGNAL--RED-500, #BE2440)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>{token}</span>;
     }
     if (token.startsWith('<') && token.endsWith('>')) {
-      return <span key={key} style={{ color: 'var(--green-500, #63BA8C)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--green-500, #63BA8C)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>{token}</span>;
     }
     if (token.startsWith('"') || token.startsWith("'")) {
-      return <span key={key} style={{ color: 'var(--SANDSTONE-500, #A6684C)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--SANDSTONE-500, #A6684C)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>{token}</span>;
     }
     if (token.startsWith('samba:') || token.startsWith('show:') || token.startsWith('experian:') || token.startsWith('device:')) {
-      return <span key={key} style={{ color: 'var(--PACIFIC--BLUE-500, #6781A8)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--PACIFIC--BLUE-500, #6781A8)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>{token}</span>;
     }
     if (/^\d+$/.test(token)) {
-      return <span key={key} style={{ color: 'var(--teal-500, #6AC1BF)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--teal-500, #6AC1BF)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>{token}</span>;
     }
     if (token === ':' || token === '{' || token === '}' || token === ';') {
-      return <span key={key} style={{ color: 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
+      return <span key={key} style={{ color: 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>{token}</span>;
     }
-    return <span key={key} style={{ color: 'var(--black, #E5E5E5)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>{token}</span>;
+    return <span key={key} style={{ color: 'var(--black, #E5E5E5)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>{token}</span>;
   };
 
   const highlightLine = (line: string) => {
@@ -565,29 +565,97 @@ function SparqlCodeViewer({ code, onCopy, copied }: { code: string; onCopy: () =
   };
 
   return (
-    <div style={{ alignSelf: 'stretch', padding: 12, background: 'var(--white, #1A1A1A)', overflow: 'hidden', border: 'none', borderRadius: 8, justifyContent: 'flex-start', alignItems: 'flex-start', gap: 10, display: 'inline-flex' }}>
-      <div style={{ textAlign: 'right', color: 'var(--NEUTRAL-300, #4A4D50)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px', userSelect: 'none' }}>
-        {lines.map((_, idx) => (
-          <div key={idx} style={{ height: 20 }}>{idx + 1}</div>
-        ))}
-      </div>
-      <div style={{ flex: '1 1 0', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 0, display: 'inline-flex', overflowX: 'auto', maxHeight: 180 }} className="hide-scrollbar">
-        {lines.map((line, idx) => (
-          <div key={idx} style={{ alignSelf: 'stretch', height: 20, whiteSpace: 'pre' }}>
-            {highlightLine(line)}
-          </div>
-        ))}
-      </div>
-      <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', display: 'inline-flex', minHeight: 60 }}>
-        <div style={{ width: 4, height: 40, background: 'var(--NEUTRAL-200, #2E2E2E)', borderRadius: 99 }} />
-        <button
-          onClick={onCopy}
-          style={{ width: 24, height: 24, padding: 4, borderRadius: 4, outline: '1px var(--NEUTRAL-200, #2E2E2E) solid', outlineOffset: '-1px', justifyContent: 'center', alignItems: 'center', display: 'inline-flex', background: 'transparent', border: 'none', cursor: 'pointer' }}
-          title={copied ? 'Copied!' : 'Copy SPARQL'}
+    <div
+      style={{
+        alignSelf: 'stretch',
+        padding: '10px 12px',
+        background: 'var(--white, #1A1A1A)',
+        borderRadius: 8,
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Scrollable code area with exact 5 lines visible (5 lines * 20px = 100px) */}
+      <div
+        style={{
+          maxHeight: 100, // Exact 5 lines
+          overflowY: 'auto',
+          overflowX: 'auto',
+          display: 'flex',
+          gap: 12,
+          paddingRight: 28, // space for copy button
+        }}
+      >
+        {/* Line numbers */}
+        <div
+          style={{
+            textAlign: 'right',
+            color: 'var(--NEUTRAL-300, #4A4D50)',
+            fontSize: 12,
+            fontFamily: "'Season Sans', 'Inter', sans-serif",
+            fontWeight: 400,
+            lineHeight: '20px',
+            userSelect: 'none',
+            flexShrink: 0,
+          }}
         >
-          {copied ? <Check size={12} color="#63BA8C" /> : <Copy size={12} color="var(--NEUTRAL-600, #A3A3A3)" />}
-        </button>
+          {lines.map((_, idx) => (
+            <div key={idx} style={{ height: 20, minHeight: 20 }}>
+              {idx + 1}
+            </div>
+          ))}
+        </div>
+
+        {/* Code lines */}
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {lines.map((line, idx) => (
+            <div
+              key={idx}
+              style={{
+                height: 20,
+                minHeight: 20,
+                whiteSpace: 'pre',
+                lineHeight: '20px',
+              }}
+            >
+              {highlightLine(line)}
+            </div>
+          ))}
+        </div>
       </div>
+
+      {/* Copy button */}
+      <button
+        onClick={onCopy}
+        style={{
+          position: 'absolute',
+          bottom: 8,
+          right: 8,
+          width: 24,
+          height: 24,
+          padding: 4,
+          borderRadius: 4,
+          outline: '1px var(--NEUTRAL-200, #2E2E2E) solid',
+          outlineOffset: '-1px',
+          justifyContent: 'center',
+          alignItems: 'center',
+          display: 'inline-flex',
+          background: 'var(--white, #1A1A1A)',
+          border: 'none',
+          cursor: 'pointer',
+          zIndex: 5,
+        }}
+        title={copied ? 'Copied!' : 'Copy SPARQL'}
+      >
+        {copied ? <Check size={12} color="#63BA8C" /> : <Copy size={12} color="var(--NEUTRAL-600, #A3A3A3)" />}
+      </button>
     </div>
   );
 }
