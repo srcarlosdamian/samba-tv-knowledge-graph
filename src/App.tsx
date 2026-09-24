@@ -8,7 +8,7 @@ import {
   genres, topics, tableRows, audienceData,
   type Genre, type Topic
 } from './db';
-import Graph3D, { DEFAULT_GRAPH_CONFIG, type GraphConfig, type NodeType, type Graph3DHandle, type Node3D } from './Graph3D';
+import Graph3D, { DEFAULT_GRAPH_CONFIG, GRAPH_SCENE_DATA, type GraphConfig, type NodeType, type Graph3DHandle, type Node3D } from './Graph3D';
 
 type View = 'home' | 'graph' | 'audience';
 type GraphTab = 'graph' | 'table';
@@ -363,7 +363,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       <div className="flex flex-col gap-[10px]">
         <div className="flex items-center justify-between">
           <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)', lineHeight: '20px' }}>Display</span>
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)', lineHeight: '16px' }}>20 nodes</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)', lineHeight: '16px' }}>{GRAPH_SCENE_DATA.nodes.length} nodes</span>
         </div>
         <div className="flex gap-1 rounded p-1" style={{ backgroundColor: 'var(--bg-input)', height: 32 }}>
           {(['graph', 'table'] as GraphTab[]).map(tab => (
@@ -859,8 +859,8 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 
           {/* Counts */}
           <div className="flex gap-4 items-center">
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>20 nodes</span>
-            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>20 edges</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{GRAPH_SCENE_DATA.nodes.length} nodes</span>
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-dim)' }}>{GRAPH_SCENE_DATA.edges.length} edges</span>
           </div>
 
           <PillDivider />

@@ -66,7 +66,7 @@ function fibSphere(n: number, radius: number): [number, number, number][] {
   return pts;
 }
 
-function buildScene(): { nodes: Node3D[]; edges: Edge3D[] } {
+export function buildScene(): { nodes: Node3D[]; edges: Edge3D[] } {
   const nodes: Node3D[] = [];
   const edges: Edge3D[] = [];
 
@@ -104,6 +104,8 @@ function buildScene(): { nodes: Node3D[]; edges: Edge3D[] } {
 
   return { nodes, edges };
 }
+
+export const GRAPH_SCENE_DATA = buildScene();
 
 const Graph3D = forwardRef<Graph3DHandle, { config?: GraphConfig; onNodeClick?: (node: Node3D | null) => void }>(function Graph3D({ config, onNodeClick }, ref) {
   const mountRef = useRef<HTMLDivElement>(null);
