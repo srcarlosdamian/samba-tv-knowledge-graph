@@ -300,33 +300,33 @@ function SelectDropdown({ label, options, value, onChange }: {
   }, []);
 
   return (
-    <div className="flex flex-col gap-2 flex-1 relative" ref={ref}>
-      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)' }}>{label}</span>
+    <div className="flex flex-col gap-1 flex-1 relative" ref={ref}>
+      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>{label}</span>
       <button onClick={() => setOpen(p => !p)}
         className="relative flex items-center rounded"
         style={{
-          backgroundColor: 'var(--bg-input)', height: 32, paddingLeft: 10, paddingRight: 28,
+          backgroundColor: 'var(--bg-input)', height: 28, paddingLeft: 8, paddingRight: 24,
           border: open ? '1px solid var(--accent)' : '1px solid var(--border)', textAlign: 'left',
         }}>
-        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {selected.label}
         </span>
-        <ChevronDown size={12} strokeWidth={1.5} color="var(--text-dim)"
-          style={{ position: 'absolute', right: 8, transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'none' }} />
+        <ChevronDown size={11} strokeWidth={1.5} color="var(--text-dim)"
+          style={{ position: 'absolute', right: 6, transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'none' }} />
       </button>
       {open && (
         <div className="absolute z-50 rounded-lg overflow-hidden"
           style={{ top: '100%', left: 0, right: 0, marginTop: 4, backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-mid)', boxShadow: '0 8px 24px var(--shadow)' }}>
           {options.map(opt => (
             <button key={opt.value} onClick={() => { onChange(opt.value); setOpen(false); }}
-              className="w-full flex flex-col items-start px-3 py-2 transition-colors"
+              className="w-full flex flex-col items-start px-2.5 py-1.5 transition-colors"
               style={{ backgroundColor: opt.value === value ? 'var(--bg-btn-active)' : 'transparent', borderBottom: '1px solid var(--border)' }}
               onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-btn)')}
               onMouseLeave={e => (e.currentTarget.style.backgroundColor = opt.value === value ? 'var(--bg-btn-active)' : 'transparent')}>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: opt.value === value ? 'var(--text)' : 'var(--text-btn)', fontWeight: opt.value === value ? 500 : 400 }}>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: opt.value === value ? 'var(--text)' : 'var(--text-btn)', fontWeight: opt.value === value ? 500 : 400 }}>
                 {opt.label}
               </span>
-              {opt.desc && <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-dim)', marginTop: 1 }}>{opt.desc}</span>}
+              {opt.desc && <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, color: 'var(--text-dim)', marginTop: 1 }}>{opt.desc}</span>}
             </button>
           ))}
         </div>
@@ -480,33 +480,35 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
   const [limit, setLimit] = useState('20');
 
   return (
-    <div className="flex flex-col gap-[18px] rounded-lg overflow-y-auto shrink-0"
+    <div className="flex flex-col gap-2.5 rounded-lg shrink-0 hide-scrollbar"
       style={{
         backgroundColor: 'var(--bg-card)',
-        width: 290, padding: 12,
-        maxHeight: 'calc(100vh - 130px)',
-        boxShadow: '0 1px 1px rgba(0,0,0,0.05)',
+        width: 280, padding: '10px 12px',
+        maxHeight: 'calc(100vh - 80px)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         position: 'relative', zIndex: 10,
+        overflowY: 'auto',
       }}>
 
-      <p style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500, fontSize: 20, color: 'var(--text)', lineHeight: '1.5' }}>
+      <p style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 600, fontSize: 16, color: 'var(--text)', lineHeight: '20px' }}>
         Knowledge Graph
       </p>
 
       {/* Display toggle */}
-      <div className="flex flex-col gap-[10px]">
+      <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)', lineHeight: '20px' }}>Display</span>
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-dim)', lineHeight: '16px' }}>{GRAPH_SCENE_DATA.nodes.length} nodes</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>Display</span>
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-dim)', lineHeight: '14px' }}>{GRAPH_SCENE_DATA.nodes.length} nodes</span>
         </div>
-        <div className="flex gap-1 rounded p-1" style={{ backgroundColor: 'var(--bg-input)', height: 32 }}>
+        <div className="flex gap-1 rounded p-0.5" style={{ backgroundColor: 'var(--bg-input)', height: 28 }}>
           {(['graph', 'table'] as GraphTab[]).map(tab => (
             <button key={tab} onClick={() => setGraphTab(tab)}
-              className="flex flex-1 items-center justify-center rounded"
+              className="flex flex-1 items-center justify-center rounded transition-colors"
               style={{
-                backgroundColor: graphTab === tab ? 'rgba(255,255,255,0.04)' : 'transparent',
+                backgroundColor: graphTab === tab ? 'rgba(255,255,255,0.06)' : 'transparent',
                 color: graphTab === tab ? 'var(--text)' : 'var(--text-dim)',
-                fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, border: 'none',
+                fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, border: 'none',
+                cursor: 'pointer',
               }}>
               {tab === 'graph' ? 'Graph' : 'Results table'}
             </button>
@@ -515,15 +517,15 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       </div>
 
       {/* Instructions */}
-      <div className="flex flex-col gap-2">
-        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)', lineHeight: '20px' }}>Instructions</span>
+      <div className="flex flex-col gap-1.5">
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>Instructions</span>
         <textarea value={query} onChange={e => setQuery(e.target.value)}
           placeholder="Ask anything..."
           className="rounded resize-none outline-none"
           style={{
-            backgroundColor: 'var(--bg-input)', padding: '8px 12px', border: 'none',
-            fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)',
-            lineHeight: '20px', height: 128,
+            backgroundColor: 'var(--bg-input)', padding: '6px 10px', border: 'none',
+            fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text)',
+            lineHeight: '18px', height: 72,
           }} />
         <SuggestionSlider currentQuery={query} onSelect={setQuery} />
       </div>
@@ -531,32 +533,34 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
 
       {/* Model / Limit */}
-      <div className="flex gap-4">
+      <div className="flex gap-2.5">
         <SelectDropdown label="Model" options={MODELS} value={model} onChange={setModel} />
         <SelectDropdown label="Limit" options={LIMITS} value={limit} onChange={setLimit} />
       </div>
 
       {/* Technical details */}
-      <div className="flex flex-col gap-[10px]">
+      <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text-muted)', lineHeight: '20px' }}>Technical details</span>
-          <div className="flex gap-3 items-center">
-            <button className="flex items-center justify-center rounded p-1"
-              style={{ border: '1px solid var(--border)', width: 24, height: 24, background: 'transparent' }}>
-              <Copy size={12} strokeWidth={1.5} color="var(--text-dim)" />
+          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>Technical details</span>
+          <div className="flex gap-2 items-center">
+            <button className="flex items-center justify-center rounded p-1 hover:bg-[var(--bg-btn)] transition-colors"
+              style={{ border: '1px solid var(--border)', width: 20, height: 20, background: 'transparent', cursor: 'pointer' }}
+              title="Copy query">
+              <Copy size={11} strokeWidth={1.5} color="var(--text-dim)" />
             </button>
             <button onClick={() => setTechExpanded(p => !p)}
-              className="flex items-center justify-center rounded p-1"
-              style={{ border: '1px solid var(--border)', width: 24, height: 24, background: 'transparent' }}>
+              className="flex items-center justify-center rounded p-1 hover:bg-[var(--bg-btn)] transition-colors"
+              style={{ border: '1px solid var(--border)', width: 20, height: 20, background: 'transparent', cursor: 'pointer' }}
+              title="Toggle details">
               {techExpanded
-                ? <ChevronUp size={12} strokeWidth={1.5} color="var(--text-dim)" />
-                : <ChevronDown size={12} strokeWidth={1.5} color="var(--text-dim)" />}
+                ? <ChevronUp size={11} strokeWidth={1.5} color="var(--text-dim)" />
+                : <ChevronDown size={11} strokeWidth={1.5} color="var(--text-dim)" />}
             </button>
           </div>
         </div>
         {techExpanded && (
-          <div className="rounded p-2 overflow-x-auto"
-            style={{ backgroundColor: 'var(--bg-input)', border: 'none', fontFamily: 'monospace', color: 'var(--text-dim)', fontSize: 11, lineHeight: '18px', whiteSpace: 'pre' }}>
+          <div className="rounded p-2 overflow-x-auto hide-scrollbar"
+            style={{ backgroundColor: 'var(--bg-input)', border: 'none', fontFamily: 'monospace', color: 'var(--text-dim)', fontSize: 10, lineHeight: '15px', whiteSpace: 'pre', maxHeight: 110 }}>
             <span style={{ color: '#9b59b6' }}>PREFIX</span>{' samba <http://samba.tv/ontolo...>\n'}
             <span style={{ color: '#9b59b6' }}>SELECT</span>{' ?household ?exp\n'}
             <span style={{ color: '#9b59b6' }}>WHERE</span>{' {\n  '}
@@ -569,8 +573,8 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       </div>
 
       <button onClick={onRunAnalysis}
-        className="w-full flex items-center justify-center rounded-md transition-opacity hover:opacity-90"
-        style={{ backgroundColor: '#6781a8', height: 40, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 16, color: '#fff', border: 'none' }}>
+        className="w-full flex items-center justify-center rounded-md transition-opacity hover:opacity-90 cursor-pointer"
+        style={{ backgroundColor: '#6781a8', height: 34, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, fontWeight: 550, color: '#fff', border: 'none' }}>
         Run Analysis
       </button>
     </div>
