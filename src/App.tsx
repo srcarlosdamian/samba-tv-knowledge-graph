@@ -510,6 +510,60 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
   );
 }
 
+function SparqlCodeViewer({ code, onCopy, copied }: { code: string; onCopy: () => void; copied: boolean }) {
+  const lines = code.trim().split('\n');
+
+  const highlightLine = (line: string) => {
+    const keywords = ['PREFIX', 'SELECT', 'WHERE', 'GRAPH', 'LIMIT', 'CONSTRUCT', 'OPTIONAL', 'FILTER'];
+    const parts = line.split(/(\s+|[{}<>;])/);
+
+    return parts.map((part, i) => {
+      const upper = part.toUpperCase();
+      if (keywords.includes(upper)) {
+        return <span key={i} style={{ color: '#e05263', fontWeight: 500 }}>{part}</span>;
+      }
+      if (part.startsWith('?') || part.startsWith('$')) {
+        return <span key={i} style={{ color: '#93c5fd' }}>{part}</span>;
+      }
+      if (part.startsWith('<') && part.endsWith('>')) {
+        return <span key={i} style={{ color: '#38bdf8' }}>{part}</span>;
+      }
+      if (part.startsWith('samba:') || part.startsWith('show:') || part.startsWith('experian:')) {
+        return <span key={i} style={{ color: '#67e8f9' }}>{part}</span>;
+      }
+      if (/^\d+$/.test(part)) {
+        return <span key={i} style={{ color: '#38bdf8' }}>{part}</span>;
+      }
+      return <span key={i} style={{ color: '#d1d5db' }}>{part}</span>;
+    });
+  };
+
+  return (
+    <div className="relative rounded-md overflow-hidden" style={{ backgroundColor: '#141414', padding: '10px 10px 26px 10px' }}>
+      <div className="flex flex-col gap-0.5 font-mono text-[10.5px] leading-[16px] overflow-x-auto hide-scrollbar" style={{ maxHeight: 180 }}>
+        {lines.map((line, idx) => (
+          <div key={idx} className="flex gap-2.5">
+            <span style={{ color: '#52525b', width: 12, textAlign: 'right', userSelect: 'none', flexShrink: 0 }}>
+              {idx + 1}
+            </span>
+            <span className="whitespace-pre flex-1">
+              {highlightLine(line)}
+            </span>
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={onCopy}
+        className="absolute bottom-1.5 right-1.5 flex items-center justify-center rounded p-1 transition-colors cursor-pointer hover:bg-[#333333]"
+        style={{ backgroundColor: '#222222', border: '1px solid #333333', width: 22, height: 22 }}
+        title={copied ? 'Copied!' : 'Copy query'}
+      >
+        {copied ? <Check size={11} color="#48bb78" /> : <Copy size={11} strokeWidth={1.5} color="#9e9e9e" />}
+      </button>
+    </div>
+  );
+}
+
 // ─── Knowledge Graph Sidebar (floating card) ──────────────────────────────────
 function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAnalysis, sparqlQuery, nodeCount }: {
   graphTab: GraphTab; setGraphTab: (t: GraphTab) => void;
@@ -519,47 +573,52 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
   nodeCount?: number;
 }) {
   const [techExpanded, setTechExpanded] = useState(false);
+  const [sparqlTab, setSparqlTab] = useState<'select' | 'construct'>('select');
   const [model, setModel] = useState('haiku');
   const [limit, setLimit] = useState('20');
   const [copied, setCopied] = useState(false);
 
+  const activeSparqlCode = sparqlQuery ?? `PREFIX samba: <http://samba.tv/ontology/graph#>\nSELECT ?household ?exp\nWHERE {\n  GRAPH <http://samba.tv/data/identity#> {\n    ?household a samba:Household ;\n      samba:stateOfResidence "Texas" .\n  }\n}\nLIMIT 20`;
+
   const handleCopy = () => {
-    if (sparqlQuery) {
-      navigator.clipboard.writeText(sparqlQuery);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    }
+    navigator.clipboard.writeText(activeSparqlCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-lg shrink-0 hide-scrollbar"
+    <div className="flex flex-col gap-3 rounded-xl shrink-0 hide-scrollbar"
       style={{
-        backgroundColor: 'var(--bg-card)',
-        width: 280, padding: '10px 12px',
-        maxHeight: 'calc(100vh - 80px)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        position: 'relative', zIndex: 10,
+        backgroundColor: '#1e1e1e',
+        width: 290,
+        padding: '14px 14px 16px 14px',
+        maxHeight: 'calc(100vh - 70px)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+        position: 'relative',
+        zIndex: 10,
         overflowY: 'auto',
       }}>
 
-      <p style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 600, fontSize: 16, color: 'var(--text)', lineHeight: '20px' }}>
+      <h2 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontWeight: 400, fontSize: 24, color: '#f3f4f6', lineHeight: '28px', letterSpacing: '-0.3px' }}>
         Knowledge Graph
-      </p>
+      </h2>
 
       {/* Display toggle */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>Display</span>
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-dim)', lineHeight: '14px' }}>{nodeCount ?? 37} nodes</span>
+          <span style={{ fontSize: 12, color: '#a3a3a3', lineHeight: '16px' }}>Display</span>
+          <span style={{ fontSize: 11, color: '#737373', lineHeight: '14px' }}>{nodeCount ?? 20} nodes</span>
         </div>
-        <div className="flex gap-1 rounded p-0.5" style={{ backgroundColor: 'var(--bg-input)', height: 28 }}>
+        <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', height: 30 }}>
           {(['graph', 'table'] as GraphTab[]).map(tab => (
             <button key={tab} onClick={() => setGraphTab(tab)}
               className="flex flex-1 items-center justify-center rounded transition-colors"
               style={{
-                backgroundColor: graphTab === tab ? 'rgba(255,255,255,0.06)' : 'transparent',
-                color: graphTab === tab ? 'var(--text)' : 'var(--text-dim)',
-                fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, border: 'none',
+                backgroundColor: graphTab === tab ? '#282828' : 'transparent',
+                color: graphTab === tab ? '#ffffff' : '#737373',
+                fontSize: 12,
+                fontWeight: graphTab === tab ? 500 : 400,
+                border: 'none',
                 cursor: 'pointer',
               }}>
               {tab === 'graph' ? 'Graph' : 'Results table'}
@@ -570,57 +629,99 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
 
       {/* Instructions */}
       <div className="flex flex-col gap-1.5">
-        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>Instructions</span>
-        <textarea value={query} onChange={e => setQuery(e.target.value)}
+        <span style={{ fontSize: 12, color: '#a3a3a3', lineHeight: '16px' }}>Instructions</span>
+        <textarea
+          value={query}
+          onChange={e => setQuery(e.target.value)}
           placeholder="Ask anything..."
-          className="rounded resize-none outline-none"
+          className="rounded-md resize-none outline-none"
           style={{
-            backgroundColor: 'var(--bg-input)', padding: '6px 10px', border: 'none',
-            fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: 'var(--text)',
-            lineHeight: '18px', height: 72,
-          }} />
+            backgroundColor: '#141414',
+            padding: '8px 10px',
+            border: 'none',
+            fontSize: 13,
+            color: '#e5e5e5',
+            lineHeight: '19px',
+            height: 76,
+          }}
+        />
         <SuggestionSlider currentQuery={query} onSelect={setQuery} />
       </div>
 
-      <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
-
-      {/* Model / Limit */}
-      <div className="flex gap-2.5">
-        <SelectDropdown label="Model" options={MODELS} value={model} onChange={setModel} />
+      {/* Limit */}
+      <div className="flex flex-col gap-1">
         <SelectDropdown label="Limit" options={LIMITS} value={limit} onChange={setLimit} />
       </div>
 
       {/* Technical details */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)', lineHeight: '16px' }}>Technical details</span>
-          <div className="flex gap-2 items-center">
-            <button onClick={handleCopy} className="flex items-center justify-center rounded p-1 hover:bg-[var(--bg-btn)] transition-colors"
-              style={{ border: '1px solid var(--border)', width: 20, height: 20, background: 'transparent', cursor: 'pointer' }}
-              title={copied ? 'Copied!' : 'Copy query'}>
-              {copied ? <Check size={11} color="#48bb78" /> : <Copy size={11} strokeWidth={1.5} color="var(--text-dim)" />}
-            </button>
-            <button onClick={() => setTechExpanded(p => !p)}
-              className="flex items-center justify-center rounded p-1 hover:bg-[var(--bg-btn)] transition-colors"
-              style={{ border: '1px solid var(--border)', width: 20, height: 20, background: 'transparent', cursor: 'pointer' }}
-              title="Toggle details">
-              {techExpanded
-                ? <ChevronUp size={11} strokeWidth={1.5} color="var(--text-dim)" />
-                : <ChevronDown size={11} strokeWidth={1.5} color="var(--text-dim)" />}
-            </button>
-          </div>
+          <span style={{ fontSize: 12, color: '#a3a3a3', lineHeight: '16px' }}>Technical details</span>
+          <button
+            onClick={() => setTechExpanded(p => !p)}
+            className="flex items-center justify-center rounded p-1 hover:bg-[#2e2e2e] transition-colors"
+            style={{ border: '1px solid #2e2e2e', width: 22, height: 22, background: '#1e1e1e', cursor: 'pointer' }}
+            title="Toggle details"
+          >
+            {techExpanded
+              ? <ChevronUp size={12} strokeWidth={1.5} color="#9e9e9e" />
+              : <ChevronDown size={12} strokeWidth={1.5} color="#9e9e9e" />}
+          </button>
         </div>
+
         {techExpanded && (
-          <div className="rounded p-2 overflow-x-auto hide-scrollbar"
-            style={{ backgroundColor: 'var(--bg-input)', border: 'none', fontFamily: 'monospace', color: 'var(--text-dim)', fontSize: 10, lineHeight: '15px', whiteSpace: 'pre-wrap', maxHeight: 140 }}>
-            {sparqlQuery ?? `PREFIX samba: <http://samba.tv/ontology/graph#>\nSELECT ?household ?device WHERE {\n  ?household samba:hasDevice ?device .\n}\nLIMIT ${limit}`}
+          <div className="flex flex-col gap-2 pt-1">
+            <SelectDropdown label="Model" options={MODELS} value={model} onChange={setModel} />
+
+            {/* Select / Construct Toggle */}
+            <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', height: 28 }}>
+              <button
+                onClick={() => setSparqlTab('select')}
+                className="flex flex-1 items-center justify-center rounded transition-colors"
+                style={{
+                  backgroundColor: sparqlTab === 'select' ? '#282828' : 'transparent',
+                  color: sparqlTab === 'select' ? '#ffffff' : '#737373',
+                  fontSize: 12,
+                  fontWeight: sparqlTab === 'select' ? 500 : 400,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Select
+              </button>
+              <button
+                onClick={() => setSparqlTab('construct')}
+                className="flex flex-1 items-center justify-center rounded transition-colors"
+                style={{
+                  backgroundColor: sparqlTab === 'construct' ? '#282828' : 'transparent',
+                  color: sparqlTab === 'construct' ? '#ffffff' : '#737373',
+                  fontSize: 12,
+                  fontWeight: sparqlTab === 'construct' ? 500 : 400,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Construct
+              </button>
+            </div>
+
+            <SparqlCodeViewer code={activeSparqlCode} onCopy={handleCopy} copied={copied} />
           </div>
         )}
       </div>
 
-      <button onClick={onRunAnalysis}
-        className="w-full flex items-center justify-center rounded-md transition-opacity hover:opacity-90 cursor-pointer"
-        style={{ backgroundColor: '#6781a8', height: 34, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, fontWeight: 550, color: '#fff', border: 'none' }}>
+      <button
+        onClick={onRunAnalysis}
+        className="w-full flex items-center justify-center rounded-lg transition-opacity hover:opacity-90 cursor-pointer mt-1"
+        style={{
+          backgroundColor: '#5b7aa5',
+          height: 40,
+          fontSize: 14,
+          fontWeight: 500,
+          color: '#ffffff',
+          border: 'none',
+        }}
+      >
         Run Analysis
       </button>
     </div>
