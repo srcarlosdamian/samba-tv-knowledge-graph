@@ -1361,10 +1361,10 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 
   return (
     // Outer wrapper — graph is the background, all UI floats with pointer-events management
-    <div className="flex-1 relative overflow-hidden" style={{ backgroundColor: 'var(--bg)', minHeight: '100vh' }}>
+    <div className="flex-1 relative overflow-hidden" style={{ backgroundColor: 'var(--bg, #1a1a1a)', minHeight: '100vh' }}>
 
-      {/* ── Graph fills the entire background — receives all pointer events ── */}
-      <div className="absolute inset-0" style={{ zIndex: 0 }}>
+      {/* ── Graph fills the entire background when in graph mode — hidden on table mode ── */}
+      <div className="absolute inset-0" style={{ zIndex: 0, display: graphTab === 'graph' ? 'block' : 'none' }}>
         <Graph3D ref={graphRef} dataset={dataset} config={graphConfig} onNodeClick={setSelectedNode} />
       </div>
 
