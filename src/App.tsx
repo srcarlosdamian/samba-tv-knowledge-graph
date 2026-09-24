@@ -84,7 +84,7 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
       >
         {/* Top */}
         <div className="flex flex-col gap-6 items-center w-full">
-          <button onClick={() => setView('home')} className="flex items-center justify-center" style={{ width: 24, height: 20 }}>
+          <button onClick={() => setView('graph')} className="flex items-center justify-center" style={{ width: 24, height: 20 }}>
             <img alt="logo" src="/assets/05855.svg" style={{ width: 24, height: 20, display: 'block' }} />
           </button>
           <div className="flex flex-col gap-4 items-center w-full">
@@ -1251,7 +1251,7 @@ function AudienceView({ onAddGenre }: { onAddGenre: () => void }) {
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [view, setView]             = useState<View>('home');
+  const [view, setView]             = useState<View>('graph');
   const [lastQuery, setLastQuery]   = useState('');
   const [showGenres, setShowGenres] = useState(false);
   const [selGenres, setSelGenres]   = useState<number[]>([1]);
