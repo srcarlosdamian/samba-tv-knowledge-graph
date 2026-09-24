@@ -1571,8 +1571,57 @@ function GraphEditorPanel({ config, onChange, onClose }: {
             <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
               Edge Relation Labels
             </div>
+
+            {/* Edge Text Toggle */}
+            <div className="flex items-center justify-between rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
+              <div className="flex items-center gap-1.5">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                  Show Edge Text
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => onChange({ ...config, showEdgeText: config.showEdgeText === false })}
+                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer"
+                style={{ backgroundColor: config.showEdgeText !== false ? 'var(--accent)' : 'var(--border-mid)' }}
+              >
+                <span
+                  className="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
+                  style={{ transform: config.showEdgeText !== false ? 'translateX(18px)' : 'translateX(2px)' }}
+                />
+              </button>
+            </div>
+
+            {/* Edge Text Opacity */}
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: config.edgeTextColor ?? '#888888' }} />
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                    Edge Text Opacity
+                  </span>
+                </div>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {((config.edgeTextOpacity ?? 0.85) * 100).toFixed(0)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Alpha</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={config.edgeTextOpacity ?? 0.85}
+                  onChange={e => onChange({ ...config, edgeTextOpacity: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: config.edgeTextColor ?? '#888888', height: 4 }}
+                />
+              </div>
+            </div>
+
+            {/* Edge Text Size & Color */}
             <EditorRow
-              label="Edge relation text" color={config.edgeTextColor ?? '#888888'}
+              label="Edge relation style" color={config.edgeTextColor ?? '#888888'}
               accentColor="var(--accent)"
               sliderMin={0.2} sliderMax={2.0} sliderStep={0.05} sliderValue={config.edgeTextSize ?? 0.45} sliderLabel="Size"
               onColorChange={hex => onChange({ ...config, edgeTextColor: hex })}

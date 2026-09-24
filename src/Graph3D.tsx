@@ -55,6 +55,7 @@ export interface GraphConfig {
   hubTextOpacity?: number;       // 0 to 1.0, opacity for Hub titles text (default 1.0)
   edgeTextColor?: string;        // Color for edge relationship & weight text (default #888888)
   edgeTextSize?: number;         // 0.4 to 2.0, edge text size multiplier (default 0.45)
+  edgeTextOpacity?: number;      // 0 to 1.0, independent opacity for edge relationship & weight text (default 0.85)
   showEdgeText?: boolean;        // Toggle edge text labels
 }
 
@@ -120,6 +121,7 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   hubTextOpacity: 1.0,
   edgeTextColor: '#888888',
   edgeTextSize: 0.45,
+  edgeTextOpacity: 0.85,
   showEdgeText: true,
 };
 
@@ -897,37 +899,49 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
         });
       }
 
-      // Edge weight & relation labels
+      // Edge weight & relation labels (Completely independent from line opacity)
       if (cfg.showEdgeText !== false) {
         const edgeTextScale = cfg.edgeTextSize ?? 1.0;
         const edgeColor = cfg.edgeTextColor ?? '#d1d5db';
+        const edgeAlpha = cfg.edgeTextOpacity ?? 0.85;
 
-        edgeStates.forEach(es => {
-          const m = es.mid;
-          if (!m || !m.visible || es.currentOpacity < 0.25) return;
-          const { sx, sy, behind } = project(m.x, m.y, m.z);
-          if (behind) return;
+        if (edgeAlpha > 0.005) {
+          edgeStates.forEach(es => {
+            const m = es.mid;
+            if (!m || !m.visible) return;
+            const { sx, sy, behind } = project(m.x, m.y, m.z);
+            if (behind) return;
 
-          const d2 = window.devicePixelRatio;
-          ctx.shadowColor = 'rgba(0,0,0,0.95)';
-          ctx.shadowBlur = 4 * d2;
-          ctx.globalAlpha = Math.min(1, es.currentOpacity * 1.5);
+            const d2 = window.devicePixelRatio;
+            ctx.shadowColor = 'rgba(0,0,0,0.95)';
+            ctx.shadowBlur = 4 * d2;
 
-          if (m.rel) {
-            ctx.font = `400 ${8.5 * d2 * edgeTextScale}px Inter, sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.fillStyle = selectedNodeId ? '#ffffff' : '#d1d5db';
-            ctx.fillText(m.rel, sx * d2, (sy - 6 * edgeTextScale) * d2);
-          }
-          if (m.weight) {
-            ctx.font = `600 ${9 * d2 * edgeTextScale}px Inter, sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#ffffff';
-            ctx.fillText(m.weight, sx * d2, (sy + 5 * edgeTextScale) * d2);
-          }
-          ctx.shadowBlur = 0;
-          ctx.globalAlpha = 1;
-        });
+            // Completely independent opacity: when node is selected, connected edges stay vivid
+            const isConnectedToSelection = selectedNodeId && (es.data.from === selectedNodeId || es.data.to === selectedNodeId);
+            if (selectedNodeId) {
+              ctx.globalAlpha = isConnectedToSelection ? edgeAlpha : edgeAlpha * 0.15;
+            } else {
+              ctx.globalAlpha = edgeAlpha;
+            }
+
+            if (ctx.globalAlpha <= 0.005) return;
+
+            if (m.rel) {
+              ctx.font = `400 ${8.5 * d2 * edgeTextScale}px Inter, sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.fillStyle = selectedNodeId ? '#ffffff' : edgeColor;
+              ctx.fillText(m.rel, sx * d2, (sy - 6 * edgeTextScale) * d2);
+            }
+            if (m.weight) {
+              ctx.font = `600 ${9 * d2 * edgeTextScale}px Inter, sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.fillStyle = '#ffffff';
+              ctx.fillText(m.weight, sx * d2, (sy + 5 * edgeTextScale) * d2);
+            }
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+          });
+        }
       }
     }
 
