@@ -15,9 +15,18 @@ export interface GraphConfig {
   colors: Record<string, string>;
   sizes: Record<string, number>;
   glowIntensity: number;   // 0–1, emissive intensity multiplier
+
+  // ─── Lines (Líneas) ────────────────────────────────────────────────────────
   edgeColor: string;
   hubEdgeColor: string;
   edgeOpacity: number;
+
+  // ─── Text & Labels (Texto y Etiquetas) ─────────────────────────────────────
+  textSize?: number;       // 0.4 to 2.5, node text size multiplier (default 1.0)
+  textOpacity?: number;    // 0 to 1.0, node text label opacity (default 1.0)
+  edgeTextColor?: string;  // color for edge relationship & weight text (default #888888)
+  edgeTextSize?: number;   // 0.4 to 2.0, edge text size multiplier (default 1.0)
+  showEdgeText?: boolean;  // toggle edge text labels
 }
 
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
@@ -47,9 +56,18 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
     income_bracket: 1,
   },
   glowIntensity: 0.25,
+
+  // Lines default
   edgeColor: '#6a7a8a',
   hubEdgeColor: '#9aaaaa',
   edgeOpacity: 0.45,
+
+  // Text / Labels default
+  textSize: 1.0,
+  textOpacity: 1.0,
+  edgeTextColor: '#888888',
+  edgeTextSize: 1.0,
+  showEdgeText: true,
 };
 
 export interface Graph3DHandle {
@@ -495,67 +513,78 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       const dpr = window.devicePixelRatio;
       ctx.clearRect(0, 0, lc.width, lc.height);
 
-      nodes.forEach(n => {
-        const alpha = nodeAlpha.get(n.id) ?? 0;
-        if (alpha <= 0) return;
-        const mesh = nodeMap.get(n.id);
-        if (!mesh) return;
+      const cfg = configRef.current;
+      const nodeTextScale = cfg.textSize ?? 1.0;
+      const nodeTextAlpha = cfg.textOpacity ?? 1.0;
 
-        const { sx, sy, behind } = project(n.x, n.y, n.z);
-        if (behind) return;
+      if (nodeTextAlpha > 0.01 && nodeTextScale > 0.01) {
+        nodes.forEach(n => {
+          const alpha = nodeAlpha.get(n.id) ?? 0;
+          if (alpha <= 0) return;
+          const mesh = nodeMap.get(n.id);
+          if (!mesh) return;
 
-        const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
-        const isSelected = selectedNodeId === n.id;
-        const isMagenta = magentaHighlightedNodeIds.has(n.id);
+          const { sx, sy, behind } = project(n.x, n.y, n.z);
+          if (behind) return;
 
-        const fontSize = (isHub ? 13 : isSelected ? 11 : 9) * dpr;
-        ctx.font = `${isHub || isSelected ? '600' : '400'} ${fontSize}px Inter, 'Season Sans', sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.globalAlpha = isSelected ? 1 : alpha;
-        ctx.shadowColor = 'rgba(0,0,0,0.95)';
-        ctx.shadowBlur = (isHub ? 6 : 4) * dpr;
+          const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
+          const isSelected = selectedNodeId === n.id;
+          const isMagenta = magentaHighlightedNodeIds.has(n.id);
 
-        if (isMagenta) {
-          ctx.fillStyle = '#D53F8C';
-        } else if (isSelected) {
-          ctx.fillStyle = '#60a5fa';
-        } else {
-          ctx.fillStyle = configRef.current.colors[n.type] ?? '#ffffff';
-        }
+          const fontSize = (isHub ? 13 : isSelected ? 11 : 9) * dpr * nodeTextScale;
+          ctx.font = `${isHub || isSelected ? '600' : '400'} ${fontSize}px Inter, 'Season Sans', sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.globalAlpha = (isSelected ? 1 : alpha) * nodeTextAlpha;
+          ctx.shadowColor = 'rgba(0,0,0,0.95)';
+          ctx.shadowBlur = (isHub ? 6 : 4) * dpr;
 
-        const yOffset = isHub ? n.size + 16 : -n.size - 4;
-        ctx.fillText(n.label, sx * dpr, (sy + yOffset) * dpr);
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1;
-      });
+          if (isMagenta) {
+            ctx.fillStyle = '#D53F8C';
+          } else if (isSelected) {
+            ctx.fillStyle = '#60a5fa';
+          } else {
+            ctx.fillStyle = cfg.colors[n.type] ?? '#ffffff';
+          }
+
+          const yOffset = isHub ? n.size + 16 : -n.size - 4;
+          ctx.fillText(n.label, sx * dpr, (sy + yOffset) * dpr);
+          ctx.shadowBlur = 0;
+          ctx.globalAlpha = 1;
+        });
+      }
 
       // Edge weight & relation labels
-      edgeStates.forEach(es => {
-        const m = es.mid;
-        if (!m || !m.visible || es.currentOpacity < 0.25) return;
-        const { sx, sy, behind } = project(m.x, m.y, m.z);
-        if (behind) return;
+      if (cfg.showEdgeText !== false) {
+        const edgeTextScale = cfg.edgeTextSize ?? 1.0;
+        const edgeColor = cfg.edgeTextColor ?? '#888888';
 
-        const d2 = window.devicePixelRatio;
-        ctx.shadowColor = 'rgba(0,0,0,0.95)';
-        ctx.shadowBlur = 4 * d2;
-        ctx.globalAlpha = Math.min(1, es.currentOpacity * 1.5);
+        edgeStates.forEach(es => {
+          const m = es.mid;
+          if (!m || !m.visible || es.currentOpacity < 0.25) return;
+          const { sx, sy, behind } = project(m.x, m.y, m.z);
+          if (behind) return;
 
-        if (m.rel) {
-          ctx.font = `400 ${8.5 * d2}px Inter, sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.fillStyle = '#888888';
-          ctx.fillText(m.rel, sx * d2, (sy - 6) * d2);
-        }
-        if (m.weight) {
-          ctx.font = `600 ${9 * d2}px Inter, sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.fillStyle = selectedNodeId ? '#93c5fd' : '#bbbbbb';
-          ctx.fillText(m.weight, sx * d2, (sy + 5) * d2);
-        }
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1;
-      });
+          const d2 = window.devicePixelRatio;
+          ctx.shadowColor = 'rgba(0,0,0,0.95)';
+          ctx.shadowBlur = 4 * d2;
+          ctx.globalAlpha = Math.min(1, es.currentOpacity * 1.5);
+
+          if (m.rel) {
+            ctx.font = `400 ${8.5 * d2 * edgeTextScale}px Inter, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.fillStyle = edgeColor;
+            ctx.fillText(m.rel, sx * d2, (sy - 6 * edgeTextScale) * d2);
+          }
+          if (m.weight) {
+            ctx.font = `600 ${9 * d2 * edgeTextScale}px Inter, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.fillStyle = selectedNodeId ? '#93c5fd' : (edgeColor === '#888888' ? '#bbbbbb' : edgeColor);
+            ctx.fillText(m.weight, sx * d2, (sy + 5 * edgeTextScale) * d2);
+          }
+          ctx.shadowBlur = 0;
+          ctx.globalAlpha = 1;
+        });
+      }
     }
 
     // ─── Reveal Physics Animation ────────────────────────────────────────────

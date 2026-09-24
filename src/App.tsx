@@ -932,21 +932,79 @@ function GraphEditorPanel({ config, onChange, onClose }: {
 
         {/* Section: Lines */}
         <div className="mt-2 mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
-          Lines
+          Lines (Edges)
         </div>
         <EditorRow
-          label="Edge color" color={config.edgeColor}
+          label="Edge lines" color={config.edgeColor}
           accentColor="var(--accent)"
           sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.edgeOpacity} sliderLabel="Opacity"
           onColorChange={hex => onChange({ ...config, edgeColor: hex })}
           onSliderChange={val => onChange({ ...config, edgeOpacity: val })}
         />
         <EditorRow
-          label="Hub edge" color={config.hubEdgeColor}
+          label="Hub edge lines" color={config.hubEdgeColor}
           accentColor="var(--accent)"
           sliderMin={0} sliderMax={1} sliderStep={0.01} sliderValue={config.edgeOpacity} sliderLabel="Opacity"
           onColorChange={hex => onChange({ ...config, hubEdgeColor: hex })}
           onSliderChange={val => onChange({ ...config, edgeOpacity: val })}
+        />
+
+        {/* Section: Text & Labels */}
+        <div className="mt-3 mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+          Text &amp; Labels
+        </div>
+        <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
+          <div className="flex items-center justify-between">
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+              Node Text Size
+            </span>
+            <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+              {((config.textSize ?? 1.0) * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Size</span>
+            <input
+              type="range"
+              min={0.4}
+              max={2.5}
+              step={0.05}
+              value={config.textSize ?? 1.0}
+              onChange={e => onChange({ ...config, textSize: parseFloat(e.target.value) })}
+              style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
+          <div className="flex items-center justify-between">
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+              Node Text Opacity
+            </span>
+            <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+              {((config.textOpacity ?? 1.0) * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Opacity</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={config.textOpacity ?? 1.0}
+              onChange={e => onChange({ ...config, textOpacity: parseFloat(e.target.value) })}
+              style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+            />
+          </div>
+        </div>
+
+        <EditorRow
+          label="Edge relation text" color={config.edgeTextColor ?? '#888888'}
+          accentColor="var(--accent)"
+          sliderMin={0.4} sliderMax={2.0} sliderStep={0.05} sliderValue={config.edgeTextSize ?? 1.0} sliderLabel="Size"
+          onColorChange={hex => onChange({ ...config, edgeTextColor: hex })}
+          onSliderChange={val => onChange({ ...config, edgeTextSize: val })}
         />
       </div>
 
