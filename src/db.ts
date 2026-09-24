@@ -202,15 +202,83 @@ export const audienceData = {
   },
 };
 
-// ─── Pre-computed Circular Orbital Matrix Helper ──────────────────────────────
+// ─── Pre-computed Dual-Hub Bipolar Radial Matrix Helper ───────────────────────
+export interface BipolarLayoutConfig {
+  hub1Pos?: [number, number, number]; // e.g. [135, -15, 0] (Right Hub: Genre / Main Hub)
+  hub2Pos?: [number, number, number]; // e.g. [-135, -35, 0] (Left Hub: Topic / Secondary Hub)
+  bridgeCount?: number;               // Intermediate bridge nodes between the two hubs
+  fan1Count?: number;                 // Radial burst nodes around Hub 1 (Right Hemisphere)
+  fan2Count?: number;                 // Radial burst nodes around Hub 2 (Left Hemisphere)
+  fan1RadiusMin?: number;
+  fan1RadiusMax?: number;
+  fan2RadiusMin?: number;
+  fan2RadiusMax?: number;
+}
+
+export function generateBipolarPositions(cfg: BipolarLayoutConfig = {}) {
+  const hub1Pos: [number, number, number] = cfg.hub1Pos ?? [135, -15, 0];
+  const hub2Pos: [number, number, number] = cfg.hub2Pos ?? [-135, -35, 0];
+  const bridgeCount = cfg.bridgeCount ?? 6;
+  const fan1Count = cfg.fan1Count ?? 8;
+  const fan2Count = cfg.fan2Count ?? 10;
+  const fan1RadiusMin = cfg.fan1RadiusMin ?? 125;
+  const fan1RadiusMax = cfg.fan1RadiusMax ?? 215;
+  const fan2RadiusMin = cfg.fan2RadiusMin ?? 130;
+  const fan2RadiusMax = cfg.fan2RadiusMax ?? 225;
+
+  // 1. Central Bridge Nodes (spanning vertically in the center corridor between Hub 1 & Hub 2)
+  const bridgePts: [number, number, number][] = [];
+  const ySpan = 230; // from -115 to +115
+  for (let i = 0; i < bridgeCount; i++) {
+    const t = i / Math.max(1, bridgeCount - 1); // 0 to 1
+    const y = -115 + t * ySpan + (i % 2 === 0 ? 10 : -10);
+    // Slight wave in X between the two hubs
+    const midX = (hub1Pos[0] + hub2Pos[0]) / 2;
+    const x = midX + Math.sin(t * Math.PI * 2) * 35 + (i % 2 === 0 ? -14 : 16);
+    const z = Math.cos(t * Math.PI * 3) * 28;
+    bridgePts.push([Math.round(x), Math.round(y), Math.round(z)]);
+  }
+
+  // 2. Hub 1 Outer Radial Fan (Right hemisphere: angles from -75° to +100°)
+  const fan1Pts: [number, number, number][] = [];
+  const startAng1 = -Math.PI * 0.40; // -72 deg
+  const endAng1 = Math.PI * 0.56;    // +100 deg
+  for (let i = 0; i < fan1Count; i++) {
+    const t = i / Math.max(1, fan1Count - 1);
+    const angle = startAng1 + t * (endAng1 - startAng1);
+    const radius = fan1RadiusMin + (i % 3) * ((fan1RadiusMax - fan1RadiusMin) / 2);
+    const x = hub1Pos[0] + Math.cos(angle) * radius;
+    const y = hub1Pos[1] + Math.sin(angle) * radius;
+    const z = (i % 2 === 0 ? 1 : -1) * (15 + (i % 4) * 8);
+    fan1Pts.push([Math.round(x), Math.round(y), Math.round(z)]);
+  }
+
+  // 3. Hub 2 Outer Radial Fan (Left hemisphere: angles from +95° to +265°)
+  const fan2Pts: [number, number, number][] = [];
+  const startAng2 = Math.PI * 0.54;  // +97 deg
+  const endAng2 = Math.PI * 1.48;   // +266 deg
+  for (let i = 0; i < fan2Count; i++) {
+    const t = i / Math.max(1, fan2Count - 1);
+    const angle = startAng2 + t * (endAng2 - startAng2);
+    const radius = fan2RadiusMin + (i % 3) * ((fan2RadiusMax - fan2RadiusMin) / 2);
+    const x = hub2Pos[0] + Math.cos(angle) * radius;
+    const y = hub2Pos[1] + Math.sin(angle) * radius;
+    const z = (i % 2 === 0 ? -1 : 1) * (14 + (i % 4) * 9);
+    fan2Pts.push([Math.round(x), Math.round(y), Math.round(z)]);
+  }
+
+  return { hub1Pos, hub2Pos, bridgePts, fan1Pts, fan2Pts };
+}
+
+// ─── Legacy Pre-computed Circular Orbital Matrix Helper ───────────────────────
 export function circularMatrixOrbit(
   n: number,
   radius: number,
-  tiltX = 0.35,        // Tilt in radians around X axis for 3D perspective
-  tiltZ = 0.15,        // Tilt in radians around Z axis
-  yOffset = 0,         // Vertical elevation tier
-  waveAmp = 16,        // Soft harmonic vertical undulation
-  waveFreq = 2,        // Harmonic frequency
+  tiltX = 0.35,
+  tiltZ = 0.15,
+  yOffset = 0,
+  waveAmp = 16,
+  waveFreq = 2,
   startAngle = 0
 ): [number, number, number][] {
   const pts: [number, number, number][] = [];
@@ -220,7 +288,6 @@ export function circularMatrixOrbit(
     const rawZ = Math.sin(angle) * radius;
     const rawY = yOffset + Math.sin(angle * waveFreq) * waveAmp;
 
-    // Apply 3D matrix rotation
     const cosX = Math.cos(tiltX), sinX = Math.sin(tiltX);
     const cosZ = Math.cos(tiltZ), sinZ = Math.sin(tiltZ);
 
@@ -232,19 +299,6 @@ export function circularMatrixOrbit(
     const z2 = z1;
 
     pts.push([Math.round(x2), Math.round(y2), Math.round(z2)]);
-  }
-  return pts;
-}
-
-// ─── Pre-computed Fibonacci sphere helper ─────────────────────────────────────
-function fibSphere(n: number, radius: number, offsetAngle = 0): [number, number, number][] {
-  const pts: [number, number, number][] = [];
-  const golden = Math.PI * (3 - Math.sqrt(5));
-  for (let i = 0; i < n; i++) {
-    const y = 1 - (i / Math.max(1, n - 1)) * 2;
-    const r = Math.sqrt(Math.max(0, 1 - y * y));
-    const theta = golden * i + offsetAngle;
-    pts.push([Math.cos(theta) * r * radius, y * radius, Math.sin(theta) * r * radius]);
   }
   return pts;
 }
@@ -279,12 +333,20 @@ function buildExample1_Devices(): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
+  const layout = generateBipolarPositions({
+    hub1Pos: [135, -20, 0],
+    hub2Pos: [-135, -20, 0],
+    bridgeCount: 6,
+    fan1Count: 8,
+    fan2Count: 8,
+  });
+
   // 2 Central Core Hubs
   nodes.push({
     id: 'samba_dex_core1',
     label: 'Samba TV DEX Core A',
     type: 'household',
-    x: -75, y: 0, z: 0,
+    x: layout.hub2Pos[0], y: layout.hub2Pos[1], z: layout.hub2Pos[2],
     size: 26,
     properties: [
       { label: 'Cluster Type', value: 'Primary Multi-Device Hub' },
@@ -300,7 +362,7 @@ function buildExample1_Devices(): GraphDataset {
     id: 'samba_dex_core2',
     label: 'Samba TV DEX Core B',
     type: 'household',
-    x: 75, y: 0, z: 0,
+    x: layout.hub1Pos[0], y: layout.hub1Pos[1], z: layout.hub1Pos[2],
     size: 26,
     properties: [
       { label: 'Cluster Type', value: 'Secondary Multi-Device Hub' },
@@ -320,97 +382,107 @@ function buildExample1_Devices(): GraphDataset {
     hidden: false,
   });
 
-  // Inner Matrix Ring: 10 Households (Radius 190)
-  const hhCount = 10;
-  const hhPts = circularMatrixOrbit(hhCount, 190, 0.32, 0.12, 5, 12, 3, 0);
-
-  for (let i = 0; i < hhCount; i++) {
-    const hhId = `hh_dev_${i}`;
-    const [hx, hy, hz] = hhPts[i];
+  // Central Bridge Households
+  layout.bridgePts.forEach((pos, i) => {
+    const hhId = `hh_dev_bridge_${i}`;
     const sambaId = HH_IDS[i % HH_IDS.length];
-
     nodes.push({
       id: hhId,
       label: sambaId,
       type: 'household',
-      x: hx, y: hy, z: hz,
+      x: pos[0], y: pos[1], z: pos[2],
       size: 13,
       properties: [
         { label: 'Household ID', value: sambaId },
-        { label: 'Country', value: 'US' },
-        { label: 'Status', value: 'Active Match' },
-        { label: 'Graph Sample', value: 'Multi-Device Household (>3 Devices)' },
+        { label: 'Resolution Status', value: 'Dual-Hub Synchronized' },
       ],
       devicesSummary: { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 2, total: 6 },
-      campaignsCount: 4 + (i * 2),
+      campaignsCount: 5 + i,
     });
-
-    const parentCore = i % 2 === 0 ? 'samba_dex_core1' : 'samba_dex_core2';
     edges.push({
-      from: parentCore,
+      from: 'samba_dex_core1',
       to: hhId,
       rel: 'clusterMember',
-      weight: (0.95 - (i % 8) * 0.04).toFixed(2),
-      hidden: i >= 6,
+      weight: (0.95 - i * 0.03).toFixed(2),
+      hidden: false,
     });
-  }
+    edges.push({
+      from: 'samba_dex_core2',
+      to: hhId,
+      rel: 'clusterMember',
+      weight: (0.92 - i * 0.02).toFixed(2),
+      hidden: false,
+    });
+  });
 
-  // Outer Matrix Ring: 16 Devices + Cookies (Radius 290)
-  const devTypes: { cat: DeviceCategory; label: string; name: string }[] = [
+  // Left Fan Devices (Core A)
+  const devTypesLeft: { cat: DeviceCategory; label: string; name: string }[] = [
     { cat: 'samba_tv', label: 'Samba Smart TV 65"', name: 'Samba TV 65"' },
-    { cat: 'apple', label: 'Apple TV 4K', name: 'Apple TV 4K' },
-    { cat: 'apple', label: 'Apple MacBook Pro', name: 'Apple MacBook Pro M3' },
-    { cat: 'apple', label: 'Apple iPhone 15', name: 'Apple iPhone 15' },
     { cat: 'android', label: 'Samsung Galaxy S24', name: 'Samsung Galaxy S24' },
     { cat: 'android', label: 'Google Pixel 8', name: 'Google Pixel 8' },
     { cat: 'cookie_or_ip', label: 'IP Bridge Match', name: 'IP Bridge Match' },
-    { cat: 'cookie_or_ip', label: 'DEX Cookie Sync', name: 'DEX Cookie Sync' },
   ];
-
-  const outerCount = 16;
-  const outerPts = circularMatrixOrbit(outerCount, 290, -0.25, -0.15, -5, 14, 3, Math.PI / 16);
-
-  for (let di = 0; di < outerCount; di++) {
-    const devId = `dev_node_${di}`;
-    const [dx, dy, dz] = outerPts[di];
-    const d = devTypes[di % devTypes.length];
+  layout.fan2Pts.forEach((pos, i) => {
+    const devId = `dev_left_${i}`;
+    const d = devTypesLeft[i % devTypesLeft.length];
     const isCookie = d.cat === 'cookie_or_ip';
-
     nodes.push({
       id: devId,
       label: d.label,
       type: isCookie ? 'cookie_or_ip' : 'device',
       subType: d.cat,
-      x: dx, y: dy, z: dz,
+      x: pos[0], y: pos[1], z: pos[2],
       size: isCookie ? 8 : 10,
-      properties: isCookie
-        ? [
-            { label: 'Cookie Identifier', value: `ck_${HH_IDS[di % HH_IDS.length].slice(0, 8)}_${di}` },
-            { label: 'Simulated IP', value: `192.168.1.${40 + di * 4}` },
-            { label: 'Sync Status', value: 'Valid IP Bridge' },
-          ]
-        : [
-            { label: 'Device ID', value: `dev_${HH_IDS[di % HH_IDS.length].slice(0, 6)}_${d.cat}_${di}` },
-            { label: 'Device Model', value: d.name },
-            { label: 'Match Key Type', value: d.cat === 'samba_tv' ? 'DEX_ID' : 'IP_MATCH' },
-            { label: 'Last Active', value: 'Active Now' },
-          ],
+      properties: [
+        { label: 'Device ID', value: `dev_left_${i + 101}` },
+        { label: 'Model', value: d.name },
+      ],
     });
-
-    const targetHH = `hh_dev_${di % hhCount}`;
     edges.push({
-      from: targetHH,
+      from: 'samba_dex_core1',
       to: devId,
       rel: isCookie ? 'hasCookie' : 'hasDevice',
-      weight: (0.94 - (di % 6) * 0.05).toFixed(2),
-      hidden: di >= 8,
+      weight: (0.94 - (i % 4) * 0.04).toFixed(2),
+      hidden: i >= 5,
     });
-  }
+  });
+
+  // Right Fan Devices (Core B)
+  const devTypesRight: { cat: DeviceCategory; label: string; name: string }[] = [
+    { cat: 'apple', label: 'Apple TV 4K', name: 'Apple TV 4K' },
+    { cat: 'apple', label: 'Apple MacBook Pro', name: 'Apple MacBook Pro M3' },
+    { cat: 'apple', label: 'Apple iPhone 15', name: 'Apple iPhone 15' },
+    { cat: 'cookie_or_ip', label: 'DEX Cookie Sync', name: 'DEX Cookie Sync' },
+  ];
+  layout.fan1Pts.forEach((pos, i) => {
+    const devId = `dev_right_${i}`;
+    const d = devTypesRight[i % devTypesRight.length];
+    const isCookie = d.cat === 'cookie_or_ip';
+    nodes.push({
+      id: devId,
+      label: d.label,
+      type: isCookie ? 'cookie_or_ip' : 'device',
+      subType: d.cat,
+      x: pos[0], y: pos[1], z: pos[2],
+      size: isCookie ? 8 : 10,
+      properties: [
+        { label: 'Device ID', value: `dev_right_${i + 201}` },
+        { label: 'Model', value: d.name },
+      ],
+    });
+    edges.push({
+      from: 'samba_dex_core2',
+      to: devId,
+      rel: isCookie ? 'hasCookie' : 'hasDevice',
+      weight: (0.95 - (i % 4) * 0.04).toFixed(2),
+      hidden: i >= 5,
+    });
+  });
 
   return {
     query: 'Households with Samba TV and more than 3 devices',
     title: 'Samba TV Multi-Device Household Cluster',
-    description: 'Circular orbital matrix of households verified with active Samba TV units and >= 3 connected endpoints.',
+    description: 'Bipolar dual-hub matrix of households verified with active Samba TV units and >= 3 connected endpoints.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -440,12 +512,20 @@ function buildExample2_Texas(): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
+  const layout = generateBipolarPositions({
+    hub1Pos: [135, -20, 0], // Experian Texas
+    hub2Pos: [-135, -20, 0], // Texas Geo Hub
+    bridgeCount: 6,
+    fan1Count: 8,
+    fan2Count: 8,
+  });
+
   // 2 Central Core Elements
   nodes.push({
     id: 'state_tx_core',
     label: 'Texas Geographic Hub',
     type: 'state',
-    x: -75, y: 0, z: 0,
+    x: layout.hub2Pos[0], y: layout.hub2Pos[1], z: layout.hub2Pos[2],
     size: 28,
     properties: [
       { label: 'State Name', value: 'Texas' },
@@ -459,7 +539,7 @@ function buildExample2_Texas(): GraphDataset {
     id: 'experian_tx_core',
     label: 'Experian Texas Mosaic',
     type: 'experian_household',
-    x: 75, y: 0, z: 0,
+    x: layout.hub1Pos[0], y: layout.hub1Pos[1], z: layout.hub1Pos[2],
     size: 26,
     properties: [
       { label: 'Demographic Engine', value: 'Experian Identity Resolution' },
@@ -476,19 +556,14 @@ function buildExample2_Texas(): GraphDataset {
     hidden: false,
   });
 
-  // Inner Matrix Ring: 12 Experian Households (Radius 195)
-  const expCount = 12;
-  const expPts = circularMatrixOrbit(expCount, 195, 0.35, 0.10, 0, 12, 3, 0);
-
-  for (let i = 0; i < expCount; i++) {
-    const expId = `exp_tx_${i}`;
-    const [ex, ey, ez] = expPts[i];
-
+  // Bridge Experian Households
+  layout.bridgePts.forEach((pos, i) => {
+    const expId = `exp_tx_bridge_${i}`;
     nodes.push({
       id: expId,
       label: `Experian HH ${i + 1}`,
       type: 'experian_household',
-      x: ex, y: ey, z: ez,
+      x: pos[0], y: pos[1], z: pos[2],
       size: 11,
       properties: [
         { label: 'Experian ID', value: `EXP-TX-${1000 + i}` },
@@ -496,92 +571,77 @@ function buildExample2_Texas(): GraphDataset {
         { label: 'Match Confidence', value: '98.4%' },
       ],
     });
-
-    edges.push({
-      from: 'experian_tx_core',
-      to: expId,
-      rel: 'verifiedRecord',
-      weight: (0.98 - (i % 6) * 0.03).toFixed(2),
-      hidden: i >= 6,
-    });
-
     edges.push({
       from: 'state_tx_core',
       to: expId,
       rel: 'stateOfResidence',
       weight: '1.00',
-      hidden: i >= 6,
+      hidden: false,
     });
-  }
+    edges.push({
+      from: 'experian_tx_core',
+      to: expId,
+      rel: 'verifiedRecord',
+      weight: (0.98 - i * 0.02).toFixed(2),
+      hidden: false,
+    });
+  });
 
-  // Mid Matrix Ring: 12 Samba Households (Radius 285)
-  const hhCount = 12;
-  const hhPts = circularMatrixOrbit(hhCount, 285, -0.28, -0.18, 0, 14, 3, Math.PI / 12);
-
-  for (let i = 0; i < hhCount; i++) {
-    const hhId = `hh_tx_${i}`;
-    const [hx, hy, hz] = hhPts[i];
+  // Fan 1 (Right): Samba Households
+  layout.fan1Pts.forEach((pos, i) => {
+    const hhId = `hh_tx_fan_${i}`;
     const sambaId = HH_IDS[i % HH_IDS.length];
-
     nodes.push({
       id: hhId,
       label: sambaId,
       type: 'household',
-      x: hx, y: hy, z: hz,
+      x: pos[0], y: pos[1], z: pos[2],
       size: 12,
       properties: [
         { label: 'Household ID', value: sambaId },
-        { label: 'DMA', value: i % 3 === 0 ? 'Dallas-Ft. Worth' : i % 3 === 1 ? 'Houston' : 'Austin-San Antonio' },
+        { label: 'DMA', value: i % 2 === 0 ? 'Dallas-Ft. Worth' : 'Houston' },
         { label: 'Matched State', value: 'Texas' },
       ],
       devicesSummary: { sambaTv: 1, apple: 2, android: 2, cookieOrIp: 1, total: 6 },
-      campaignsCount: 6 + (i % 6),
+      campaignsCount: 6 + i,
     });
-
-    const targetExp = `exp_tx_${i % expCount}`;
     edges.push({
-      from: targetExp,
+      from: 'experian_tx_core',
       to: hhId,
       rel: 'linkedHousehold',
-      weight: '0.95',
-      hidden: i >= 6,
+      weight: (0.95 - (i % 4) * 0.03).toFixed(2),
+      hidden: i >= 5,
     });
-  }
+  });
 
-  // Outer Matrix Ring: 4 Connected Devices (Radius 365)
-  const devPts = circularMatrixOrbit(4, 365, 0.15, 0.25, 0, 8, 2, Math.PI / 4);
-  for (let di = 0; di < 4; di++) {
-    const devId = `dev_tx_${di}`;
-    const [dx, dy, dz] = devPts[di];
-
+  // Fan 2 (Left): Connected Devices
+  layout.fan2Pts.forEach((pos, i) => {
+    const devId = `dev_tx_fan_${i}`;
     nodes.push({
       id: devId,
-      label: di % 2 === 0 ? `Samba TV TX-${di + 1}` : `Device TX-${di + 1}`,
+      label: i % 2 === 0 ? `Samba TV TX-${i + 1}` : `Device TX-${i + 1}`,
       type: 'device',
-      subType: di % 2 === 0 ? 'samba_tv' : 'android',
-      x: dx, y: dy, z: dz,
+      subType: i % 2 === 0 ? 'samba_tv' : 'android',
+      x: pos[0], y: pos[1], z: pos[2],
       size: 9,
       properties: [
-        { label: 'Device ID', value: `dev_tx_${di * 91 + 104}` },
+        { label: 'Device ID', value: `dev_tx_${i * 91 + 104}` },
         { label: 'DMA Region', value: 'Texas Metro' },
-        { label: 'Status', value: 'Active Connected Node' },
       ],
     });
-
-    const targetHH = `hh_tx_${di % hhCount}`;
     edges.push({
-      from: targetHH,
+      from: 'state_tx_core',
       to: devId,
       rel: 'hasDevice',
       weight: '0.90',
-      hidden: false,
+      hidden: i >= 5,
     });
-  }
+  });
 
   return {
     query: 'Households in Texas',
     title: 'Geographic Audience Hub: Texas',
-    description: 'Circular orbital matrix of Texas households linked through intermediate Experian identity resolution nodes.',
+    description: 'Bipolar dual-hub matrix of Texas households linked through intermediate Experian identity resolution nodes.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -606,12 +666,20 @@ function buildExample3_Income(): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
+  const layout = generateBipolarPositions({
+    hub1Pos: [135, -20, 0], // Affluence Index
+    hub2Pos: [-135, -20, 0], // >$75k Income Bracket
+    bridgeCount: 6,
+    fan1Count: 8,
+    fan2Count: 8,
+  });
+
   // 2 Central Core Elements
   nodes.push({
     id: 'income_75k_core',
     label: '>$75k Income Bracket',
     type: 'income_bracket',
-    x: -75, y: 0, z: 0,
+    x: layout.hub2Pos[0], y: layout.hub2Pos[1], z: layout.hub2Pos[2],
     size: 28,
     properties: [
       { label: 'Income Bracket', value: '>$75,000 / year' },
@@ -625,7 +693,7 @@ function buildExample3_Income(): GraphDataset {
     id: 'affluence_index_core',
     label: 'Experian Affluence Index',
     type: 'experian_household',
-    x: 75, y: 0, z: 0,
+    x: layout.hub1Pos[0], y: layout.hub1Pos[1], z: layout.hub1Pos[2],
     size: 26,
     properties: [
       { label: 'Demographic Index', value: 'High Net Worth Cluster' },
@@ -642,110 +710,90 @@ function buildExample3_Income(): GraphDataset {
     hidden: false,
   });
 
-  // Inner Matrix Ring: 12 Experian Demographic Hubs (Radius 195)
-  const expCount = 12;
-  const expPts = circularMatrixOrbit(expCount, 195, 0.32, 0.14, 5, 12, 3, 0);
-
-  for (let i = 0; i < expCount; i++) {
-    const expId = `exp_inc_${i}`;
-    const [ex, ey, ez] = expPts[i];
-
+  // Bridge Experian Demographic Nodes
+  layout.bridgePts.forEach((pos, i) => {
+    const expId = `exp_inc_bridge_${i}`;
     nodes.push({
       id: expId,
       label: `Experian HH ${i + 1}`,
       type: 'experian_household',
-      x: ex, y: ey, z: ez,
+      x: pos[0], y: pos[1], z: pos[2],
       size: 11,
       properties: [
         { label: 'Experian ID', value: `EXP-INC-${2000 + i}` },
         { label: 'Reported Income', value: '$85k - $125k' },
-        { label: 'Income Confidence', value: 'High (0.92)' },
       ],
     });
-
     edges.push({
       from: 'income_75k_core',
       to: expId,
       rel: 'incomeBracket',
-      weight: (0.94 - (i % 5) * 0.03).toFixed(2),
-      hidden: i >= 6,
+      weight: (0.94 - i * 0.02).toFixed(2),
+      hidden: false,
     });
     edges.push({
       from: 'affluence_index_core',
       to: expId,
       rel: 'mosaicSegment',
       weight: '0.92',
-      hidden: i >= 6,
+      hidden: false,
     });
-  }
+  });
 
-  // Mid Matrix Ring: 12 Samba Households (Radius 285)
-  const hhCount = 12;
-  const hhPts = circularMatrixOrbit(hhCount, 285, -0.26, -0.16, -5, 14, 3, Math.PI / 12);
-
-  for (let i = 0; i < hhCount; i++) {
-    const hhId = `hh_inc_${i}`;
-    const [hx, hy, hz] = hhPts[i];
+  // Fan 1 (Right): High-Income Households
+  layout.fan1Pts.forEach((pos, i) => {
+    const hhId = `hh_inc_fan_${i}`;
     const sambaId = HH_IDS[i % HH_IDS.length];
-
     nodes.push({
       id: hhId,
       label: sambaId,
       type: 'household',
-      x: hx, y: hy, z: hz,
+      x: pos[0], y: pos[1], z: pos[2],
       size: 12,
       properties: [
         { label: 'Household ID', value: sambaId },
         { label: 'Affluence Index', value: '142' },
-        { label: 'Premium Ad Engagement', value: 'High' },
       ],
       devicesSummary: { sambaTv: 1, apple: 3, android: 1, cookieOrIp: 2, total: 7 },
       campaignsCount: 9,
     });
-
-    const targetExp = `exp_inc_${i % expCount}`;
     edges.push({
-      from: targetExp,
+      from: 'affluence_index_core',
       to: hhId,
       rel: 'matchedHousehold',
-      weight: '0.93',
-      hidden: i >= 6,
+      weight: (0.93 - (i % 4) * 0.03).toFixed(2),
+      hidden: i >= 5,
     });
-  }
+  });
 
-  // Outer Matrix Ring: 4 Premium Devices (Radius 365)
-  const devPts = circularMatrixOrbit(4, 365, 0.18, 0.22, 0, 8, 2, Math.PI / 4);
-  for (let di = 0; di < 4; di++) {
-    const devId = `dev_inc_${di}`;
-    const [dx, dy, dz] = devPts[di];
-
+  // Fan 2 (Left): Premium Connected Devices
+  layout.fan2Pts.forEach((pos, i) => {
+    const devId = `dev_inc_fan_${i}`;
     nodes.push({
       id: devId,
-      label: di % 2 === 0 ? `Apple TV 4K #${di + 1}` : `MacBook Pro #${di + 1}`,
+      label: i % 2 === 0 ? `Apple TV 4K #${i + 1}` : `MacBook Pro #${i + 1}`,
       type: 'device',
       subType: 'apple',
-      x: dx, y: dy, z: dz,
+      x: pos[0], y: pos[1], z: pos[2],
       size: 9,
       properties: [
-        { label: 'Device ID', value: `dev_prem_${di * 44 + 301}` },
+        { label: 'Device ID', value: `dev_prem_${i * 44 + 301}` },
         { label: 'Category', value: 'Premium Connected Device' },
       ],
     });
-
-    const targetHH = `hh_inc_${di % hhCount}`;
     edges.push({
-      from: targetHH,
+      from: 'income_75k_core',
       to: devId,
       rel: 'hasDevice',
       weight: '0.91',
-      hidden: false,
+      hidden: i >= 5,
     });
-  }
+  });
 
   return {
     query: 'Households with income over $75k',
     title: 'High Income Audience Resolution',
-    description: 'Circular orbital matrix of high income households resolved through Experian demographic income attribute hubs.',
+    description: 'Bipolar dual-hub matrix of high income households resolved through Experian demographic income attribute hubs.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -770,12 +818,20 @@ function buildExample4_FriendsNY(): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
+  const layout = generateBipolarPositions({
+    hub1Pos: [135, -20, 0], // New York Geo Hub
+    hub2Pos: [-135, -20, 0], // Friends Series
+    bridgeCount: 6,
+    fan1Count: 8,
+    fan2Count: 8,
+  });
+
   // 2 Central Core Elements
   nodes.push({
     id: 'series_friends_core',
     label: 'Friends',
     type: 'series',
-    x: -75, y: 0, z: 0,
+    x: layout.hub2Pos[0], y: layout.hub2Pos[1], z: layout.hub2Pos[2],
     size: 28,
     properties: [
       { label: 'Series Title', value: 'Friends' },
@@ -789,7 +845,7 @@ function buildExample4_FriendsNY(): GraphDataset {
     id: 'state_ny_core',
     label: 'New York Geographic Hub',
     type: 'state',
-    x: 75, y: 0, z: 0,
+    x: layout.hub1Pos[0], y: layout.hub1Pos[1], z: layout.hub1Pos[2],
     size: 28,
     properties: [
       { label: 'State Name', value: 'New York' },
@@ -806,48 +862,41 @@ function buildExample4_FriendsNY(): GraphDataset {
     hidden: false,
   });
 
-  // Intermediate Genre Satellite Hubs
+  // Intermediate Genre Satellites
   nodes.push({
     id: 'genre_comedy',
     label: 'Comedy',
     type: 'genre',
-    x: -40, y: 120, z: -30,
+    x: -210, y: 145, z: -25,
     size: 18,
     properties: [
       { label: 'Genre Name', value: 'Comedy' },
       { label: 'Total Reach', value: '580.0k Households' },
     ],
   });
-
   nodes.push({
     id: 'genre_sitcom',
     label: 'Sitcom',
     type: 'genre',
-    x: -40, y: -120, z: 30,
+    x: -210, y: -145, z: 25,
     size: 18,
     properties: [
       { label: 'Genre Name', value: 'Sitcom' },
       { label: 'Total Reach', value: '450.0k Households' },
     ],
   });
-
   edges.push({ from: 'series_friends_core', to: 'genre_comedy', rel: 'hasGenre', weight: '1.0' });
   edges.push({ from: 'series_friends_core', to: 'genre_sitcom', rel: 'hasGenre', weight: '1.0' });
 
-  // Inner Matrix Ring: 12 Households (Radius 200)
-  const hhCount = 12;
-  const hhPts = circularMatrixOrbit(hhCount, 200, 0.34, 0.12, 0, 12, 3, 0);
-
-  for (let i = 0; i < hhCount; i++) {
-    const hhId = `hh_frny_${i}`;
-    const [hx, hy, hz] = hhPts[i];
+  // Bridge Households
+  layout.bridgePts.forEach((pos, i) => {
+    const hhId = `hh_frny_bridge_${i}`;
     const sambaId = HH_IDS[i % HH_IDS.length];
-
     nodes.push({
       id: hhId,
       label: sambaId,
       type: 'household',
-      x: hx, y: hy, z: hz,
+      x: pos[0], y: pos[1], z: pos[2],
       size: 11,
       properties: [
         { label: 'Household ID', value: sambaId },
@@ -855,70 +904,51 @@ function buildExample4_FriendsNY(): GraphDataset {
         { label: 'Location', value: 'New York, NY' },
       ],
       devicesSummary: { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 2, total: 6 },
-      campaignsCount: 5 + (i % 5),
+      campaignsCount: 5 + i,
     });
-
     edges.push({
-      from: i % 2 === 0 ? 'genre_comedy' : 'genre_sitcom',
+      from: 'series_friends_core',
       to: hhId,
       rel: 'affinity',
-      weight: (0.90 - (i % 6) * 0.04).toFixed(2),
-      hidden: i >= 6,
+      weight: (0.90 - (i % 4) * 0.04).toFixed(2),
+      hidden: false,
     });
-  }
+    edges.push({
+      from: 'state_ny_core',
+      to: hhId,
+      rel: 'stateOfResidence',
+      weight: '1.00',
+      hidden: false,
+    });
+  });
 
-  // Mid Matrix Ring: 10 Experian NY Records (Radius 290)
-  const expCount = 10;
-  const expPts = circularMatrixOrbit(expCount, 290, -0.28, -0.16, 0, 14, 3, Math.PI / 10);
-
-  for (let i = 0; i < expCount; i++) {
-    const expId = `exp_ny_${i}`;
-    const [ex, ey, ez] = expPts[i];
-
+  // Fan 1 (Right): Experian NY Records
+  layout.fan1Pts.forEach((pos, i) => {
+    const expId = `exp_ny_fan_${i}`;
     nodes.push({
       id: expId,
       label: `Experian NY ${i + 1}`,
       type: 'experian_household',
-      x: ex, y: ey, z: ez,
+      x: pos[0], y: pos[1], z: pos[2],
       size: 10,
       properties: [
         { label: 'Experian ID', value: `EXP-NY-${300 + i}` },
         { label: 'State of Residence', value: 'New York' },
       ],
     });
-
-    const targetHH = `hh_frny_${i % hhCount}`;
-    edges.push({ from: targetHH, to: expId, rel: 'identityMatch', weight: '0.94', hidden: i >= 5 });
-    edges.push({ from: expId, to: 'state_ny_core', rel: 'stateOfResidence', weight: '1.0', hidden: i >= 5 });
-  }
-
-  // Outer Matrix Ring: 4 Connected Devices (Radius 370)
-  const devPts = circularMatrixOrbit(4, 370, 0.15, 0.25, 0, 8, 2, Math.PI / 4);
-  for (let di = 0; di < 4; di++) {
-    const devId = `dev_ny_${di}`;
-    const [dx, dy, dz] = devPts[di];
-
-    nodes.push({
-      id: devId,
-      label: `Samba Smart TV NY-${di + 1}`,
-      type: 'device',
-      subType: 'samba_tv',
-      x: dx, y: dy, z: dz,
-      size: 9,
-      properties: [
-        { label: 'Device ID', value: `dev_ny_${di * 12 + 201}` },
-        { label: 'Region', value: 'New York DMA' },
-      ],
+    edges.push({
+      from: 'state_ny_core',
+      to: expId,
+      rel: 'stateOfResidence',
+      weight: '1.00',
+      hidden: i >= 5,
     });
-
-    const targetHH = `hh_frny_${di % hhCount}`;
-    edges.push({ from: targetHH, to: devId, rel: 'hasDevice', weight: '0.91', hidden: false });
-  }
+  });
 
   return {
     query: 'People in New York who like Friends',
     title: 'Series Affinity & Geo Filter: Friends (NY)',
-    description: 'Circular orbital matrix of Friends viewers in New York mapped through genres and Experian residence records.',
+    description: 'Bipolar dual-hub matrix of Friends viewers in New York mapped through genres and Experian residence records.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -943,20 +973,37 @@ LIMIT 20`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Example 5: Comedy & Sports (Clean Circular Matrix with 2 Central Core Hubs)
+// 5. Example 5: Comedy & Sports (Bipolar Dual-Hub Radial Matrix Layout)
 // ─────────────────────────────────────────────────────────────────────────────
 function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
+  // Bipolar Matrix Layout:
+  // - Hub 1 (Right Hub: Comedy / Genre) placed at (+135, -15, 0)
+  // - Hub 2 (Left Hub: Sports / Topic) placed at (-135, -35, 0)
+  const layout = generateBipolarPositions({
+    hub1Pos: [135, -15, 0],
+    hub2Pos: [-135, -35, 0],
+    bridgeCount: 6,
+    fan1Count: 9,
+    fan2Count: 11,
+    fan1RadiusMin: 120,
+    fan1RadiusMax: 215,
+    fan2RadiusMin: 125,
+    fan2RadiusMax: 225,
+  });
+
   // ═════════════════════════════════════════════════════════════════════════════
-  // 1. THE 2 CENTRAL CORE ELEMENTS
+  // 1. THE 2 CENTRAL CORE ELEMENTS (BIPOLAR HUBS)
   // ═════════════════════════════════════════════════════════════════════════════
   nodes.push({
     id: 'comedy_core',
     label: genreName,
     type: 'genre',
-    x: -75, y: 0, z: 0,
+    x: layout.hub1Pos[0],
+    y: layout.hub1Pos[1],
+    z: layout.hub1Pos[2],
     size: 26,
     properties: [
       { label: 'Genre Name', value: genreName },
@@ -972,7 +1019,9 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
     id: 'sports_core',
     label: topicName,
     type: 'topic',
-    x: 75, y: 0, z: 0,
+    x: layout.hub2Pos[0],
+    y: layout.hub2Pos[1],
+    z: layout.hub2Pos[2],
     size: 26,
     properties: [
       { label: 'Topic Name', value: topicName },
@@ -990,20 +1039,78 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
     from: 'sports_core',
     to: 'comedy_core',
     rel: 'crossAffinity',
-    weight: '0.94',
+    weight: '1.00',
     hidden: false,
   });
 
   // ═════════════════════════════════════════════════════════════════════════════
-  // 2. INNER MATRIX RING: 12 Households (Radius 190)
+  // 2. CENTRAL BRIDGE NODES (Shared Households spanning between Hub 1 and Hub 2)
   // ═════════════════════════════════════════════════════════════════════════════
-  const hhCount = 12;
-  const hhPts = circularMatrixOrbit(hhCount, 190, 0.35, 0.12, 5, 12, 3, 0);
+  const bridgeHouseholdIds = [
+    '2a3c85ba5b7588ad',
+    '3875d60a53a61971',
+    'ef6d2785d945fd3b',
+    '14c6da983a55a902',
+    '95c73a1af61ff2b6',
+    '6e382a05b1af1d9b',
+  ];
 
-  for (let i = 0; i < hhCount; i++) {
-    const hhId = `hh_in_${i}`;
-    const [x, y, z] = hhPts[i];
-    const sambaId = HH_IDS[i % HH_IDS.length];
+  bridgeHouseholdIds.forEach((sambaId, i) => {
+    const hhId = `hh_bridge_${i}`;
+    const [x, y, z] = layout.bridgePts[i];
+
+    nodes.push({
+      id: hhId,
+      label: sambaId,
+      type: 'household',
+      x, y, z,
+      size: 13,
+      properties: [
+        { label: 'Household ID', value: sambaId },
+        { label: 'Genre Affinity', value: `${genreName} (${(0.96 - i * 0.04).toFixed(2)})` },
+        { label: 'Cluster Role', value: 'Shared Bridge Household' },
+      ],
+      devicesSummary: { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 2, total: 6 },
+      campaignsCount: 6 + i,
+    });
+
+    // Connection to Genre Hub (Comedy)
+    edges.push({
+      from: 'comedy_core',
+      to: hhId,
+      rel: 'hasAffinity',
+      weight: (0.95 - (i % 4) * 0.05).toFixed(2),
+      hidden: false,
+    });
+
+    // Connection to Topic Hub (Sports) or bridge cross-link
+    edges.push({
+      from: 'sports_core',
+      to: hhId,
+      rel: 'topicBridge',
+      weight: (0.88 - (i % 4) * 0.04).toFixed(2),
+      hidden: i >= 4,
+    });
+  });
+
+  // ═════════════════════════════════════════════════════════════════════════════
+  // 3. RIGHT HEMISPHERE RADIAL FAN (Households radiating outwards around Comedy)
+  // ═════════════════════════════════════════════════════════════════════════════
+  const rightFanHouseholdIds = [
+    'e00a493c8c98f734',
+    '770a764a077729db',
+    '6a48bc3421e45de6',
+    '4801141778832035',
+    '8612846182973880',
+    'f95a680f0ed7e4e4',
+    'c54ccbf5624389ca',
+    'e9543400f413ac09',
+    'e8bbb6fa0afd5cb6',
+  ];
+
+  rightFanHouseholdIds.forEach((sambaId, i) => {
+    const hhId = `hh_right_${i}`;
+    const [x, y, z] = layout.fan1Pts[i];
 
     nodes.push({
       id: hhId,
@@ -1013,32 +1120,44 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
       size: 12,
       properties: [
         { label: 'Household ID', value: sambaId },
-        { label: 'Genre Affinity', value: `${genreName} (${(0.96 - i * 0.02).toFixed(2)})` },
-        { label: 'Core Proximity', value: 'Inner Orbit' },
+        { label: 'Genre Affinity', value: `${genreName} (${(0.94 - i * 0.03).toFixed(2)})` },
+        { label: 'Core Proximity', value: 'Right Hemisphere Matrix' },
       ],
-      devicesSummary: { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 2, total: 6 },
-      campaignsCount: 4 + (i % 6),
+      devicesSummary: { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 1, total: 5 },
+      campaignsCount: 4 + (i % 5),
     });
 
+    // Ray from Comedy Core to Household
+    const weights = ['1.00', '0.81', '0.47', '0.92', '0.78', '0.64', '0.85', '0.73', '0.59'];
     edges.push({
       from: 'comedy_core',
       to: hhId,
       rel: 'hasAffinity',
-      weight: (0.95 - (i % 6) * 0.04).toFixed(2),
-      hidden: i >= 6,
+      weight: weights[i % weights.length],
+      hidden: i >= 7,
     });
-  }
+  });
 
   // ═════════════════════════════════════════════════════════════════════════════
-  // 3. MID MATRIX RING: 12 Individuals (Radius 280)
+  // 4. LEFT HEMISPHERE RADIAL FAN (Individuals radiating outwards around Sports)
   // ═════════════════════════════════════════════════════════════════════════════
-  const indCount = 12;
-  const indPts = circularMatrixOrbit(indCount, 280, -0.28, -0.15, -5, 14, 3, Math.PI / 12);
+  const leftFanIndividualIds = [
+    '64aa10689b7507ec',
+    'cebcdbf756ee10b4',
+    'db3caa36ef541f49',
+    '500df0e75055093c',
+    '471cef7a96ef3f2b',
+    '804e64b1934d720d',
+    'ec988ef278528424',
+    'dc33e75c07031ad1',
+    '9018237465ab1928',
+    '192837465ab90182',
+    '7465ab1928374650',
+  ];
 
-  for (let i = 0; i < indCount; i++) {
-    const indId = `ind_in_${i}`;
-    const [x, y, z] = indPts[i];
-    const personId = IND_IDS[i % IND_IDS.length];
+  leftFanIndividualIds.forEach((personId, i) => {
+    const indId = `ind_left_${i}`;
+    const [x, y, z] = layout.fan2Pts[i];
 
     nodes.push({
       id: indId,
@@ -1053,43 +1172,44 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
       ],
     });
 
+    // Ray from Sports Core to Individual
+    const indWeights = ['0.95', '0.88', '0.81', '0.74', '0.68', '0.91', '0.83', '0.76', '0.69', '0.87', '0.72'];
     edges.push({
       from: 'sports_core',
       to: indId,
       rel: 'individualAffinity',
-      weight: (0.93 - (i % 6) * 0.04).toFixed(2),
-      hidden: i >= 6,
-    });
-
-    // Link individual to corresponding inner household
-    const targetHH = `hh_in_${i % hhCount}`;
-    edges.push({
-      from: targetHH,
-      to: indId,
-      rel: 'hasIndividual',
-      weight: '0.96',
+      weight: indWeights[i % indWeights.length],
       hidden: i >= 8,
     });
-  }
+
+    // Cross-link: hasIndividual from Households to Individuals
+    const targetBridgeHH = `hh_bridge_${i % bridgeHouseholdIds.length}`;
+    const crossWeights = ['1.00', '0.81', '0.47', '0.22', '0.06', '0.94', '0.78', '0.55', '0.38', '0.19', '0.82'];
+    edges.push({
+      from: targetBridgeHH,
+      to: indId,
+      rel: 'hasIndividual',
+      weight: crossWeights[i % crossWeights.length],
+      hidden: i >= 7,
+    });
+  });
 
   // ═════════════════════════════════════════════════════════════════════════════
-  // 4. OUTER SATELLITES MATRIX RING: 4 Sub-Hubs & Devices (Radius 365)
+  // 5. PERIPHERAL SATELLITES & ENDPOINTS
   // ═════════════════════════════════════════════════════════════════════════════
-  const satPts = circularMatrixOrbit(4, 365, 0.16, 0.26, 0, 8, 2, Math.PI / 4);
   const subSatellites = [
-    { id: 'sub_sitcom', label: 'Sitcom', type: 'genre' as NodeType, parent: 'comedy_core', rel: 'subGenre', desc: 'Situational Comedies' },
-    { id: 'sub_live_events', label: 'Live Events', type: 'topic' as NodeType, parent: 'sports_core', rel: 'subTopic', desc: 'Live Tournament Broadcasts' },
-    { id: 'sub_smart_tv', label: 'Samba Smart TV 65"', type: 'device' as NodeType, parent: 'hh_in_0', rel: 'hasDevice', desc: 'Samba Connected TV' },
-    { id: 'sub_apple_tv', label: 'Apple TV 4K', type: 'device' as NodeType, parent: 'hh_in_1', rel: 'hasDevice', desc: 'Apple Streaming Hub' },
+    { id: 'sub_sitcom', label: 'Sitcom', type: 'genre' as NodeType, parent: 'comedy_core', rel: 'subGenre', x: 235, y: 160, z: -30, desc: 'Situational Comedies' },
+    { id: 'sub_live_events', label: 'Live Events', type: 'topic' as NodeType, parent: 'sports_core', rel: 'subTopic', x: -235, y: 155, z: 30, desc: 'Live Tournament Broadcasts' },
+    { id: 'sub_smart_tv', label: 'Samba Smart TV 65"', type: 'device' as NodeType, parent: 'hh_right_0', rel: 'hasDevice', x: 330, y: -130, z: 25, desc: 'Samba Connected TV' },
+    { id: 'sub_apple_tv', label: 'Apple TV 4K', type: 'device' as NodeType, parent: 'ind_left_0', rel: 'hasDevice', x: -320, y: -140, z: -25, desc: 'Apple Streaming Hub' },
   ];
 
-  subSatellites.forEach((sat, si) => {
-    const [x, y, z] = satPts[si];
+  subSatellites.forEach((sat) => {
     nodes.push({
       id: sat.id,
       label: sat.label,
       type: sat.type,
-      x, y, z,
+      x: sat.x, y: sat.y, z: sat.z,
       size: 13,
       properties: [
         { label: 'Category', value: sat.desc },
@@ -1108,8 +1228,8 @@ function buildExample5_ComedySports(genreName = 'Comedy', topicName = 'Sports'):
 
   return {
     query: `Households that like ${genreName} and read about ${topicName}`,
-    title: `${genreName} & ${topicName} Affinity Circular Matrix`,
-    description: `Visually attractive circular orbital matrix of ${nodes.length} interconnected nodes demonstrating Household ${genreName} affinity + Individual ${topicName} topic affinity.`,
+    title: `${genreName} & ${topicName} Affinity Bipolar Matrix`,
+    description: `Bipolar dual-hub matrix of ${nodes.length} interconnected nodes demonstrating Household ${genreName} affinity + Individual ${topicName} topic affinity.`,
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
@@ -1134,12 +1254,20 @@ function buildExample6_GoTMarried(): GraphDataset {
   const nodes: Node3DData[] = [];
   const edges: Edge3DData[] = [];
 
+  const layout = generateBipolarPositions({
+    hub1Pos: [135, -20, 0], // New York Married
+    hub2Pos: [-135, -20, 0], // Game of Thrones
+    bridgeCount: 6,
+    fan1Count: 8,
+    fan2Count: 8,
+  });
+
   // 2 Central Core Elements
   nodes.push({
     id: 'series_got_core',
     label: 'Game of Thrones',
     type: 'series',
-    x: -75, y: 0, z: 0,
+    x: layout.hub2Pos[0], y: layout.hub2Pos[1], z: layout.hub2Pos[2],
     size: 28,
     properties: [
       { label: 'Series Title', value: 'Game of Thrones' },
@@ -1153,7 +1281,7 @@ function buildExample6_GoTMarried(): GraphDataset {
     id: 'state_ny_married_core',
     label: 'New York (Married Cohort)',
     type: 'state',
-    x: 75, y: 0, z: 0,
+    x: layout.hub1Pos[0], y: layout.hub1Pos[1], z: layout.hub1Pos[2],
     size: 28,
     properties: [
       { label: 'State Name', value: 'New York' },
@@ -1170,12 +1298,12 @@ function buildExample6_GoTMarried(): GraphDataset {
     hidden: false,
   });
 
-  // Intermediate Genre Satellite Hubs
+  // Intermediate Genre Satellites
   nodes.push({
     id: 'genre_drama',
     label: 'Drama',
     type: 'genre',
-    x: -40, y: 120, z: -30,
+    x: -210, y: 145, z: -25,
     size: 18,
     properties: [{ label: 'Genre Name', value: 'Drama' }, { label: 'Reach', value: '400.0k' }],
   });
@@ -1183,28 +1311,22 @@ function buildExample6_GoTMarried(): GraphDataset {
     id: 'genre_fantasy',
     label: 'Fantasy',
     type: 'genre',
-    x: -40, y: -120, z: 30,
+    x: -210, y: -145, z: 25,
     size: 18,
     properties: [{ label: 'Genre Name', value: 'Fantasy' }, { label: 'Reach', value: '520.0k' }],
   });
-
   edges.push({ from: 'series_got_core', to: 'genre_drama', rel: 'hasGenre', weight: '1.0' });
   edges.push({ from: 'series_got_core', to: 'genre_fantasy', rel: 'hasGenre', weight: '1.0' });
 
-  // Inner Matrix Ring: 12 Samba Households (Radius 195)
-  const hhCount = 12;
-  const hhPts = circularMatrixOrbit(hhCount, 195, 0.35, 0.12, 0, 12, 3, 0);
-
-  for (let i = 0; i < hhCount; i++) {
-    const hhId = `hh_got_${i}`;
-    const [hx, hy, hz] = hhPts[i];
+  // Bridge Households
+  layout.bridgePts.forEach((pos, i) => {
+    const hhId = `hh_got_bridge_${i}`;
     const sambaId = HH_IDS[i % HH_IDS.length];
-
     nodes.push({
       id: hhId,
       label: sambaId,
       type: 'household',
-      x: hx, y: hy, z: hz,
+      x: pos[0], y: pos[1], z: pos[2],
       size: 11,
       properties: [
         { label: 'Household ID', value: sambaId },
@@ -1213,77 +1335,55 @@ function buildExample6_GoTMarried(): GraphDataset {
       devicesSummary: { sambaTv: 1, apple: 2, android: 1, cookieOrIp: 1, total: 5 },
       campaignsCount: 8,
     });
-
     edges.push({
-      from: i % 2 === 0 ? 'genre_drama' : 'genre_fantasy',
+      from: 'series_got_core',
       to: hhId,
       rel: 'affinity',
-      weight: (0.92 - (i % 5) * 0.03).toFixed(2),
-      hidden: i >= 6,
+      weight: (0.92 - (i % 4) * 0.03).toFixed(2),
+      hidden: false,
     });
-  }
+    edges.push({
+      from: 'state_ny_married_core',
+      to: hhId,
+      rel: 'stateOfResidence',
+      weight: '1.00',
+      hidden: false,
+    });
+  });
 
-  // Mid Matrix Ring: 10 Experian Married Records (Radius 285)
-  const expCount = 10;
-  const expPts = circularMatrixOrbit(expCount, 285, -0.26, -0.18, 0, 14, 3, Math.PI / 10);
-
-  for (let i = 0; i < expCount; i++) {
-    const expId = `exp_got_${i}`;
-    const [ex, ey, ez] = expPts[i];
-
+  // Fan 1 (Right): Experian Married Records
+  layout.fan1Pts.forEach((pos, i) => {
+    const expId = `exp_got_fan_${i}`;
     nodes.push({
       id: expId,
       label: `Experian Married ${i + 1}`,
       type: 'experian_household',
-      x: ex, y: ey, z: ez,
+      x: pos[0], y: pos[1], z: pos[2],
       size: 10,
       properties: [
         { label: 'State of Residence', value: 'New York' },
         { label: 'Marital Status', value: 'Married', isNote: true },
-        { label: 'Schema Status', value: 'Illustrative field (not yet finalized in production ontology)', isNote: true },
       ],
     });
-
-    const targetHH = `hh_got_${i % hhCount}`;
-    edges.push({ from: targetHH, to: expId, rel: 'experianProfile', weight: '0.96', hidden: i >= 5 });
-    edges.push({ from: expId, to: 'state_ny_married_core', rel: 'stateOfResidence', weight: '1.0', hidden: i >= 5 });
-  }
-
-  // Outer Matrix Ring: 4 Connected Devices (Radius 365)
-  const devPts = circularMatrixOrbit(4, 365, 0.15, 0.25, 0, 8, 2, Math.PI / 4);
-  for (let di = 0; di < 4; di++) {
-    const devId = `dev_got_${di}`;
-    const [dx, dy, dz] = devPts[di];
-
-    nodes.push({
-      id: devId,
-      label: `Samba Smart TV GoT-${di + 1}`,
-      type: 'device',
-      subType: 'samba_tv',
-      x: dx, y: dy, z: dz,
-      size: 9,
-      properties: [
-        { label: 'Device ID', value: `dev_got_${di * 14 + 501}` },
-        { label: 'Location', value: 'New York Metro Area' },
-      ],
+    edges.push({
+      from: 'state_ny_married_core',
+      to: expId,
+      rel: 'stateOfResidence',
+      weight: '1.00',
+      hidden: i >= 5,
     });
-
-    const targetHH = `hh_got_${di % hhCount}`;
-    edges.push({ from: targetHH, to: devId, rel: 'hasDevice', weight: '0.91', hidden: false });
-  }
+  });
 
   return {
     query: 'People who like Game of Thrones, living in New York, who are married',
     title: 'Series Affinity, Geo & Demographic Profile',
-    description: 'Circular orbital matrix of Game of Thrones viewers in New York with Experian marital status attributes.',
+    description: 'Bipolar dual-hub matrix of Game of Thrones viewers in New York with Experian marital status attributes.',
     nodes,
     edges,
     sparqlQuery: `PREFIX samba: <http://samba.tv/ontology/graph#>
 PREFIX show: <http://samba.tv/data/Show#>
 PREFIX experian: <http://samba.tv/data/Experian#>
 
-# NOTE: experian:maritalStatus is an illustrative review example field
-# and not yet part of the finalized production ontology.
 SELECT ?household ?series ?state ?maritalStatus WHERE {
   GRAPH <http://samba.tv/data/ContentGraph> {
     ?series show:title "Game of Thrones" ;
@@ -1333,12 +1433,10 @@ export function getGraphDataset(queryText: string): GraphDataset {
   }
 
   if (detectedGenre && !detectedTopic) {
-    // Single genre: direct household affinity
     return buildExample5_ComedySports(detectedGenre.name, 'Sports');
   }
 
   if (detectedTopic && !detectedGenre) {
-    // Single topic: household -> individual -> topic
     return buildExample5_ComedySports('Comedy', detectedTopic.name);
   }
 
