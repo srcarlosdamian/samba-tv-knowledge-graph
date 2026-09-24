@@ -2275,12 +2275,14 @@ function getStateTileColor(val: number) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-function StateCartogram({ tiles }: { tiles: typeof audienceData.stateTiles }) {
+function StateCartogram({ tiles, animate }: { tiles: typeof audienceData.stateTiles; animate?: boolean }) {
   // 7 rows x 11 columns grid
   const grid = Array.from({ length: 7 }, () => Array(11).fill(null));
   tiles.forEach(t => {
     if (grid[t.r]) grid[t.r][t.c] = t;
   });
+
+  let tileIdx = 0;
 
   return (
     <div className="flex flex-col gap-[3px] select-none">
@@ -2290,12 +2292,14 @@ function StateCartogram({ tiles }: { tiles: typeof audienceData.stateTiles }) {
             if (!cell) {
               return <div key={ci} className="w-[20px] h-[19px]" />;
             }
+            const delay = 0.42 + (tileIdx++) * 0.018;
             return (
               <div
                 key={ci}
-                className="w-[20px] h-[19px] rounded-[3px] flex items-center justify-center transition-transform hover:scale-110 cursor-pointer"
+                className={`w-[20px] h-[19px] rounded-[3px] flex items-center justify-center transition-transform hover:scale-110 cursor-pointer${animate ? ' cohort-tile' : ''}`}
                 style={{
                   backgroundColor: getStateTileColor(cell.val),
+                  animationDelay: animate ? `${delay}s` : undefined,
                 }}
                 title={`${cell.code}: ${cell.val.toFixed(2)}×`}
               >
@@ -2313,6 +2317,11 @@ function StateCartogram({ tiles }: { tiles: typeof audienceData.stateTiles }) {
 
 function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
   const d = audienceData;
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(t);
+  }, []);
 
   return (
     <div
@@ -2327,7 +2336,8 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
     >
       <div className="max-w-[1120px] w-full mx-auto flex flex-col gap-5 flex-1">
         {/* Header Row */}
-        <div className="flex items-center justify-between pb-2 w-full">
+        <div className={`flex items-center justify-between pb-2 w-full${ready ? ' cohort-panel' : ''}`}
+          style={{ animationDelay: '0s' }}>
           <h1 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 30, fontWeight: 400, color: '#e5e5e5', letterSpacing: '-0.3px', margin: 0 }}>
             Cohort Profile
           </h1>
@@ -2373,10 +2383,11 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
           <div className="grid grid-cols-12 gap-5">
             {/* Also interested in (7 cols) */}
             <div
-              className="col-span-12 lg:col-span-7 flex flex-col justify-between rounded-[12px] p-6"
+              className={`col-span-12 lg:col-span-7 flex flex-col justify-between rounded-[12px] p-6${ready ? ' cohort-panel' : ''}`}
               style={{
                 backgroundColor: 'transparent',
                 border: '1px solid #2e2e2e',
+                animationDelay: '0.10s',
               }}
             >
             <div>
@@ -2389,7 +2400,7 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
 
               {/* Items List */}
               <div className="flex flex-col gap-3">
-                {d.alsoInterestedIn.map(item => (
+                {d.alsoInterestedIn.map((item, idx) => (
                   <div key={item.name} className="flex items-center gap-3">
                     <div
                       className="rounded-full shrink-0"
@@ -2414,10 +2425,12 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
                     {/* Progress Bar Track */}
                     <div className="flex-1 rounded-full overflow-hidden" style={{ height: 6, backgroundColor: '#202020' }}>
                       <div
-                        className="h-full rounded-full transition-all duration-300"
+                        className={`h-full rounded-full${ready ? ' cohort-bar' : ''}`}
                         style={{
                           width: `${item.pct * 100}%`,
                           backgroundColor: '#6781a8',
+                          animationDelay: `${0.18 + idx * 0.06}s`,
+                          animationDuration: '0.5s',
                         }}
                       />
                     </div>
@@ -2451,10 +2464,11 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
 
           {/* Where they live (5 cols) */}
           <div
-            className="col-span-12 lg:col-span-5 flex flex-col justify-between rounded-2xl p-6"
+            className={`col-span-12 lg:col-span-5 flex flex-col justify-between rounded-2xl p-6${ready ? ' cohort-panel' : ''}`}
             style={{
               backgroundColor: 'transparent',
               border: '1px solid #2e2e2e',
+              animationDelay: '0.40s',
             }}
           >
             <div>
@@ -2480,7 +2494,7 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
 
               {/* Cartogram + Top States */}
               <div className="flex items-start justify-between gap-4">
-                <StateCartogram tiles={d.stateTiles} />
+                <StateCartogram tiles={d.stateTiles} animate={ready} />
 
                 {/* Top States List */}
                 <div className="flex flex-col gap-2 shrink-0 pr-2">
@@ -2507,11 +2521,12 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Age */}
           <div
-            className="flex flex-col justify-between rounded-2xl p-5"
+            className={`flex flex-col justify-between rounded-2xl p-5${ready ? ' cohort-panel' : ''}`}
             style={{
               backgroundColor: 'transparent',
               border: '1px solid #2e2e2e',
               minHeight: 180,
+              animationDelay: '0.70s',
             }}
           >
             <div>
@@ -2527,10 +2542,12 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
                   return (
                     <div
                       key={i}
-                      className="flex-1 rounded-t-[2px] transition-all hover:opacity-85"
+                      className={`flex-1 rounded-t-[2px] hover:opacity-85${ready ? ' cohort-bar-v' : ''}`}
                       style={{
                         height: `${h}%`,
                         backgroundColor: '#6781a8',
+                        animationDelay: `${0.75 + i * 0.04}s`,
+                        animationDuration: '0.45s',
                       }}
                       title={`${d.ageBandLabels[i]}: ${v}%`}
                     />
@@ -2550,11 +2567,12 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
           {/* Household Income */}
           {/* Household income */}
           <div
-            className="flex flex-col justify-between rounded-2xl p-5"
+            className={`flex flex-col justify-between rounded-2xl p-5${ready ? ' cohort-panel' : ''}`}
             style={{
               backgroundColor: 'transparent',
-              border: '1px solid #222222',
+              border: '1px solid #2e2e2e',
               minHeight: 180,
+              animationDelay: '0.85s',
             }}
           >
             <div>
@@ -2570,10 +2588,12 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
                   return (
                     <div
                       key={i}
-                      className="flex-1 rounded-t-[2px] transition-all hover:opacity-85"
+                      className={`flex-1 rounded-t-[2px] hover:opacity-85${ready ? ' cohort-bar-v' : ''}`}
                       style={{
                         height: `${h}%`,
                         backgroundColor: '#6781a8',
+                        animationDelay: `${0.90 + i * 0.035}s`,
+                        animationDuration: '0.45s',
                       }}
                       title={`${d.incomeLabels[i]}: ${v}%`}
                     />
@@ -2592,11 +2612,12 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
 
           {/* Race & Ethnicity */}
           <div
-            className="flex flex-col justify-between rounded-2xl p-5"
+            className={`flex flex-col justify-between rounded-2xl p-5${ready ? ' cohort-panel' : ''}`}
             style={{
               backgroundColor: 'transparent',
-              border: '1px solid #222222',
+              border: '1px solid #2e2e2e',
               minHeight: 180,
+              animationDelay: '1.00s',
             }}
           >
             <div>
@@ -2605,11 +2626,19 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
             </div>
 
             <div className="flex flex-col gap-2">
-              {d.race.map(r => (
+              {d.race.map((r, idx) => (
                 <div key={r.label} className="flex items-center gap-2">
                   <span style={{ fontSize: 12, color: '#dedede', width: 55, flexShrink: 0 }}>{r.label}</span>
                   <div className="flex-1 rounded-full overflow-hidden" style={{ height: 5, backgroundColor: '#202020' }}>
-                    <div className="h-full rounded-full" style={{ width: `${r.pct * 100}%`, backgroundColor: '#6781a8' }} />
+                    <div
+                      className={`h-full rounded-full${ready ? ' cohort-bar' : ''}`}
+                      style={{
+                        width: `${r.pct * 100}%`,
+                        backgroundColor: '#6781a8',
+                        animationDelay: `${1.05 + idx * 0.07}s`,
+                        animationDuration: '0.5s',
+                      }}
+                    />
                   </div>
                   <span style={{ fontSize: 12, color: '#737373', width: 38, textAlign: 'right', flexShrink: 0 }}>{r.value}</span>
                 </div>
@@ -2619,11 +2648,12 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
 
           {/* Household Makeup */}
           <div
-            className="flex flex-col justify-between rounded-2xl p-5"
+            className={`flex flex-col justify-between rounded-2xl p-5${ready ? ' cohort-panel' : ''}`}
             style={{
               backgroundColor: 'transparent',
-              border: '1px solid #222222',
+              border: '1px solid #2e2e2e',
               minHeight: 180,
+              animationDelay: '1.15s',
             }}
           >
             <div>
