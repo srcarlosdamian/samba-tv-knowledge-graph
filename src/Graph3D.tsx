@@ -94,6 +94,7 @@ export interface Graph3DProps {
 
 // ─── Easing Functions ────────────────────────────────────────────────────────
 const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const c1 = 1.70158, c3 = c1 + 1;
 const easeOutBack = (t: number) => 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
 
@@ -217,6 +218,8 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
         shininess: isHub ? 85 : 55,
         emissive: hex,
         emissiveIntensity: configRef.current.glowIntensity * (isHub ? 1.0 : 0.4),
+        transparent: true,
+        opacity: 1.0,
       });
       nodeMaterials.set(n.id, mat);
 
@@ -229,10 +232,10 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       meshToNode.set(mesh, n);
       nodeAlpha.set(n.id, 0);
 
-      // Halo / Border mesh for selection and highlighting
-      const haloGeo = new THREE.SphereGeometry(n.size * 1.32, 16, 12);
+      // Selection Halo mesh (White 30% opacity on active selection)
+      const haloGeo = new THREE.SphereGeometry(n.size * 1.36, 20, 16);
       const haloMat = new THREE.MeshBasicMaterial({
-        color: SELECTION_BLUE,
+        color: 0xffffff,
         transparent: true,
         opacity: 0,
         wireframe: false,
@@ -255,11 +258,15 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       currentOpacity: number;
       targetOpacity: number;
       mid?: { x: number; y: number; z: number; weight?: string; rel?: string; visible: boolean };
+      isConnecting?: boolean;
+      connectProgress?: number;
+      originPos?: THREE.Vector3;
+      targetPos?: THREE.Vector3;
     }
 
     const edgeStates: EdgeState[] = [];
 
-    edges.forEach((e, idx) => {
+    edges.forEach((e) => {
       const a = nodeMap.get(e.from);
       const b = nodeMap.get(e.to);
       if (!a || !b) return;
@@ -303,6 +310,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
 
     // ─── Selection State ─────────────────────────────────────────────────────
     let selectedNodeId: string | null = null;
+    let activeNeighborIds: Set<string> = new Set();
     let magentaHighlightedNodeIds: Set<string> = new Set();
     let lastClickedNodeId: string | null = null;
     let lastClickTime = 0;
@@ -322,6 +330,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
 
     function applySelectionHighlight(nodeId: string | null) {
       selectedNodeId = nodeId;
+      activeNeighborIds.clear();
       magentaHighlightedNodeIds.clear();
 
       const curCfg = configRef.current;
@@ -329,11 +338,27 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       const defaultHubEdgeColor = cssToHex(curCfg.hubEdgeColor);
 
       if (!nodeId) {
-        // Deselect all
+        // Deselect all: restore full visibility, natural geometry, and default colors
         edgeStates.forEach(es => {
+          const a = nodeMap.get(es.data.from);
+          const b = nodeMap.get(es.data.to);
+          if (a && b) {
+            const posAttr = es.line.geometry.attributes.position as THREE.BufferAttribute;
+            posAttr.setXYZ(0, a.position.x, a.position.y, a.position.z);
+            posAttr.setXYZ(1, b.position.x, b.position.y, b.position.z);
+            posAttr.needsUpdate = true;
+            if (es.mid) {
+              es.mid.x = (a.position.x + b.position.x) / 2;
+              es.mid.y = (a.position.y + b.position.y) / 2;
+              es.mid.z = (a.position.z + b.position.z) / 2;
+              es.mid.visible = es.revealed;
+            }
+          }
+          es.isConnecting = false;
           es.material.color.setHex(es.isHub ? defaultHubEdgeColor : defaultEdgeColor);
           es.targetOpacity = es.revealed ? (es.isHub ? curCfg.edgeOpacity * 1.15 : curCfg.edgeOpacity) : 0;
         });
+
         nodes.forEach(n => {
           const halo = haloMap.get(n.id);
           if (halo) {
@@ -347,65 +372,97 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
             mat.emissive.setHex(hex);
             const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
             mat.emissiveIntensity = curCfg.glowIntensity * (isHub ? 1.0 : 0.4);
+            mat.opacity = 1.0;
           }
         });
         return;
       }
 
-      // Single-click on node:
-      // 1. Reveal any hidden connections connected to this node
-      // 2. Active connections turn solid dark blue (#1d4ed8) and full opacity
-      // 3. Unconnected visible edges dim to 0.12
-      // 4. Clicked node and all connected neighbor nodes get a thicker halo
-      const connectedNeighborIds = new Set<string>();
-      connectedNeighborIds.add(nodeId);
+      // Single-click selection:
+      // 1. White 30% opacity halo on selected node
+      // 2. Background nodes & edges attenuate (dim)
+      // 3. Connecting lines draw dynamically from selected node to neighbors in pure white
+      activeNeighborIds.add(nodeId);
+
+      const selMesh = nodeMap.get(nodeId);
+      const startPos = selMesh ? selMesh.position : new THREE.Vector3();
 
       edgeStates.forEach(es => {
         const isConnected = es.data.from === nodeId || es.data.to === nodeId;
         if (isConnected) {
-          // Reveal if was hidden
           if (!es.revealed) {
             es.revealed = true;
             es.data.hidden = false;
           }
           const neighborId = es.data.from === nodeId ? es.data.to : es.data.from;
-          connectedNeighborIds.add(neighborId);
+          activeNeighborIds.add(neighborId);
 
-          // Pop-in neighbor node if it wasn't visible
           const neighborMesh = nodeMap.get(neighborId);
-          if (neighborMesh && neighborMesh.scale.x < 0.2) {
-            neighborMesh.scale.setScalar(curCfg.sizes[nodes.find(n => n.id === neighborId)?.type ?? 'device'] ?? 1);
-            nodeAlpha.set(neighborId, 1);
+          if (neighborMesh) {
+            if (neighborMesh.scale.x < 0.2) {
+              neighborMesh.scale.setScalar(curCfg.sizes[nodes.find(n => n.id === neighborId)?.type ?? 'device'] ?? 1);
+              nodeAlpha.set(neighborId, 1);
+            }
+
+            // Animate line connection from selected node outward
+            es.isConnecting = true;
+            es.connectProgress = 0;
+            es.originPos = startPos.clone();
+            es.targetPos = neighborMesh.position.clone();
+
+            const posAttr = es.line.geometry.attributes.position as THREE.BufferAttribute;
+            posAttr.setXYZ(0, startPos.x, startPos.y, startPos.z);
+            posAttr.setXYZ(1, startPos.x, startPos.y, startPos.z);
+            posAttr.needsUpdate = true;
+
+            if (es.mid) es.mid.visible = false;
           }
 
-          es.material.color.setHex(SELECTION_BLUE);
-          es.targetOpacity = 1.0;
-          if (es.mid) es.mid.visible = true;
+          es.material.color.setHex(0xffffff); // Pure white luminous line
+          es.targetOpacity = 0.95;
         } else {
+          es.isConnecting = false;
           es.material.color.setHex(es.isHub ? defaultHubEdgeColor : defaultEdgeColor);
-          es.targetOpacity = es.revealed ? 0.12 : 0;
+          es.targetOpacity = es.revealed ? 0.05 : 0; // Attenuated background edges
         }
       });
 
-      // Update node halos & emissive
+      // Update node halos & materials: attenuate unselected background nodes
       nodes.forEach(n => {
         const halo = haloMap.get(n.id);
+        const mat = nodeMaterials.get(n.id);
         const isSelf = n.id === nodeId;
-        const isNeighbor = connectedNeighborIds.has(n.id);
+        const isNeighbor = activeNeighborIds.has(n.id);
+        const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
 
         if (halo) {
           const haloMat = halo.material as THREE.MeshBasicMaterial;
           if (isSelf) {
-            haloMat.color.setHex(SELECTION_BLUE);
-            haloMat.opacity = 0.95;
-            halo.scale.setScalar(1.35 * (curCfg.sizes[n.type] ?? 1));
+            haloMat.color.setHex(0xffffff);
+            haloMat.opacity = 0.30; // White with 30% opacity
+            halo.scale.setScalar(1.42 * (curCfg.sizes[n.type] ?? 1));
           } else if (isNeighbor) {
-            haloMat.color.setHex(SELECTION_BLUE);
-            haloMat.opacity = 0.75;
+            haloMat.color.setHex(0xffffff);
+            haloMat.opacity = 0.16;
             halo.scale.setScalar(1.22 * (curCfg.sizes[n.type] ?? 1));
           } else {
             haloMat.opacity = 0;
             halo.scale.setScalar(0);
+          }
+        }
+
+        if (mat) {
+          const hex = cssToHex(curCfg.colors[n.type] ?? '#4E6E9D');
+          mat.color.setHex(hex);
+          mat.emissive.setHex(hex);
+
+          if (isSelf || isNeighbor) {
+            mat.opacity = 1.0;
+            mat.emissiveIntensity = curCfg.glowIntensity * (isSelf ? 1.4 : isHub ? 1.0 : 0.6);
+          } else {
+            // Attenuate background nodes
+            mat.opacity = 0.20;
+            mat.emissiveIntensity = 0.03;
           }
         }
       });
@@ -529,22 +586,36 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
 
           const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
           const isSelected = selectedNodeId === n.id;
+          const isNeighbor = activeNeighborIds.has(n.id);
           const isMagenta = magentaHighlightedNodeIds.has(n.id);
 
-          const fontSize = (isHub ? 13 : isSelected ? 11 : 9) * dpr * nodeTextScale;
+          const fontSize = (isHub ? 13 : isSelected ? 11.5 : 9.5) * dpr * nodeTextScale;
           ctx.font = `${isHub || isSelected ? '600' : '400'} ${fontSize}px Inter, 'Season Sans', sans-serif`;
           ctx.textAlign = 'center';
-          ctx.globalAlpha = (isSelected ? 1 : alpha) * nodeTextAlpha;
+
+          // Background attenuation on text
+          if (selectedNodeId) {
+            if (isSelected) {
+              ctx.globalAlpha = 1.0 * nodeTextAlpha;
+              ctx.fillStyle = '#ffffff';
+            } else if (isNeighbor) {
+              ctx.globalAlpha = 0.95 * nodeTextAlpha;
+              ctx.fillStyle = cfg.colors[n.type] ?? '#ffffff';
+            } else {
+              ctx.globalAlpha = 0.14 * alpha * nodeTextAlpha; // Attenuated background label
+              ctx.fillStyle = cfg.colors[n.type] ?? '#888888';
+            }
+          } else {
+            ctx.globalAlpha = alpha * nodeTextAlpha;
+            if (isMagenta) {
+              ctx.fillStyle = '#D53F8C';
+            } else {
+              ctx.fillStyle = cfg.colors[n.type] ?? '#ffffff';
+            }
+          }
+
           ctx.shadowColor = 'rgba(0,0,0,0.95)';
           ctx.shadowBlur = (isHub ? 6 : 4) * dpr;
-
-          if (isMagenta) {
-            ctx.fillStyle = '#D53F8C';
-          } else if (isSelected) {
-            ctx.fillStyle = '#60a5fa';
-          } else {
-            ctx.fillStyle = cfg.colors[n.type] ?? '#ffffff';
-          }
 
           const yOffset = isHub ? n.size + 16 : -n.size - 4;
           ctx.fillText(n.label, sx * dpr, (sy + yOffset) * dpr);
@@ -572,13 +643,13 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
           if (m.rel) {
             ctx.font = `400 ${8.5 * d2 * edgeTextScale}px Inter, sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillStyle = edgeColor;
+            ctx.fillStyle = selectedNodeId ? '#e2e8f0' : edgeColor;
             ctx.fillText(m.rel, sx * d2, (sy - 6 * edgeTextScale) * d2);
           }
           if (m.weight) {
             ctx.font = `600 ${9 * d2 * edgeTextScale}px Inter, sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillStyle = selectedNodeId ? '#93c5fd' : (edgeColor === '#888888' ? '#bbbbbb' : edgeColor);
+            ctx.fillStyle = selectedNodeId ? '#ffffff' : (edgeColor === '#888888' ? '#bbbbbb' : edgeColor);
             ctx.fillText(m.weight, sx * d2, (sy + 5 * edgeTextScale) * d2);
           }
           ctx.shadowBlur = 0;
@@ -841,10 +912,32 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       // Update Reveal physics
       updateReveal(dt);
 
-      // Edge opacity smooth lerp
+      // Edge opacity smooth lerp & connection line drawing animation
       edgeStates.forEach(es => {
         es.currentOpacity += (es.targetOpacity - es.currentOpacity) * 0.15;
         es.material.opacity = es.currentOpacity;
+
+        // Dynamic line connection drawing animation
+        if (es.isConnecting && es.originPos && es.targetPos) {
+          es.connectProgress = Math.min(1.0, (es.connectProgress ?? 0) + dt * 3.6);
+          const easeT = easeOutCubic(es.connectProgress);
+          const curEnd = new THREE.Vector3().lerpVectors(es.originPos, es.targetPos, easeT);
+          const posAttr = es.line.geometry.attributes.position as THREE.BufferAttribute;
+          posAttr.setXYZ(0, es.originPos.x, es.originPos.y, es.originPos.z);
+          posAttr.setXYZ(1, curEnd.x, curEnd.y, curEnd.z);
+          posAttr.needsUpdate = true;
+
+          if (es.mid) {
+            es.mid.x = (es.originPos.x + curEnd.x) / 2;
+            es.mid.y = (es.originPos.y + curEnd.y) / 2;
+            es.mid.z = (es.originPos.z + curEnd.z) / 2;
+            es.mid.visible = es.connectProgress > 0.65;
+          }
+
+          if (es.connectProgress >= 1.0) {
+            es.isConnecting = false;
+          }
+        }
       });
 
       // Rotation & Inertia
