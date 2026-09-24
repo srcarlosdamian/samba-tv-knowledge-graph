@@ -155,24 +155,39 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
         </div>
 
         {/* Bottom */}
-        <div className="flex flex-col gap-3 items-center">
+        <div className="flex flex-col gap-4 items-center">
+          {/* Theme / Settings toggle (Sun icon from Figma) */}
+          <button
+            onClick={toggleTheme}
+            title="Toggle theme"
+            className="flex items-center justify-center rounded-lg text-[#8a8a8a] hover:text-white transition-colors cursor-pointer"
+            style={{ width: 28, height: 28, background: 'transparent', border: 'none' }}
+          >
+            <Sun size={18} strokeWidth={1.5} />
+          </button>
+
           {/* Graph editor toggle */}
           <button
             onClick={onToggleEditor}
             title="Graph editor"
-            className="flex items-center justify-center rounded-lg transition-colors"
-            style={{ width: 32, height: 32, backgroundColor: showGraphEditor ? 'rgba(103,129,168,0.25)' : 'transparent' }}
+            className="flex items-center justify-center rounded-lg transition-colors cursor-pointer"
+            style={{ width: 28, height: 28, backgroundColor: showGraphEditor ? 'rgba(103,129,168,0.25)' : 'transparent', border: 'none' }}
           >
-            <Sliders size={18} strokeWidth={1} color={showGraphEditor ? ICON_W : ICON_DIM} />
+            <Sliders size={16} strokeWidth={1.2} color={showGraphEditor ? ICON_W : ICON_DIM} />
           </button>
-          {/* Avatar */}
-          <div className="relative">
-            <div className="flex items-center justify-center rounded-full text-white text-xs font-medium"
-              style={{ width: 28, height: 28, backgroundColor: '#4a5568', fontSize: 11, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 500 }}>
-              TA
-            </div>
-            <div className="absolute rounded-full"
-              style={{ width: 8, height: 8, backgroundColor: '#48bb78', bottom: 0, right: 0, border: '1.5px solid #0f0f0f' }} />
+
+          {/* Avatar with photo and green status badge */}
+          <div className="relative cursor-pointer">
+            <img
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+              alt="User Avatar"
+              className="rounded-full object-cover border border-[#262626]"
+              style={{ width: 28, height: 28 }}
+            />
+            <div
+              className="absolute rounded-full"
+              style={{ width: 8, height: 8, backgroundColor: '#22c55e', bottom: -1, right: -1, border: '2px solid #0f0f0f' }}
+            />
           </div>
         </div>
       </div>
