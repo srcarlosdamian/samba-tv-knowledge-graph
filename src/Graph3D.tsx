@@ -30,11 +30,14 @@ export interface GraphConfig {
   animateConnection?: boolean;   // animate lines connecting outwards on click (default true)
 
   // ─── Text & Labels (Texto y Etiquetas) ─────────────────────────────────────
-  textSize?: number;       // 0.4 to 2.5, node text size multiplier (default 1.0)
-  textOpacity?: number;    // 0 to 1.0, node text label opacity (default 1.0)
-  edgeTextColor?: string;  // color for edge relationship & weight text (default #888888)
-  edgeTextSize?: number;   // 0.4 to 2.0, edge text size multiplier (default 0.45)
-  showEdgeText?: boolean;  // toggle edge text labels
+  textSize?: number;             // 0.4 to 2.5, node text size multiplier (default 1.0)
+  textOpacity?: number;          // 0 to 1.0, general fallback node text label opacity (default 1.0)
+  individualTextOpacity?: number;// 0 to 1.0, opacity for Individual SHAs text (default 0.75)
+  householdTextOpacity?: number; // 0 to 1.0, opacity for Household IDs text (default 0.85)
+  hubTextOpacity?: number;       // 0 to 1.0, opacity for Hub titles text (default 1.0)
+  edgeTextColor?: string;        // color for edge relationship & weight text (default #888888)
+  edgeTextSize?: number;         // 0.4 to 2.0, edge text size multiplier (default 0.45)
+  showEdgeText?: boolean;        // toggle edge text labels
 }
 
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
@@ -81,6 +84,9 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   // Text / Labels default
   textSize: 1.0,
   textOpacity: 1.0,
+  individualTextOpacity: 0.75,
+  householdTextOpacity: 0.85,
+  hubTextOpacity: 1.0,
   edgeTextColor: '#888888',
   edgeTextSize: 0.45,
   showEdgeText: true,
@@ -674,7 +680,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
       const nodeTextScale = cfg.textSize ?? 1.0;
       const nodeTextAlpha = cfg.textOpacity ?? 1.0;
 
-      if (nodeTextAlpha > 0.01 && nodeTextScale > 0.01) {
+      if (nodeTextScale > 0.01) {
         nodes.forEach(n => {
           const alpha = nodeAlpha.get(n.id) ?? 0;
           if (alpha <= 0) return;
@@ -685,9 +691,23 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
           if (behind) return;
 
           const isHub = n.type === 'genre' || n.type === 'topic' || n.type === 'series' || n.type === 'state' || n.type === 'income_bracket';
+          const isIndividual = n.type === 'individual';
+          const isHousehold = n.type === 'household' || n.type === 'experian_household';
           const isSelected = selectedNodeId === n.id;
           const isNeighbor = activeNeighborIds.has(n.id);
           const isMagenta = magentaHighlightedNodeIds.has(n.id);
+
+          // Individual text opacity vs household ID opacity vs hub title opacity
+          let categoryAlpha = nodeTextAlpha;
+          if (isIndividual && cfg.individualTextOpacity !== undefined) {
+            categoryAlpha = cfg.individualTextOpacity;
+          } else if (isHousehold && cfg.householdTextOpacity !== undefined) {
+            categoryAlpha = cfg.householdTextOpacity;
+          } else if (isHub && cfg.hubTextOpacity !== undefined) {
+            categoryAlpha = cfg.hubTextOpacity;
+          }
+
+          if (categoryAlpha <= 0.005) return;
 
           const fontSize = (isHub ? 13 : isSelected ? 12 : 10) * dpr * nodeTextScale;
           ctx.font = `${isHub || isSelected ? '600' : '500'} ${fontSize}px Inter, 'Season Sans', sans-serif`;
@@ -696,17 +716,17 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
           // All node labels are pure white (#ffffff)
           if (selectedNodeId) {
             if (isSelected) {
-              ctx.globalAlpha = 1.0 * nodeTextAlpha;
+              ctx.globalAlpha = 1.0 * categoryAlpha;
               ctx.fillStyle = '#ffffff';
             } else if (isNeighbor) {
-              ctx.globalAlpha = 0.95 * nodeTextAlpha;
+              ctx.globalAlpha = 0.95 * categoryAlpha;
               ctx.fillStyle = '#ffffff';
             } else {
-              ctx.globalAlpha = 0.18 * alpha * nodeTextAlpha; // Attenuated background label
+              ctx.globalAlpha = 0.18 * alpha * categoryAlpha; // Attenuated background label
               ctx.fillStyle = '#ffffff';
             }
           } else {
-            ctx.globalAlpha = alpha * nodeTextAlpha;
+            ctx.globalAlpha = alpha * categoryAlpha;
             if (isMagenta) {
               ctx.fillStyle = '#ff70c7';
             } else {

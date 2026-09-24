@@ -1261,9 +1261,9 @@ function GraphEditorPanel({ config, onChange, onClose }: {
         {activeTab === 'labels' && (
           <>
             <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
-              Node Labels
+              Text Sizing
             </div>
-            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
               <div className="flex items-center justify-between">
                 <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
                   Node Text Size
@@ -1286,25 +1286,87 @@ function GraphEditorPanel({ config, onChange, onClose }: {
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+            <div className="mb-1" style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 6 }}>
+              Category Opacity Controls
+            </div>
+
+            {/* Individual SHAs Opacity */}
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
               <div className="flex items-center justify-between">
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
-                  Node Text Opacity
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: config.colors.individual ?? '#EF3557' }} />
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                    Individual SHAs Opacity
+                  </span>
+                </div>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-                  {((config.textOpacity ?? 1.0) * 100).toFixed(0)}%
+                  {((config.individualTextOpacity ?? 0.75) * 100).toFixed(0)}%
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Opacity</span>
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>SHA</span>
                 <input
                   type="range"
                   min={0}
                   max={1}
                   step={0.05}
-                  value={config.textOpacity ?? 1.0}
-                  onChange={e => onChange({ ...config, textOpacity: parseFloat(e.target.value) })}
-                  style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }}
+                  value={config.individualTextOpacity ?? 0.75}
+                  onChange={e => onChange({ ...config, individualTextOpacity: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: config.colors.individual ?? '#EF3557', height: 4 }}
+                />
+              </div>
+            </div>
+
+            {/* Household IDs Opacity */}
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 4 }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: config.colors.household ?? '#4E6E9D' }} />
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                    Household IDs Opacity
+                  </span>
+                </div>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {((config.householdTextOpacity ?? 0.85) * 100).toFixed(0)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>ID</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={config.householdTextOpacity ?? 0.85}
+                  onChange={e => onChange({ ...config, householdTextOpacity: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: config.colors.household ?? '#4E6E9D', height: 4 }}
+                />
+              </div>
+            </div>
+
+            {/* Hub Titles Opacity */}
+            <div className="flex flex-col gap-2 rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-alt)', marginBottom: 8 }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: config.colors.genre ?? '#38A169' }} />
+                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>
+                    Hub Titles Opacity
+                  </span>
+                </div>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {((config.hubTextOpacity ?? 1.0) * 100).toFixed(0)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Hub</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={config.hubTextOpacity ?? 1.0}
+                  onChange={e => onChange({ ...config, hubTextOpacity: parseFloat(e.target.value) })}
+                  style={{ flex: 1, accentColor: config.colors.genre ?? '#38A169', height: 4 }}
                 />
               </div>
             </div>
