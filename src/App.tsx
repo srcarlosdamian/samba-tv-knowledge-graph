@@ -1034,7 +1034,7 @@ function GraphEditorPanel({ config, onChange, onClose }: {
         <EditorRow
           label="Edge relation text" color={config.edgeTextColor ?? '#888888'}
           accentColor="var(--accent)"
-          sliderMin={0.4} sliderMax={2.0} sliderStep={0.05} sliderValue={config.edgeTextSize ?? 1.0} sliderLabel="Size"
+          sliderMin={0.2} sliderMax={2.0} sliderStep={0.05} sliderValue={config.edgeTextSize ?? 0.45} sliderLabel="Size"
           onColorChange={hex => onChange({ ...config, edgeTextColor: hex })}
           onSliderChange={val => onChange({ ...config, edgeTextSize: val })}
         />

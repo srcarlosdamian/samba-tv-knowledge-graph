@@ -66,7 +66,7 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   textSize: 1.0,
   textOpacity: 1.0,
   edgeTextColor: '#888888',
-  edgeTextSize: 1.0,
+  edgeTextSize: 0.45,
   showEdgeText: true,
 };
 
