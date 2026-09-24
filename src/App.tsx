@@ -321,7 +321,7 @@ const LIMITS = [
 ];
 
 function SelectDropdown({ label, options, value, onChange }: {
-  label: string;
+  label?: string;
   options: { value: string; label: string; desc?: string }[];
   value: string;
   onChange: (v: string) => void;
@@ -339,33 +339,43 @@ function SelectDropdown({ label, options, value, onChange }: {
   }, []);
 
   return (
-    <div className="flex flex-col gap-1 flex-1 relative" ref={ref}>
-      <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>{label}</span>
-      <button onClick={() => setOpen(p => !p)}
-        className="relative flex items-center rounded"
+    <div className="flex flex-col gap-1 w-full relative" ref={ref}>
+      {label && (
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>
+          {label}
+        </span>
+      )}
+      <button
+        onClick={() => setOpen(p => !p)}
+        className="relative flex items-center justify-between rounded-md w-full transition-colors cursor-pointer"
         style={{
-          backgroundColor: 'var(--bg-input)', height: 28, paddingLeft: 8, paddingRight: 24,
-          border: open ? '1px solid var(--accent)' : '1px solid var(--border)', textAlign: 'left',
-        }}>
-        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          backgroundColor: '#141414',
+          height: 36,
+          paddingLeft: 12,
+          paddingRight: 12,
+          border: open ? '1px solid #5b7aa5' : '1px solid #282828',
+          textAlign: 'left',
+        }}
+      >
+        <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 13, color: '#e5e5e5', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {selected.label}
         </span>
-        <ChevronDown size={11} strokeWidth={1.5} color="var(--text-dim)"
-          style={{ position: 'absolute', right: 6, transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'none' }} />
+        <ChevronDown size={14} strokeWidth={1.5} color="#8a8a8a"
+          style={{ transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }} />
       </button>
       {open && (
-        <div className="absolute z-50 rounded-lg overflow-hidden"
-          style={{ top: '100%', left: 0, right: 0, marginTop: 4, backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-mid)', boxShadow: '0 8px 24px var(--shadow)' }}>
+        <div className="absolute z-50 rounded-lg overflow-hidden shadow-2xl"
+          style={{ top: '100%', left: 0, right: 0, marginTop: 4, backgroundColor: '#1c1c1c', border: '1px solid #333333', boxShadow: '0 8px 28px rgba(0,0,0,0.6)' }}>
           {options.map(opt => (
             <button key={opt.value} onClick={() => { onChange(opt.value); setOpen(false); }}
-              className="w-full flex flex-col items-start px-2.5 py-1.5 transition-colors"
-              style={{ backgroundColor: opt.value === value ? 'var(--bg-btn-active)' : 'transparent', borderBottom: '1px solid var(--border)' }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-btn)')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = opt.value === value ? 'var(--bg-btn-active)' : 'transparent')}>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: opt.value === value ? 'var(--text)' : 'var(--text-btn)', fontWeight: opt.value === value ? 500 : 400 }}>
+              className="w-full flex flex-col items-start px-3 py-2 transition-colors cursor-pointer text-left"
+              style={{ backgroundColor: opt.value === value ? '#2a2a2a' : 'transparent', borderBottom: '1px solid #282828' }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#333333')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = opt.value === value ? '#2a2a2a' : 'transparent')}>
+              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12.5, color: opt.value === value ? '#ffffff' : '#c4c4c4', fontWeight: opt.value === value ? 500 : 400 }}>
                 {opt.label}
               </span>
-              {opt.desc && <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10, color: 'var(--text-dim)', marginTop: 1 }}>{opt.desc}</span>}
+              {opt.desc && <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: '#8a8a8a', marginTop: 1 }}>{opt.desc}</span>}
             </button>
           ))}
         </div>
@@ -513,40 +523,44 @@ function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; on
 function SparqlCodeViewer({ code, onCopy, copied }: { code: string; onCopy: () => void; copied: boolean }) {
   const lines = code.trim().split('\n');
 
-  const highlightLine = (line: string) => {
-    const keywords = ['PREFIX', 'SELECT', 'WHERE', 'GRAPH', 'LIMIT', 'CONSTRUCT', 'OPTIONAL', 'FILTER'];
-    const parts = line.split(/(\s+|[{}<>;])/);
+  const highlightToken = (token: string, key: number) => {
+    const upper = token.toUpperCase();
+    const keywords = ['PREFIX', 'SELECT', 'WHERE', 'GRAPH', 'LIMIT', 'CONSTRUCT', 'OPTIONAL', 'FILTER', 'BIND', 'COUNT', 'AS', 'A'];
+    if (keywords.includes(upper)) {
+      return <span key={key} style={{ color: '#e05263', fontWeight: 500 }}>{token}</span>;
+    }
+    if (token.startsWith('?') || token.startsWith('$')) {
+      return <span key={key} style={{ color: '#93c5fd' }}>{token}</span>;
+    }
+    if (token.startsWith('<') && token.endsWith('>')) {
+      return <span key={key} style={{ color: '#38a169' }}>{token}</span>;
+    }
+    if (token.startsWith('"') || token.startsWith("'")) {
+      return <span key={key} style={{ color: '#fbbf24' }}>{token}</span>;
+    }
+    if (token.startsWith('samba:') || token.startsWith('show:') || token.startsWith('experian:') || token.startsWith('device:')) {
+      return <span key={key} style={{ color: '#67e8f9' }}>{token}</span>;
+    }
+    if (/^\d+$/.test(token)) {
+      return <span key={key} style={{ color: '#38bdf8' }}>{token}</span>;
+    }
+    return <span key={key} style={{ color: '#e5e5e5' }}>{token}</span>;
+  };
 
-    return parts.map((part, i) => {
-      const upper = part.toUpperCase();
-      if (keywords.includes(upper)) {
-        return <span key={i} style={{ color: '#e05263', fontWeight: 500 }}>{part}</span>;
-      }
-      if (part.startsWith('?') || part.startsWith('$')) {
-        return <span key={i} style={{ color: '#93c5fd' }}>{part}</span>;
-      }
-      if (part.startsWith('<') && part.endsWith('>')) {
-        return <span key={i} style={{ color: '#38bdf8' }}>{part}</span>;
-      }
-      if (part.startsWith('samba:') || part.startsWith('show:') || part.startsWith('experian:')) {
-        return <span key={i} style={{ color: '#67e8f9' }}>{part}</span>;
-      }
-      if (/^\d+$/.test(part)) {
-        return <span key={i} style={{ color: '#38bdf8' }}>{part}</span>;
-      }
-      return <span key={i} style={{ color: '#d1d5db' }}>{part}</span>;
-    });
+  const highlightLine = (line: string) => {
+    const parts = line.split(/(\s+|[{}<>;,])/);
+    return parts.map((part, i) => highlightToken(part, i));
   };
 
   return (
-    <div className="relative rounded-md overflow-hidden" style={{ backgroundColor: '#141414', padding: '10px 10px 26px 10px' }}>
-      <div className="flex flex-col gap-0.5 font-mono text-[10.5px] leading-[16px] overflow-x-auto hide-scrollbar" style={{ maxHeight: 180 }}>
+    <div className="relative rounded-md overflow-hidden" style={{ backgroundColor: '#141414', border: '1px solid #282828', padding: '10px 10px 28px 10px' }}>
+      <div className="flex flex-col gap-0.5 font-mono text-[11px] leading-[17px] overflow-x-auto hide-scrollbar" style={{ maxHeight: 190 }}>
         {lines.map((line, idx) => (
-          <div key={idx} className="flex gap-2.5">
-            <span style={{ color: '#52525b', width: 12, textAlign: 'right', userSelect: 'none', flexShrink: 0 }}>
+          <div key={idx} className="flex gap-3 items-baseline">
+            <span style={{ color: '#52525b', width: 14, textAlign: 'right', userSelect: 'none', flexShrink: 0, fontSize: 10 }}>
               {idx + 1}
             </span>
-            <span className="whitespace-pre flex-1">
+            <span className="whitespace-pre flex-1 font-mono">
               {highlightLine(line)}
             </span>
           </div>
@@ -554,11 +568,11 @@ function SparqlCodeViewer({ code, onCopy, copied }: { code: string; onCopy: () =
       </div>
       <button
         onClick={onCopy}
-        className="absolute bottom-1.5 right-1.5 flex items-center justify-center rounded p-1 transition-colors cursor-pointer hover:bg-[#333333]"
-        style={{ backgroundColor: '#222222', border: '1px solid #333333', width: 22, height: 22 }}
-        title={copied ? 'Copied!' : 'Copy query'}
+        className="absolute bottom-1.5 right-1.5 flex items-center justify-center rounded p-1 transition-colors cursor-pointer hover:bg-[#2e2e2e]"
+        style={{ backgroundColor: '#1e1e1e', border: '1px solid #333333', width: 24, height: 24 }}
+        title={copied ? 'Copied!' : 'Copy SPARQL'}
       >
-        {copied ? <Check size={11} color="#48bb78" /> : <Copy size={11} strokeWidth={1.5} color="#9e9e9e" />}
+        {copied ? <Check size={12} color="#48bb78" /> : <Copy size={12} strokeWidth={1.5} color="#9e9e9e" />}
       </button>
     </div>
   );
@@ -572,7 +586,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
   sparqlQuery?: string;
   nodeCount?: number;
 }) {
-  const [techExpanded, setTechExpanded] = useState(false);
+  const [techExpanded, setTechExpanded] = useState(true);
   const [sparqlTab, setSparqlTab] = useState<'select' | 'construct'>('select');
   const [model, setModel] = useState('haiku');
   const [limit, setLimit] = useState('20');
@@ -587,13 +601,14 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl shrink-0 hide-scrollbar"
+    <div className="flex flex-col gap-3.5 rounded-xl shrink-0 hide-scrollbar"
       style={{
         backgroundColor: '#1e1e1e',
-        width: 290,
-        padding: '14px 14px 16px 14px',
+        width: 300,
+        padding: '16px 16px 18px 16px',
         maxHeight: 'calc(100vh - 70px)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+        border: '1px solid rgba(255, 255, 255, 0.06)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
         position: 'relative',
         zIndex: 10,
         overflowY: 'auto',
@@ -604,19 +619,19 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       </h2>
 
       {/* Display toggle */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
-          <span style={{ fontSize: 12, color: '#a3a3a3', lineHeight: '16px' }}>Display</span>
-          <span style={{ fontSize: 11, color: '#737373', lineHeight: '14px' }}>{nodeCount ?? 20} nodes</span>
+          <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Display</span>
+          <span style={{ fontSize: 12, color: '#737373', lineHeight: '14px' }}>{nodeCount ?? 20} nodes</span>
         </div>
-        <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', height: 30 }}>
+        <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', border: '1px solid #282828', height: 32 }}>
           {(['graph', 'table'] as GraphTab[]).map(tab => (
             <button key={tab} onClick={() => setGraphTab(tab)}
               className="flex flex-1 items-center justify-center rounded transition-colors"
               style={{
                 backgroundColor: graphTab === tab ? '#282828' : 'transparent',
-                color: graphTab === tab ? '#ffffff' : '#737373',
-                fontSize: 12,
+                color: graphTab === tab ? '#ffffff' : '#8a8a8a',
+                fontSize: 12.5,
                 fontWeight: graphTab === tab ? 500 : 400,
                 border: 'none',
                 cursor: 'pointer',
@@ -629,20 +644,21 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
 
       {/* Instructions */}
       <div className="flex flex-col gap-1.5">
-        <span style={{ fontSize: 12, color: '#a3a3a3', lineHeight: '16px' }}>Instructions</span>
+        <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Instructions</span>
         <textarea
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Ask anything..."
+          placeholder="Ask anything about your audience or graph data..."
           className="rounded-md resize-none outline-none"
           style={{
             backgroundColor: '#141414',
-            padding: '8px 10px',
-            border: 'none',
+            padding: '10px 12px',
+            border: '1px solid #282828',
             fontSize: 13,
             color: '#e5e5e5',
-            lineHeight: '19px',
-            height: 76,
+            lineHeight: '20px',
+            height: 84,
+            fontFamily: "'Season Sans', 'Inter', sans-serif",
           }}
         />
         <SuggestionSlider currentQuery={query} onSelect={setQuery} />
@@ -656,31 +672,31 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
       {/* Technical details */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <span style={{ fontSize: 12, color: '#a3a3a3', lineHeight: '16px' }}>Technical details</span>
+          <span style={{ fontSize: 12, color: '#8a8a8a', lineHeight: '16px' }}>Technical details</span>
           <button
             onClick={() => setTechExpanded(p => !p)}
             className="flex items-center justify-center rounded p-1 hover:bg-[#2e2e2e] transition-colors"
-            style={{ border: '1px solid #2e2e2e', width: 22, height: 22, background: '#1e1e1e', cursor: 'pointer' }}
+            style={{ border: '1px solid #2e2e2e', width: 24, height: 24, background: '#141414', cursor: 'pointer' }}
             title="Toggle details"
           >
             {techExpanded
-              ? <ChevronUp size={12} strokeWidth={1.5} color="#9e9e9e" />
-              : <ChevronDown size={12} strokeWidth={1.5} color="#9e9e9e" />}
+              ? <ChevronUp size={13} strokeWidth={1.5} color="#9e9e9e" />
+              : <ChevronDown size={13} strokeWidth={1.5} color="#9e9e9e" />}
           </button>
         </div>
 
         {techExpanded && (
-          <div className="flex flex-col gap-2 pt-1">
-            <SelectDropdown label="Model" options={MODELS} value={model} onChange={setModel} />
+          <div className="flex flex-col gap-2.5 pt-0.5">
+            <SelectDropdown options={MODELS} value={model} onChange={setModel} />
 
             {/* Select / Construct Toggle */}
-            <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', height: 28 }}>
+            <div className="flex gap-1 rounded-md p-0.5" style={{ backgroundColor: '#141414', border: '1px solid #282828', height: 30 }}>
               <button
                 onClick={() => setSparqlTab('select')}
                 className="flex flex-1 items-center justify-center rounded transition-colors"
                 style={{
                   backgroundColor: sparqlTab === 'select' ? '#282828' : 'transparent',
-                  color: sparqlTab === 'select' ? '#ffffff' : '#737373',
+                  color: sparqlTab === 'select' ? '#ffffff' : '#8a8a8a',
                   fontSize: 12,
                   fontWeight: sparqlTab === 'select' ? 500 : 400,
                   border: 'none',
@@ -694,7 +710,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
                 className="flex flex-1 items-center justify-center rounded transition-colors"
                 style={{
                   backgroundColor: sparqlTab === 'construct' ? '#282828' : 'transparent',
-                  color: sparqlTab === 'construct' ? '#ffffff' : '#737373',
+                  color: sparqlTab === 'construct' ? '#ffffff' : '#8a8a8a',
                   fontSize: 12,
                   fontWeight: sparqlTab === 'construct' ? 500 : 400,
                   border: 'none',
@@ -715,11 +731,12 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
         className="w-full flex items-center justify-center rounded-lg transition-opacity hover:opacity-90 cursor-pointer mt-1"
         style={{
           backgroundColor: '#5b7aa5',
-          height: 40,
+          height: 42,
           fontSize: 14,
           fontWeight: 500,
           color: '#ffffff',
           border: 'none',
+          fontFamily: "'Season Sans', 'Inter', sans-serif",
         }}
       >
         Run Analysis
