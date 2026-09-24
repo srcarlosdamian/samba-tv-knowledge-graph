@@ -335,6 +335,140 @@ function SelectDropdown({ label, options, value, onChange }: {
   );
 }
 
+function SuggestionSlider({ currentQuery, onSelect }: { currentQuery: string; onSelect: (tag: string) => void }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const suggestions = [
+    'Households in Texas',
+    'People in New York who like Friends',
+    'Married people in New York',
+    'Comedy & Sports affinities',
+    'Households with high genre score',
+  ];
+
+  const updateScrollState = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  };
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener('scroll', updateScrollState, { passive: true });
+    window.addEventListener('resize', updateScrollState);
+
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && el.scrollWidth > el.clientWidth) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY * 0.8;
+      }
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      el.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', updateScrollState);
+      el.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
+  const scrollBy = (offset: number) => {
+    containerRef.current?.scrollBy({ left: offset, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="relative w-full overflow-hidden">
+      {/* Left indicator */}
+      {canScrollLeft && (
+        <button
+          onClick={() => scrollBy(-100)}
+          className="absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 pl-0.5"
+          style={{
+            background: 'linear-gradient(to right, var(--bg-card) 60%, transparent)',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+          title="Scroll left"
+        >
+          <div className="p-0.5 rounded-full bg-[var(--bg-btn)] hover:bg-[var(--border-mid)] text-[var(--text-muted)] transition-colors">
+            <ChevronLeft size={12} strokeWidth={2} />
+          </div>
+        </button>
+      )}
+
+      {/* Right indicator */}
+      {canScrollRight && (
+        <button
+          onClick={() => scrollBy(100)}
+          className="absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 pr-0.5"
+          style={{
+            background: 'linear-gradient(to left, var(--bg-card) 60%, transparent)',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+          title="Scroll right"
+        >
+          <div className="p-0.5 rounded-full bg-[var(--bg-btn)] hover:bg-[var(--border-mid)] text-[var(--text-muted)] transition-colors">
+            <ChevronRight size={12} strokeWidth={2} />
+          </div>
+        </button>
+      )}
+
+      {/* Horizontal smooth scrollable chips */}
+      <div
+        ref={containerRef}
+        className="flex gap-1.5 overflow-x-auto hide-scrollbar scroll-smooth py-0.5"
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        {suggestions.map(tag => {
+          const isActive = currentQuery === tag;
+          return (
+            <button
+              key={tag}
+              onClick={() => onSelect(tag)}
+              className="flex items-center justify-center rounded-md shrink-0 transition-all duration-150 active:scale-95 cursor-pointer"
+              style={{
+                backgroundColor: isActive ? 'rgba(103, 129, 168, 0.22)' : 'var(--bg-input)',
+                border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
+                padding: '0 10px',
+                height: 26,
+                fontFamily: "'Season Sans', 'Inter', sans-serif",
+                fontSize: 12,
+                fontWeight: isActive ? 550 : 400,
+                color: isActive ? 'var(--text)' : 'var(--text-muted)',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = 'var(--border)';
+                  e.currentTarget.style.color = 'var(--text)';
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-input)';
+                  e.currentTarget.style.color = 'var(--text-muted)';
+                }
+              }}
+            >
+              {tag}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Knowledge Graph Sidebar (floating card) ──────────────────────────────────
 function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAnalysis }: {
   graphTab: GraphTab; setGraphTab: (t: GraphTab) => void;
@@ -391,15 +525,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
             fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 14, color: 'var(--text)',
             lineHeight: '20px', height: 128,
           }} />
-        <div className="flex gap-2 overflow-hidden">
-          {['Households in Texas', 'People in New York who like Friends'].map(tag => (
-            <button key={tag} onClick={() => setQuery(tag)}
-              className="flex items-center justify-center rounded-md shrink-0"
-              style={{ backgroundColor: 'var(--border)', padding: '0 8px', height: 24, fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text-btn)', whiteSpace: 'nowrap', border: 'none' }}>
-              {tag}
-            </button>
-          ))}
-        </div>
+        <SuggestionSlider currentQuery={query} onSelect={setQuery} />
       </div>
 
       <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
