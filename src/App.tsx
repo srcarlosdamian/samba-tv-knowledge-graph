@@ -714,7 +714,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
             Display
           </div>
           <div style={{ color: 'var(--NEUTRAL-400, #636363)', fontSize: 12, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '16px' }}>
-            {nodeCount ?? 20} nodes
+            {nodeCount ?? 0} nodes
           </div>
         </div>
         <div style={{ alignSelf: 'stretch', height: 32, padding: 4, background: 'var(--white, #1A1A1A)', borderRadius: 4, justifyContent: 'center', alignItems: 'center', gap: 4, display: 'inline-flex' }}>
@@ -1972,7 +1972,8 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
               {/* Button */}
               <button
                 onClick={onNavigateAudience}
-                className="h-8 px-3 bg-[var(--NEUTRAL-300,#4A4D50)] hover:bg-[#5A5D60] rounded-md flex items-center justify-center gap-2 text-sm text-[var(--NEUTRAL-800,#C6C6C6)] hover:text-white transition-colors cursor-pointer font-['Season_Sans',sans-serif] leading-5 whitespace-nowrap"
+                className="h-8 px-3 bg-[var(--NEUTRAL-300,#4A4D50)] hover:bg-[#5A5D60] rounded-md flex items-center justify-center gap-2 text-sm text-[var(--NEUTRAL-800,#C6C6C6)] hover:text-white transition-colors cursor-pointer font-['Season_Sans',sans-serif] leading-5 whitespace-nowrap border-none outline-none"
+                style={{ border: 'none', outline: 'none' }}
               >
                 Explore this audience
               </button>
