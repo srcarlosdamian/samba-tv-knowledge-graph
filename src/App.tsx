@@ -107,8 +107,8 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
           onClick={onClick}
           onMouseEnter={() => { if (btnRef.current) setTooltip({ label, rect: btnRef.current.getBoundingClientRect() }); }}
           onMouseLeave={() => setTooltip(null)}
-          className="flex items-center justify-center w-full py-1.5 rounded-lg transition-colors"
-          style={{ backgroundColor: active ? 'var(--bg-btn-active)' : 'transparent' }}
+          className="flex items-center justify-center w-full py-1.5 rounded-lg transition-colors cursor-pointer"
+          style={{ backgroundColor: active ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent' }}
         >
           {icon}
         </button>
@@ -120,8 +120,8 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
     <>
       {tooltip && <SidebarTooltip label={tooltip.label} anchorRect={tooltip.rect} />}
       <div
-        className="flex flex-col items-center justify-between shrink-0"
-        style={{ backgroundColor: '#0f0f0f', width: 56, minHeight: '100vh', padding: '24px 12px' }}
+        className="flex flex-col items-center justify-between shrink-0 overflow-hidden"
+        style={{ backgroundColor: 'var(--NEUTRAL-50, #1E1E1E)', width: 56, minHeight: '100vh', padding: '24px 12px' }}
       >
         {/* Top */}
         <div className="flex flex-col gap-6 items-center w-full">
@@ -186,7 +186,7 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
             />
             <div
               className="absolute rounded-full"
-              style={{ width: 8, height: 8, backgroundColor: '#22c55e', bottom: -1, right: -1, border: '2px solid #0f0f0f' }}
+              style={{ width: 8, height: 8, backgroundColor: '#63BA8C', bottom: -1, right: -1, border: '1.5px solid #1E1E1E' }}
             />
           </div>
         </div>
