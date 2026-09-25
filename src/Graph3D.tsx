@@ -19,7 +19,7 @@ export interface GraphConfig {
   globalScale?: number;    // 0.3 to 2.5, overall scale multiplier for entire graph
   colors: Record<string, string>;
   sizes: Record<string, number>;
-  glowIntensity: number;   // 0–1, emissive intensity multiplier
+  glowIntensity: number;   // 0–3.5, emissive & glow aura intensity multiplier
 
   // ─── Base Lines (Líneas Normales Continuas) ─────────────────────────────────
   edgeColor: string;              // Affinity lines color (default #6a7a8a)

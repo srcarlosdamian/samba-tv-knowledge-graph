@@ -1127,12 +1127,12 @@ function GraphEditorPanel({ config, onChange, onClose }: {
               <div className="flex items-center gap-2">
                 <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--text)', fontWeight: 500, flex: 1 }}>Base glow</span>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', width: 32, textAlign: 'right' }}>
-                  {(config.glowIntensity ?? 0.25).toFixed(2)}
+                  {(config.glowIntensity ?? 0.45).toFixed(2)}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 11, color: 'var(--text-muted)', width: 32, flexShrink: 0 }}>Glow</span>
-                <input type="range" min={0} max={1} step={0.01} value={config.glowIntensity ?? 0.25}
+                <input type="range" min={0} max={3.5} step={0.05} value={config.glowIntensity ?? 0.45}
                   onChange={e => onChange({ ...config, glowIntensity: parseFloat(e.target.value) })}
                   style={{ flex: 1, accentColor: 'var(--accent)', height: 4 }} />
               </div>
