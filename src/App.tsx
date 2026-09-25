@@ -50,15 +50,12 @@ function SidebarTooltip({ label, anchorRect }: { label: string; anchorRect: DOMR
 }
 
 // ─── Custom Sidebar Icons ──────────────────────────────────────────────────
-function SambaTvLogo({ width = 24, height = 22 }: { width?: number; height?: number }) {
+function SambaTvLogo({ width = 24, height = 20 }: { width?: number; height?: number }) {
   return (
-    <svg width={width} height={height} viewBox="0 0 26 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flexShrink: 0 }}>
+    <svg width={width} height={height} viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flexShrink: 0 }} aria-hidden="true">
       <path
-        d="M7.8 7.5C5.7 7.5 4 9.2 4 11.3C4 13.4 5.7 15.1 7.8 15.1C10.5 15.1 13.8 11.2 15.8 8.8C17.5 6.8 20.2 6.5 21.8 8.2C23.5 10 23.2 12.8 21.2 14.5L14.8 19.8C13.8 20.6 12.2 20.6 11.2 19.8L8.5 17.5"
-        stroke="#5885D6"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M11.9904 20C11.6006 20 11.2119 19.8488 10.9146 19.5464L7.85899 16.4393C7.26427 15.8346 7.26427 14.8548 7.85899 14.2513C8.45371 13.6465 9.41604 13.6465 10.0108 14.2513L11.9073 16.1798C11.953 16.2262 12.0267 16.2262 12.0724 16.1798L20.0836 8.03111C20.6057 7.49897 20.9347 6.79065 20.9546 6.03828C20.9792 5.11448 20.5776 4.2502 19.8424 3.67521C19.4584 3.37522 18.9995 3.18236 18.5195 3.11927C17.6298 3.0026 16.7716 3.3026 16.1511 3.93235L9.99906 10.1894C8.77683 11.4323 7.11091 12.0584 5.36538 11.9144C4.1572 11.8144 3.00288 11.3287 2.07919 10.5311C0.743402 9.37752 0 7.73587 0 5.97875C0 4.38711 0.60877 2.8907 1.71509 1.76571C3.67604 -0.22831 6.75735 -0.548544 9.06717 0.993103C9.74852 1.44786 9.99905 2.36689 9.59165 3.08474C9.14678 3.86926 8.1505 4.09544 7.42349 3.59902C6.07249 2.67641 4.15369 3.09546 3.33887 4.69067C3.24053 4.88234 3.16678 5.08829 3.11878 5.299C2.86707 6.41565 3.24756 7.51921 4.10335 8.21801C4.49905 8.54062 4.97787 8.75015 5.48011 8.81562C6.36985 8.93229 7.22681 8.63229 7.84729 8.00135L13.928 1.81809C15.0624 0.664536 16.596 -0.0152173 18.1999 0.000258681C19.9115 0.0169251 21.5072 0.775249 22.6287 2.12642C23.4072 3.06331 23.8814 4.23235 23.9797 5.45376C24.1225 7.23112 23.5067 8.92752 22.2845 10.1704L13.0663 19.5464C12.769 19.8488 12.3803 20 11.9904 20Z"
+        fill="#4E6E9D"
       />
     </svg>
   );
@@ -125,8 +122,8 @@ function Sidebar({ view, setView, theme, toggleTheme, showGraphEditor, onToggleE
       >
         {/* Top */}
         <div className="flex flex-col gap-6 items-center w-full">
-          <button onClick={() => setView('graph')} className="flex items-center justify-center p-0.5 rounded hover:opacity-85 transition-opacity" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }} title="Samba TV">
-            <SambaTvLogo width={24} height={22} />
+          <button onClick={() => setView('graph')} className="flex h-6 w-8 items-center justify-center rounded hover:opacity-85 transition-opacity" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }} title="Samba TV" aria-label="Samba TV">
+            <SambaTvLogo />
           </button>
           <div className="flex flex-col gap-4 items-center w-full">
             <NavItem
