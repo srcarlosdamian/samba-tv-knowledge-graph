@@ -1940,7 +1940,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
       {/* ── Top floating bar (only on graph tab) ── */}
       {graphTab === 'graph' && (
         <div className="flex items-center justify-center pt-3 pb-1 px-4 pointer-events-none">
-          <div className="px-6 py-2 bg-[var(--NEUTRAL-100,#222222)] overflow-hidden rounded-lg inline-flex items-center justify-start pointer-events-auto border border-[var(--NEUTRAL-200,#2E2E2E)] shadow-md">
+          <div className="top-bar-slide-down px-6 py-2 bg-[var(--NEUTRAL-100,#222222)] overflow-hidden rounded-lg inline-flex items-center justify-start pointer-events-auto border border-[var(--NEUTRAL-200,#2E2E2E)] shadow-md">
             <div className="rounded-lg flex items-center justify-start gap-6">
 
               {/* Legend */}
