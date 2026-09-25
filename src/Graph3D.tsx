@@ -202,7 +202,7 @@ const Graph3D = forwardRef<Graph3DHandle, Graph3DProps>(function Graph3D(
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(55, W / H, 1, 3000);
-    camera.position.set(0, 0, 760);
+    camera.position.set(0, 0, 760 * 1.30); // Start at 130% distance for smooth entry zoom
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.75));
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
@@ -977,6 +977,14 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
     function updateReveal(dt: number) {
       if (revealDone) return;
       revealClock += dt;
+
+      // Smooth entry camera zoom (130% -> 100% with easeOutCubic)
+      const revealProgress = Math.min(revealClock / REVEAL_END, 1);
+      const easedZoom = easeOutCubic(revealProgress);
+      const zoomFactor = 1.30 - 0.30 * easedZoom;
+      if (!isDragging && !isPanning) {
+        camera.position.z = clampZ(760 * zoomFactor);
+      }
 
       // Hubs pop in first
       const hubT = Math.min(revealClock / HUB_IN, 1);
