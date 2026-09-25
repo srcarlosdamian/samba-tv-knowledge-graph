@@ -1469,7 +1469,7 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
         minHeight: 500,
         cursor: 'grab',
         userSelect: 'none',
-        backgroundColor: '#111111',
+        backgroundColor: '#1A1A1A',
       }}
     />
   );
