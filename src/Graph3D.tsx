@@ -43,8 +43,8 @@ export interface GraphConfig {
 
   // ─── Selection & Highlight (Selección y Destello) ───────────────────────────
   selectionColor?: string;       // Color for selection highlight & active lines (default #ffffff)
-  selectionHaloOpacity?: number; // 0 to 1.0 (default 0.35)
-  selectionBlur?: number;        // 0 to 2.5, soft blur & halo aura intensity (default 1.0)
+  selectionHaloOpacity?: number; // 0 to 1.0 (default 0.08)
+  selectionBlur?: number;        // 0 to 2.5, soft blur & halo aura intensity (default 0.95)
   animateConnection?: boolean;   // Animate lines connecting outwards on click (default true)
 
   // ─── Text & Labels (Texto y Etiquetas) ─────────────────────────────────────
@@ -111,8 +111,8 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
 
   // Selection default
   selectionColor: '#ffffff',
-  selectionHaloOpacity: 0.35,
-  selectionBlur: 1.0,
+  selectionHaloOpacity: 0.08,
+  selectionBlur: 0.95,
   animateConnection: true,
 
   // Text / Labels default
@@ -519,8 +519,8 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
 
       const curCfg = configRef.current;
       const selColorHex = cssToHex(curCfg.selectionColor ?? '#ffffff');
-      const selHaloOpacity = curCfg.selectionHaloOpacity ?? 0.35;
-      const selBlur = curCfg.selectionBlur ?? 1.0;
+      const selHaloOpacity = curCfg.selectionHaloOpacity ?? 0.08;
+      const selBlur = curCfg.selectionBlur ?? 0.95;
 
       if (!nodeId) {
         // Deselect all: restore full visibility, natural geometry, and default colors
@@ -1161,8 +1161,8 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
     let lastShowAllEdges = configRef.current.showAllEdges ?? false;
     let lastGlobalScale = configRef.current.globalScale ?? 1.0;
     let lastSelectionColor = configRef.current.selectionColor ?? '#ffffff';
-    let lastSelectionHaloOpacity = configRef.current.selectionHaloOpacity ?? 0.35;
-    let lastSelectionBlur = configRef.current.selectionBlur ?? 1.0;
+    let lastSelectionHaloOpacity = configRef.current.selectionHaloOpacity ?? 0.08;
+    let lastSelectionBlur = configRef.current.selectionBlur ?? 0.95;
     let lastDottedLineWidth = configRef.current.dottedLineWidth ?? 3.5;
     let lastDottedLineColor = configRef.current.dottedLineColor ?? configRef.current.selectionColor ?? '#ffffff';
     let lastDottedLineOpacity = configRef.current.dottedLineOpacity ?? 0.95;
@@ -1328,8 +1328,8 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
 
       // 6. Selection Color, Blur, or Halo Opacity changed while node selected
       const curSelColor = c.selectionColor ?? '#ffffff';
-      const curSelHaloOpacity = c.selectionHaloOpacity ?? 0.35;
-      const curSelBlur = c.selectionBlur ?? 1.0;
+      const curSelHaloOpacity = c.selectionHaloOpacity ?? 0.08;
+      const curSelBlur = c.selectionBlur ?? 0.95;
       if (curSelColor !== lastSelectionColor || curSelHaloOpacity !== lastSelectionHaloOpacity || curSelBlur !== lastSelectionBlur) {
         if (selectedNodeId) {
           applySelectionHighlight(selectedNodeId);

@@ -1435,7 +1435,7 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                   Soft Blur Intensity
                 </span>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-                  {(config.selectionBlur ?? 1.0).toFixed(2)}
+                  {(config.selectionBlur ?? 0.95).toFixed(2)}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -1445,7 +1445,7 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                   min={0.0}
                   max={2.5}
                   step={0.05}
-                  value={config.selectionBlur ?? 1.0}
+                  value={config.selectionBlur ?? 0.95}
                   onChange={e => onChange({ ...config, selectionBlur: parseFloat(e.target.value) })}
                   style={{ flex: 1, accentColor: config.selectionColor ?? 'var(--accent)', height: 4 }}
                 />
@@ -1458,7 +1458,7 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                   Halo Mesh Opacity
                 </span>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>
-                  {((config.selectionHaloOpacity ?? 0.35) * 100).toFixed(0)}%
+                  {((config.selectionHaloOpacity ?? 0.08) * 100).toFixed(0)}%
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -1468,7 +1468,7 @@ function GraphEditorPanel({ config, onChange, onClose }: {
                   min={0}
                   max={1}
                   step={0.02}
-                  value={config.selectionHaloOpacity ?? 0.35}
+                  value={config.selectionHaloOpacity ?? 0.08}
                   onChange={e => onChange({ ...config, selectionHaloOpacity: parseFloat(e.target.value) })}
                   style={{ flex: 1, accentColor: config.selectionColor ?? 'var(--accent)', height: 4 }}
                 />
