@@ -1918,11 +1918,11 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
   };
 
   const legendItems = [
-    { label: 'Genre',      color: '#63BA8C', dot: true  }, // green-500
-    { label: 'Individual', color: '#BE2440', dot: true  }, // SIGNAL-RED-500
-    { label: 'Topic',      color: '#B43A79', dot: true  }, // pink-500
-    { label: 'Household',  color: '#6781A8', dot: true  }, // PACIFIC-BLUE-500
-    { label: 'Affinity',   color: '#636363', dot: false }, // NEUTRAL-400
+    { label: 'Genre',      color: 'var(--green-500, #63BA8C)',       dot: true  }, // green-500
+    { label: 'Individual', color: 'var(--SIGNAL--RED-500, #BE2440)', dot: true  }, // SIGNAL-RED-500
+    { label: 'Topic',      color: 'var(--pink-500, #B43A79)',        dot: true  }, // pink-500
+    { label: 'Household',  color: 'var(--PACIFIC--BLUE-500, #6781A8)', dot: true  }, // PACIFIC-BLUE-500
+    { label: 'Affinity',   color: 'var(--NEUTRAL-400, #636363)',     dot: false }, // NEUTRAL-400
   ];
 
   return (
@@ -1940,7 +1940,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
       {/* ── Top floating bar (only on graph tab) ── */}
       {graphTab === 'graph' && (
         <div className="flex items-center justify-center pt-3 pb-1 px-4 pointer-events-none">
-          <div className="px-6 py-2 bg-[var(--NEUTRAL-100,#222222)] overflow-hidden rounded-lg inline-flex items-center justify-start pointer-events-auto border border-[#2E2E2E] shadow-md">
+          <div className="px-6 py-2 bg-[var(--NEUTRAL-100,#222222)] overflow-hidden rounded-lg inline-flex items-center justify-start pointer-events-auto border border-[var(--NEUTRAL-200,#2E2E2E)] shadow-md">
             <div className="rounded-lg flex items-center justify-start gap-6">
 
               {/* Legend */}
@@ -1952,7 +1952,7 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
                     ) : (
                       <div className="w-[10px] h-[2px] shrink-0" style={{ backgroundColor: color }} />
                     )}
-                    <span className="text-[#E5E5E5] text-sm font-['Season_Sans',sans-serif] leading-5 whitespace-nowrap">{label}</span>
+                    <span className="text-[var(--black,#E5E5E5)] text-sm font-['Season_Sans',sans-serif] leading-5 whitespace-nowrap">{label}</span>
                   </div>
                 ))}
               </div>
