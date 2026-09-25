@@ -822,6 +822,32 @@ function getEdgeBaseOpacity(category: EdgeCategory, cfg: GraphConfig): number {
             }
           }
         });
+      } else {
+        // Expand and reveal all connected subgraphs through any path for any selected node
+        const visited = new Set<string>();
+        const queue: string[] = [node.id];
+        visited.add(node.id);
+
+        while (queue.length > 0) {
+          const currentId = queue.shift()!;
+          edgeStates.forEach(es => {
+            if (es.data.from === currentId || es.data.to === currentId) {
+              es.revealed = true;
+              es.data.hidden = false;
+              const nextId = es.data.from === currentId ? es.data.to : es.data.from;
+              if (!visited.has(nextId)) {
+                visited.add(nextId);
+                queue.push(nextId);
+                const nextMesh = nodeMap.get(nextId);
+                if (nextMesh) {
+                  nextMesh.scale.setScalar(configRef.current.sizes[nodes.find(n => n.id === nextId)?.type ?? 'household'] ?? 1);
+                  nodeAlpha.set(nextId, 1);
+                }
+              }
+            }
+          });
+        }
+        applySelectionHighlight(node.id);
       }
     }
 

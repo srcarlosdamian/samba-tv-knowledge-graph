@@ -1406,7 +1406,7 @@ LIMIT 20`,
 // ─────────────────────────────────────────────────────────────────────────────
 // Dynamic Table Bindings Generator respecting Limit
 // ─────────────────────────────────────────────────────────────────────────────
-export function getTableRows(limit: number = 20, dataset?: GraphDataset): TableRow[] {
+export function getTableRows(limit: number = 100, dataset?: GraphDataset): TableRow[] {
   const rows: TableRow[] = [];
   const baseSambaIds = [
     'e8bbb6fa0afd5cb6', 'b9ccc7fa0cfe6dcb7', 'c1ddd8fa1e0f7ece8', 'd2eee9fa2f217fcf9',
@@ -1436,7 +1436,7 @@ export function getTableRows(limit: number = 20, dataset?: GraphDataset): TableR
 // ─────────────────────────────────────────────────────────────────────────────
 // Query Engine: Select matching dataset for any user query or fallback
 // ─────────────────────────────────────────────────────────────────────────────
-export function getGraphDataset(queryText: string, limit: number = 20): GraphDataset {
+export function getGraphDataset(queryText: string, limit: number = 100): GraphDataset {
   const q = (queryText || '').toLowerCase().trim();
   let ds: GraphDataset;
 

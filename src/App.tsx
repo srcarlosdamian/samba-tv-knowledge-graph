@@ -670,7 +670,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
   limit: string;
   setLimit: (l: string) => void;
 }) {
-  const [techExpanded, setTechExpanded] = useState(true);
+  const [showModel, setShowModel] = useState(false);
   const [sparqlTab, setSparqlTab] = useState<'select' | 'construct'>('select');
   const [model, setModel] = useState('haiku');
   const [copied, setCopied] = useState(false);
@@ -807,7 +807,7 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
           </div>
           <div style={{ justifyContent: 'flex-start', alignItems: 'center', gap: 12, display: 'flex' }}>
             <button
-              onClick={() => setTechExpanded(p => !p)}
+              onClick={() => setShowModel(p => !p)}
               style={{
                 width: 24,
                 height: 24,
@@ -822,70 +822,73 @@ function KnowledgeGraphSidebar({ graphTab, setGraphTab, query, setQuery, onRunAn
                 border: 'none',
                 cursor: 'pointer',
               }}
-              title="Toggle details"
+              title="Toggle LLM model selection"
             >
-              {techExpanded ? <ChevronUp size={14} color="#E5E5E5" /> : <ChevronDown size={14} color="#E5E5E5" />}
+              {showModel ? <ChevronUp size={14} color="#E5E5E5" /> : <ChevronDown size={14} color="#E5E5E5" />}
             </button>
           </div>
         </div>
 
-        {techExpanded && (
-          <>
-            <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8, display: 'flex' }}>
-              <SelectDropdown options={MODELS} value={model} onChange={setModel} />
-            </div>
-            <div style={{ alignSelf: 'stretch', height: 32, padding: 4, background: 'var(--white, #1A1A1A)', borderRadius: 4, justifyContent: 'center', alignItems: 'center', gap: 4, display: 'inline-flex' }}>
-              <button
-                onClick={() => setSparqlTab('select')}
-                style={{
-                  flex: '1 1 0',
-                  alignSelf: 'stretch',
-                  background: sparqlTab === 'select' ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent',
-                  borderRadius: 4,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: 10,
-                  display: 'flex',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ color: sparqlTab === 'select' ? 'var(--black, #E5E5E5)' : 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
-                  Select
-                </div>
-              </button>
-              <button
-                onClick={() => setSparqlTab('construct')}
-                style={{
-                  flex: '1 1 0',
-                  alignSelf: 'stretch',
-                  background: sparqlTab === 'construct' ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent',
-                  borderRadius: 4,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: 10,
-                  display: 'flex',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ color: sparqlTab === 'construct' ? 'var(--black, #E5E5E5)' : 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
-                  Construct
-                </div>
-              </button>
-            </div>
-            <SparqlCodeViewer code={activeSparqlCode} onCopy={handleCopy} copied={copied} />
-          </>
+        {/* LLM Model choice dropdown (hidden by default) */}
+        {showModel && (
+          <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 8, display: 'flex' }}>
+            <SelectDropdown options={MODELS} value={model} onChange={setModel} />
+          </div>
         )}
+
+        {/* SPARQL Select / Construct section (always visible, no option to hide) */}
+        <div style={{ alignSelf: 'stretch', height: 32, padding: 4, background: 'var(--white, #1A1A1A)', borderRadius: 4, justifyContent: 'center', alignItems: 'center', gap: 4, display: 'inline-flex' }}>
+          <button
+            onClick={() => setSparqlTab('select')}
+            style={{
+              flex: '1 1 0',
+              alignSelf: 'stretch',
+              background: sparqlTab === 'select' ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent',
+              borderRadius: 4,
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 10,
+              display: 'flex',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ color: sparqlTab === 'select' ? 'var(--black, #E5E5E5)' : 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
+              Select
+            </div>
+          </button>
+          <button
+            onClick={() => setSparqlTab('construct')}
+            style={{
+              flex: '1 1 0',
+              alignSelf: 'stretch',
+              background: sparqlTab === 'construct' ? 'var(--NEUTRAL-200, #2E2E2E)' : 'transparent',
+              borderRadius: 4,
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 10,
+              display: 'flex',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ color: sparqlTab === 'construct' ? 'var(--black, #E5E5E5)' : 'var(--NEUTRAL-500, #8A8A8A)', fontSize: 14, fontFamily: "'Season Sans', 'Inter', sans-serif", fontWeight: 400, lineHeight: '20px' }}>
+              Construct
+            </div>
+          </button>
+        </div>
+        <SparqlCodeViewer code={activeSparqlCode} onCopy={handleCopy} copied={copied} />
       </div>
 
       {/* Run Analysis Button */}
       <button
         onClick={onRunAnalysis}
-        className="cursor-pointer"
+        className="cursor-pointer shrink-0"
         style={{
           alignSelf: 'stretch',
           height: 40,
+          minHeight: 40,
+          flexShrink: 0,
           paddingLeft: 16,
           paddingRight: 16,
           background: 'var(--PACIFIC--BLUE-500, #6781A8)',
@@ -1880,12 +1883,12 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 }) {
   const [graphTab, setGraphTab] = useState<GraphTab>('graph');
   const [localQuery, setLocalQuery] = useState(query);
-  const [limit, setLimit] = useState('20');
+  const [limit, setLimit] = useState('100');
   const [page, setPage] = useState(1);
   const [selectedNode, setSelectedNode] = useState<Node3DData | null>(null);
   const graphRef = useRef<Graph3DHandle>(null);
 
-  const limitNum = parseInt(limit, 10) || 20;
+  const limitNum = parseInt(limit, 10) || 100;
 
   useEffect(() => {
     setPage(1);
@@ -1917,9 +1920,9 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
   const legendItems = [
     { label: 'Genre',      color: '#63BA8C', dot: true  }, // green-500
     { label: 'Individual', color: '#BE2440', dot: true  }, // SIGNAL-RED-500
-    { label: 'Topic',      color: '#BE2440', dot: true  }, // SIGNAL-RED-500
+    { label: 'Topic',      color: '#B43A79', dot: true  }, // pink-500
     { label: 'Household',  color: '#6781A8', dot: true  }, // PACIFIC-BLUE-500
-    { label: 'Affinity',   color: 'var(--NEUTRAL-500, #8A8A8A)', dot: false },
+    { label: 'Affinity',   color: '#636363', dot: false }, // NEUTRAL-400
   ];
 
   return (
@@ -1936,66 +1939,45 @@ function KnowledgeGraphView({ query, onNavigateAudience, graphConfig, showGraphE
 
       {/* ── Top floating bar (only on graph tab) ── */}
       {graphTab === 'graph' && (
-        <div className="flex items-center justify-center pt-3 pb-1 px-4" style={{ pointerEvents: 'none' }}>
-          <div className="flex items-center gap-4 rounded-lg px-4 py-1.5 flex-wrap"
-            style={{
-              backgroundColor: 'var(--NEUTRAL-100, #222222)',
-              border: '1px solid var(--NEUTRAL-200, #2E2E2E)',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.5)',
-              pointerEvents: 'auto'
-            }}>
+        <div className="flex items-center justify-center pt-3 pb-1 px-4 pointer-events-none">
+          <div className="px-6 py-2 bg-[var(--NEUTRAL-100,#222222)] overflow-hidden rounded-lg inline-flex items-center justify-start pointer-events-auto border border-[#2E2E2E] shadow-md">
+            <div className="rounded-lg flex items-center justify-start gap-6">
 
-            {/* Stats */}
-            <div className="flex gap-4 items-center">
-              {[
-                { val: dataset.metrics.peopleMatch, sub: 'People match' },
-                { val: dataset.metrics.seedHousehold, sub: 'Seed household' }
-              ].map(({ val, sub }) => (
-                <div key={sub} className="flex flex-col items-center">
-                  <span style={{ fontFamily: "'Season Mix', 'Season Sans', 'Inter', sans-serif", fontWeight: 580, fontSize: 16, color: 'var(--black, #E5E5E5)', lineHeight: '22px' }}>{val}</span>
-                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 10.5, color: 'var(--NEUTRAL-600, #A3A3A3)', lineHeight: '14px' }}>{sub}</span>
-                </div>
-              ))}
+              {/* Legend */}
+              <div className="flex items-center gap-6">
+                {legendItems.map(({ label, color, dot }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    {dot ? (
+                      <div className="w-[10px] h-[10px] rounded-full shrink-0" style={{ backgroundColor: color }} />
+                    ) : (
+                      <div className="w-[10px] h-[2px] shrink-0" style={{ backgroundColor: color }} />
+                    )}
+                    <span className="text-[#E5E5E5] text-sm font-['Season_Sans',sans-serif] leading-5 whitespace-nowrap">{label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Vertical divider */}
+              <div className="h-6 w-px bg-[var(--NEUTRAL-300,#4A4D50)] shrink-0" />
+
+              {/* Counts */}
+              <div className="flex items-center gap-4 text-sm text-[var(--NEUTRAL-500,#8A8A8A)] font-['Season_Sans',sans-serif] leading-5 whitespace-nowrap">
+                <span>{dataset.nodes.length} nodes</span>
+                <span>{dataset.edges.length} edges</span>
+              </div>
+
+              {/* Vertical divider */}
+              <div className="h-6 w-px bg-[var(--NEUTRAL-300,#4A4D50)] shrink-0" />
+
+              {/* Button */}
+              <button
+                onClick={onNavigateAudience}
+                className="h-8 px-3 bg-[var(--NEUTRAL-300,#4A4D50)] hover:bg-[#5A5D60] rounded-md flex items-center justify-center gap-2 text-sm text-[var(--NEUTRAL-800,#C6C6C6)] hover:text-white transition-colors cursor-pointer font-['Season_Sans',sans-serif] leading-5 whitespace-nowrap"
+              >
+                Explore this audience
+              </button>
+
             </div>
-
-            <PillDivider />
-
-            {/* Legend */}
-            <div className="flex gap-3 items-center flex-wrap">
-              {legendItems.map(({ label, color, dot }) => (
-                <div key={label} className="flex gap-1.5 items-center">
-                  {dot
-                    ? <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: color }} />
-                    : <div style={{ width: 10, height: 1.5, backgroundColor: 'var(--NEUTRAL-500, #8A8A8A)', borderRadius: 1 }} />}
-                  <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--NEUTRAL-800, #C6C6C6)', lineHeight: '16px' }}>{label}</span>
-                </div>
-              ))}
-            </div>
-
-            <PillDivider />
-
-            {/* Counts */}
-            <div className="flex gap-3 items-center">
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--NEUTRAL-500, #8A8A8A)' }}>{dataset.nodes.length} nodes</span>
-              <span style={{ fontFamily: "'Season Sans', 'Inter', sans-serif", fontSize: 12, color: 'var(--NEUTRAL-500, #8A8A8A)' }}>{dataset.edges.length} edges</span>
-            </div>
-
-            <PillDivider />
-
-            <button onClick={onNavigateAudience}
-              className="flex items-center justify-center rounded-md transition-colors cursor-pointer"
-              style={{
-                backgroundColor: 'var(--NEUTRAL-200, #2E2E2E)',
-                padding: '0 10px', height: 28,
-                fontFamily: "'Season Sans', 'Inter', sans-serif",
-                fontSize: 12, color: 'var(--black, #E5E5E5)', border: '1px solid var(--NEUTRAL-300, #4A4D50)',
-                fontWeight: 400
-              }}
-              onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--NEUTRAL-300, #4A4D50)'; }}
-              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--NEUTRAL-200, #2E2E2E)'; }}
-            >
-              Explore this audience
-            </button>
           </div>
         </div>
       )}
