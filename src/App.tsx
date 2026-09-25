@@ -2516,21 +2516,19 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Age */}
           <div
-            className={`flex flex-col justify-between rounded-2xl p-5${ready ? ' cohort-panel' : ''}`}
+            className={`flex flex-col justify-between rounded-xl p-5 bg-[var(--NEUTRAL-50,#1E1E1E)] border border-[var(--NEUTRAL-200,#2E2E2E)] overflow-hidden${ready ? ' cohort-panel' : ''}`}
             style={{
-              backgroundColor: 'transparent',
-              border: '1px solid #2e2e2e',
-              minHeight: 180,
+              minHeight: 200,
               animationDelay: '0.70s',
             }}
           >
             <div>
-              <h3 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Age</h3>
-              <p style={{ fontSize: 11, color: '#8a8a8a', marginTop: 2, marginBottom: 16 }}>People per band, summed</p>
+              <h3 className="font-['Season_Sans',sans-serif] text-[15px] font-medium text-[var(--black,#E5E5E5)] leading-5">Age</h3>
+              <p className="text-xs text-[var(--NEUTRAL-500,#8A8A8A)] mt-0.5 mb-4">People per band, summed</p>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-end justify-between gap-1 h-[68px] w-full px-0.5">
+            <div className="flex flex-col gap-1.5 w-full">
+              <div className="flex items-end justify-between gap-1 h-[64px] w-full">
                 {d.ageBands.map((v, i) => {
                   const max = 75;
                   const h = (v / max) * 100;
@@ -2540,7 +2538,7 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
                       className={`flex-1 rounded-t-[2px] hover:opacity-85${ready ? ' cohort-bar-v' : ''}`}
                       style={{
                         height: `${h}%`,
-                        backgroundColor: '#6781a8',
+                        backgroundColor: 'var(--PACIFIC--BLUE-500, #6781A8)',
                         animationDelay: `${0.75 + i * 0.04}s`,
                         animationDuration: '0.45s',
                       }}
@@ -2551,7 +2549,7 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
               </div>
               <div className="flex justify-between w-full">
                 {d.ageBandLabels.map((lbl, i) => (
-                  <span key={i} style={{ fontSize: 8, color: '#555555', textAlign: 'center', flex: 1 }}>
+                  <span key={i} className="text-[9px] text-[var(--NEUTRAL-500,#8A8A8A)] text-center flex-1 font-mono">
                     {lbl}
                   </span>
                 ))}
@@ -2559,24 +2557,21 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
             </div>
           </div>
 
-          {/* Household Income */}
           {/* Household income */}
           <div
-            className={`flex flex-col justify-between rounded-2xl p-5${ready ? ' cohort-panel' : ''}`}
+            className={`flex flex-col justify-between rounded-xl p-5 bg-[var(--NEUTRAL-50,#1E1E1E)] border border-[var(--NEUTRAL-200,#2E2E2E)] overflow-hidden${ready ? ' cohort-panel' : ''}`}
             style={{
-              backgroundColor: 'transparent',
-              border: '1px solid #2e2e2e',
-              minHeight: 180,
+              minHeight: 200,
               animationDelay: '0.85s',
             }}
           >
             <div>
-              <h3 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Household income</h3>
-              <p style={{ fontSize: 11, color: '#8a8a8a', marginTop: 2, marginBottom: 16 }}>11 bands · skews mid-market</p>
+              <h3 className="font-['Season_Sans',sans-serif] text-[15px] font-medium text-[var(--black,#E5E5E5)] leading-5">Household income</h3>
+              <p className="text-xs text-[var(--NEUTRAL-500,#8A8A8A)] mt-0.5 mb-4">11 bands · skews mid-market</p>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-end justify-between gap-1 h-[68px] w-full px-0.5">
+            <div className="flex flex-col gap-1.5 w-full">
+              <div className="flex items-end justify-between gap-1 h-[64px] w-full">
                 {d.incomes.map((v, i) => {
                   const max = 75;
                   const h = (v / max) * 100;
@@ -2586,7 +2581,7 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
                       className={`flex-1 rounded-t-[2px] hover:opacity-85${ready ? ' cohort-bar-v' : ''}`}
                       style={{
                         height: `${h}%`,
-                        backgroundColor: '#6781a8',
+                        backgroundColor: 'var(--PACIFIC--BLUE-500, #6781A8)',
                         animationDelay: `${0.90 + i * 0.035}s`,
                         animationDuration: '0.45s',
                       }}
@@ -2597,7 +2592,7 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
               </div>
               <div className="flex justify-between w-full">
                 {d.incomeLabels.map((lbl, i) => (
-                  <span key={i} style={{ fontSize: 7.5, color: '#555555', textAlign: 'center', flex: 1 }}>
+                  <span key={i} className="text-[8px] text-[var(--NEUTRAL-500,#8A8A8A)] text-center flex-1 font-mono">
                     {lbl}
                   </span>
                 ))}
@@ -2607,35 +2602,33 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
 
           {/* Race & Ethnicity */}
           <div
-            className={`flex flex-col justify-between rounded-2xl p-5${ready ? ' cohort-panel' : ''}`}
+            className={`flex flex-col justify-between rounded-xl p-5 bg-[var(--NEUTRAL-50,#1E1E1E)] border border-[var(--NEUTRAL-200,#2E2E2E)] overflow-hidden${ready ? ' cohort-panel' : ''}`}
             style={{
-              backgroundColor: 'transparent',
-              border: '1px solid #2e2e2e',
-              minHeight: 180,
+              minHeight: 200,
               animationDelay: '1.00s',
             }}
           >
             <div>
-              <h3 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Race &amp; ethnicity</h3>
-              <p style={{ fontSize: 11, color: '#8a8a8a', marginTop: 2, marginBottom: 14 }}>People per band, summed</p>
+              <h3 className="font-['Season_Sans',sans-serif] text-[15px] font-medium text-[var(--black,#E5E5E5)] leading-5">Race &amp; ethnicity</h3>
+              <p className="text-xs text-[var(--NEUTRAL-500,#8A8A8A)] mt-0.5 mb-3">People per band, summed</p>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 w-full">
               {d.race.map((r, idx) => (
-                <div key={r.label} className="flex items-center gap-2">
-                  <span style={{ fontSize: 12, color: '#dedede', width: 55, flexShrink: 0 }}>{r.label}</span>
-                  <div className="flex-1 rounded-full overflow-hidden" style={{ height: 5, backgroundColor: '#202020' }}>
+                <div key={r.label} className="flex items-center justify-between gap-2 w-full">
+                  <span className="text-xs text-[var(--black,#E5E5E5)] w-14 shrink-0 whitespace-nowrap">{r.label}</span>
+                  <div className="flex-1 rounded-full overflow-hidden h-1.5 bg-[#2E2E2E]">
                     <div
                       className={`h-full rounded-full${ready ? ' cohort-bar' : ''}`}
                       style={{
                         width: `${r.pct * 100}%`,
-                        backgroundColor: '#6781a8',
+                        backgroundColor: 'var(--PACIFIC--BLUE-500, #6781A8)',
                         animationDelay: `${1.05 + idx * 0.07}s`,
                         animationDuration: '0.5s',
                       }}
                     />
                   </div>
-                  <span style={{ fontSize: 12, color: '#737373', width: 38, textAlign: 'right', flexShrink: 0 }}>{r.value}</span>
+                  <span className="text-xs text-[var(--NEUTRAL-500,#8A8A8A)] shrink-0 text-right min-w-[34px] font-mono whitespace-nowrap">{r.value}</span>
                 </div>
               ))}
             </div>
@@ -2643,40 +2636,38 @@ function AudienceView({ onBackToGraph }: { onBackToGraph?: () => void }) {
 
           {/* Household Makeup */}
           <div
-            className={`flex flex-col justify-between rounded-2xl p-5${ready ? ' cohort-panel' : ''}`}
+            className={`flex flex-col justify-between rounded-xl p-5 bg-[var(--NEUTRAL-50,#1E1E1E)] border border-[var(--NEUTRAL-200,#2E2E2E)] overflow-hidden${ready ? ' cohort-panel' : ''}`}
             style={{
-              backgroundColor: 'transparent',
-              border: '1px solid #2e2e2e',
-              minHeight: 180,
+              minHeight: 200,
               animationDelay: '1.15s',
             }}
           >
             <div>
-              <h3 style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 18, fontWeight: 400, color: '#ffffff', lineHeight: '22px' }}>Household makeup</h3>
-              <p style={{ fontSize: 11, color: '#8a8a8a', marginTop: 2, marginBottom: 12 }}>Average per household</p>
+              <h3 className="font-['Season_Sans',sans-serif] text-[15px] font-medium text-[var(--black,#E5E5E5)] leading-5">Household makeup</h3>
+              <p className="text-xs text-[var(--NEUTRAL-500,#8A8A8A)] mt-0.5 mb-3">Average per household</p>
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 w-full">
                 {[
                   { label: 'Household size', val: d.householdMakeup.size },
                   { label: 'Adults', val: d.householdMakeup.adults },
                   { label: 'Children', val: d.householdMakeup.children },
                 ].map(({ label, val }) => (
-                  <div key={label} className="flex items-center justify-between">
-                    <span style={{ fontSize: 12, color: '#9e9e9e' }}>{label}</span>
-                    <span style={{ fontFamily: "'Season Mix', 'Newsreader', serif", fontSize: 18, fontWeight: 400, color: '#ffffff' }}>{val}</span>
+                  <div key={label} className="flex items-center justify-between w-full">
+                    <span className="text-xs text-[var(--NEUTRAL-600,#A3A3A3)] whitespace-nowrap">{label}</span>
+                    <span className="text-[15px] font-medium text-[var(--black,#E5E5E5)] font-['Season_Sans',sans-serif] whitespace-nowrap">{val}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-1">
-                <span style={{ fontSize: 11, color: '#737373' }}>Male {d.householdMakeup.male}</span>
-                <span style={{ fontSize: 11, color: '#737373' }}>Female {d.householdMakeup.female}</span>
+            <div className="mt-3 w-full">
+              <div className="flex items-center justify-between mb-1.5 text-xs text-[var(--NEUTRAL-500,#8A8A8A)]">
+                <span>Male {d.householdMakeup.male}</span>
+                <span>Female {d.householdMakeup.female}</span>
               </div>
-              <div className="flex rounded-full overflow-hidden" style={{ height: 5 }}>
-                <div style={{ flex: d.householdMakeup.malePct, backgroundColor: '#6781a8' }} />
-                <div style={{ flex: d.householdMakeup.femalePct, backgroundColor: '#d9485c' }} />
+              <div className="flex rounded-full overflow-hidden h-1.5 w-full bg-[#2E2E2E]">
+                <div style={{ flex: d.householdMakeup.malePct, backgroundColor: 'var(--PACIFIC--BLUE-500, #6781A8)' }} />
+                <div style={{ flex: d.householdMakeup.femalePct, backgroundColor: 'var(--SIGNAL--RED-500, #BE2440)' }} />
               </div>
             </div>
           </div>
